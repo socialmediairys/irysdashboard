@@ -1,29 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
+import Painel360 from "@/components/Painel360";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "Painel 360° — Thamirys" },
+      { name: "description", content: "Dashboard 360° para gestoras de Social Media: clientes, CRM, finanças, agenda e conteúdo." },
+      { property: "og:title", content: "Painel 360°" },
+      { property: "og:description", content: "Dashboard 360° para gestoras de Social Media." },
     ],
   }),
-  component: Index,
+  component: Painel360,
 });
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
-}
