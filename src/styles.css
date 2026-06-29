@@ -138,7 +138,22 @@
   }
 
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: #EDEAE5;
+    color: #1A0A02;
+    font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
 }
+
+@theme inline {
+  --color-p-dark: #2C1505;
+  --color-p-mid: #7A4A18;
+  --color-p-gold: #C9A46E;
+  --color-p-beige: #E8D8C0;
+  --color-p-beige-light: #F5EEE5;
+  --color-p-bg: #EDEAE5;
+  --color-p-text: #1A0A02;
+  --color-p-text-mid: #7A6050;
+  --color-p-text-muted: #BBA898;
+}
+
