@@ -284,7 +284,7 @@ function PageHeader({ eyebrow, title, accent, actions, badges }: {
 /* ---------- Sidebar ---------- */
 type PageKey =
   | "dash" | "agenda" | "clientes" | "crm" | "financas" | "social"
-  | "estrategia" | "oficina" | "swipe" | "prompts" | "estudo" | "ferramentas";
+  | "estrategia" | "oficina" | "swipe" | "prompts" | "estudo" | "ferramentas" | "central";
 
 const NAV: { key: PageKey; label: string; icon: typeof LayoutDashboard }[] = [
   { key: "dash", label: "Dashboard", icon: LayoutDashboard },
@@ -299,7 +299,9 @@ const NAV: { key: PageKey; label: string; icon: typeof LayoutDashboard }[] = [
   { key: "prompts", label: "Prompts IA", icon: Bot },
   { key: "estudo", label: "Estudo", icon: BookOpen },
   { key: "ferramentas", label: "Ferramentas", icon: Wrench },
+  { key: "central", label: "Central do Cliente", icon: UserSquare2 },
 ];
+
 
 function Sidebar({ active, setActive }: { active: PageKey; setActive: (p: PageKey) => void }) {
   return (
