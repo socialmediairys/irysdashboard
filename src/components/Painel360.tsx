@@ -2,7 +2,9 @@ import { useMemo, useState, useRef, useEffect, type ReactNode, type CSSPropertie
 import {
   LayoutDashboard, Calendar, Users, TrendingUp, CreditCard, Instagram,
   Lightbulb, PenLine, Bookmark, Bot, BookOpen, Wrench, Plus, Zap, ArrowRight,
+  UserSquare2, Play, Pause, ChevronDown, ChevronRight, ArrowLeft, FolderOpen, Video, CheckCircle2, Circle,
 } from "lucide-react";
+
 
 /* ---------- DB ---------- */
 const DB = {
