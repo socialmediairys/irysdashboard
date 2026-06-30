@@ -98,7 +98,41 @@ const DB = {
     { ico:"📸", name:"Instagram Business API", desc:"Métricas e publicação via API",     live:true },
     { ico:"🔵", name:"Meta Business Suite",    desc:"Facebook Ads + Instagram Ads",      live:true },
   ],
+  /* Dados compartilhados do Portal do Cliente (Notion-like) */
+  portalCliente: {
+    videoBoasVindas: "Video Central.mp4",
+    driveLink: "https://drive.google.com/",
+    insightsLink: "https://drive.google.com/",
+    metasProgresso: { entregues: 8, total: 10 },
+    audios: [
+      { id:1, title:"Boas-Vindas & Nossa Dinâmica", desc:"Como vai funcionar o dia a dia da nossa comunicação.", duration:"04:12" },
+      { id:2, title:"Ajustando expectativas: o tempo do orgânico", desc:"Apostar em posicionamento não traz milagre em 3 dias; áudio essencial para acalmar a ansiedade.", duration:"05:30" },
+      { id:3, title:"Ninguém cria conteúdo sozinho", desc:"A importância de a especialista enviar os bastidores e aparecer nos Stories.", duration:"03:45" },
+      { id:4, title:"A Importância da linha editorial e nicho", desc:"Por que não devemos falar de todos os procedimentos ao mesmo tempo.", duration:"06:10" },
+      { id:5, title:"A conexão humana nos stories", desc:"Instruções rápidas de como usar os Stories para reter os pacientes.", duration:"04:55" },
+      { id:6, title:"Construção de roteiros rápidos", desc:"Dicas para quando gravar os Reels que foram roteirizados.", duration:"03:20" },
+      { id:7, title:"Organização e envio de materiais", desc:"Como usar os blocos de depósito para não atrasar o cronograma.", duration:"02:50" },
+      { id:8, title:"O que analisar em um relatório mensal", desc:"Para entender que curtida não é a métrica principal de faturamento.", duration:"05:15" },
+    ],
+    etapasTimeline: [
+      { fase:1, nome:"Onboarding & Alinhamento Base", desc:"Assinatura do contrato, liberação de acessos no cofre e alinhamento inicial.", subitens:["Contrato","Cofre","Briefing","Onboarding"], ativa:true },
+      { fase:2, nome:"Diagnóstico de Perfil & Análise de Concorrentes", desc:"Investigação profunda do seu mercado de estética, auditoria de Instagram e mapeamento.", subitens:["Diagnóstico de Perfil","Análise de Concorrentes"], ativa:false },
+      { fase:3, nome:"Universo Visual & Identidade Verbal", desc:"Definição da estética da sua marca pessoal (cores, tipografias, fotos premium) e tom de voz.", subitens:["Estética","Tom de Voz","Drive"], ativa:false },
+      { fase:4, nome:"Estratégia de Conteúdo & Funil de Vendas", desc:"Criação do seu primeiro cronograma oficial de postagens estruturado para gerar desejo.", subitens:["Cronograma 1","Funil de Vendas"], ativa:false },
+      { fase:5, nome:"Produção, Gravações & Aprovação", desc:"Envio de roteiros rápidos, edição impecável por nossa conta e validação final.", subitens:["Roteiros","Edição","Vídeos"], ativa:false },
+      { fase:6, nome:"Análise de Métricas & Próximo Ciclo", desc:"Nossa reunião mensal de fechamento. Analisamos o crescimento e desenhamos o próximo mês.", subitens:["Reunião 1","Apresentação"], ativa:false },
+    ],
+    bloqueadores: [
+      { n:1, t:"Panfletagem digital", sub:"Excesso de posts de venda direta", por:"O algoritmo penaliza perfis que só vendem. Sem entregar valor, o feed perde alcance e o público se desconecta — vira ruído comercial." },
+      { n:2, t:"Uso de linguagem muito técnica", sub:"Explicar termos clínicos sem traduzir para benefícios reais", por:"A paciente não compra procedimento, compra transformação. Termos técnicos afastam quem ainda não entende o que precisa." },
+      { n:3, t:"Perfil 'fantasma'", sub:"Falta de humanização e bastidores reais nos stories", por:"Sem rosto, sem voz e sem rotina, o perfil vira catálogo. A conexão humana é o que gera desejo e confiança para agendar." },
+      { n:4, t:"Falta de consistência e ritmo", sub:"Postagens instáveis e quebra de algoritmo", por:"O algoritmo recompensa frequência. Sumir por semanas zera o aquecimento da conta e força recomeçar do zero." },
+      { n:5, t:"Atração de público errado", sub:"Trends sem nexo ou puramente por curtidas vazias", por:"Viralizar com público que nunca vai te contratar infla vaidade, mas não gera agenda. Métrica que importa é qualificação." },
+      { n:6, t:"Link da bio quebrado ou complexo", sub:"Falta de canal direto facilitado para WhatsApp", por:"Cada clique a mais é uma paciente perdida. Link direto, sem intermediários, é o que converte interesse em agendamento." },
+    ],
+  },
 };
+
 
 /* ---------- tokens ---------- */
 const C = {
