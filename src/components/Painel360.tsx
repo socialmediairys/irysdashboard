@@ -1019,14 +1019,383 @@ function FerramentasPage() {
   );
 }
 
+/* ---------- Central do Cliente (gestão) ---------- */
+type Cliente = (typeof DB.clientes)[number];
+
+function CentralClientePage({ selectedId, setSelectedId, enterPortal }: {
+  selectedId: number; setSelectedId: (id: number) => void; enterPortal: () => void;
+}) {
+  const cliente = DB.clientes.find(c => c.id === selectedId) ?? DB.clientes[0];
+  const portal = DB.portalCliente;
+  const pct = Math.round((portal.metasProgresso.entregues / portal.metasProgresso.total) * 100);
+
+  return (
+    <>
+      <PageHeader
+        eyebrow="Página 13 · Portal exclusivo"
+        title="Central do"
+        accent="Cliente."
+        badges={<LiveBadge label="Notion-sync simulado" />}
+        actions={<PillBtn variant="gold" onClick={enterPortal}><UserSquare2 size={14} className="inline mr-1" /> Abrir Visão Cliente</PillBtn>}
+      />
+
+      <div className="grid grid-cols-3 gap-5 mb-6">
+        <Card className="col-span-2">
+          <SectionLabel>Cliente em visualização</SectionLabel>
+          <div className="flex items-center gap-2 flex-wrap">
+            {DB.clientes.map(c => {
+              const active = c.id === cliente.id;
+              return (
+                <button key={c.id} onClick={() => setSelectedId(c.id)}
+                  className="flex items-center gap-2 rounded-[30px] px-3 py-2 text-sm font-semibold transition-all"
+                  style={{
+                    background: active ? C.dark : "#fff",
+                    color: active ? "#fff" : C.text,
+                    border: `1px solid ${active ? C.dark : C.beige}`,
+                  }}>
+                  <span className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-extrabold"
+                    style={{ background: active ? C.gold : C.beigeLight, color: C.dark }}>{c.init}</span>
+                  {c.name}
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+        <MetricCard variant="accent" value={`${pct}%`} label="Metas do portal" delta={`${portal.metasProgresso.entregues}/${portal.metasProgresso.total} entregues`} />
+      </div>
+
+      <Card>
+        <SectionLabel>Preview do portal — {cliente.name}</SectionLabel>
+        <p className="text-sm" style={{ color: C.textMid }}>
+          Clique em <strong>Abrir Visão Cliente</strong> para simular exatamente o que <strong>{cliente.name}</strong> enxerga no Notion: vídeo de boas-vindas, 6 fases da parceria, 8 áudios de alinhamento, escopo, banco de insights, jornada de compra e bloqueadores de crescimento.
+        </p>
+        <div className="grid grid-cols-4 gap-4 mt-5">
+          {[
+            { t: "1 vídeo", s: "Guia de navegação" },
+            { t: `${portal.etapasTimeline.length} fases`, s: "Linha do tempo da parceria" },
+            { t: `${portal.audios.length} áudios`, s: "Player de dinâmica" },
+            { t: `${portal.bloqueadores.length} cards`, s: "Bloqueadores de crescimento" },
+          ].map((x, i) => (
+            <div key={i} className="p-4 rounded-[14px]" style={{ background: C.beigeLight }}>
+              <div className="text-2xl font-extrabold" style={{ color: C.dark }}>{x.t}</div>
+              <div className="text-xs mt-1" style={{ color: C.textMid }}>{x.s}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </>
+  );
+}
+
+/* ---------- Portal do Cliente (visão cliente, fullscreen) ---------- */
+function AudioPlayer({ id, title, desc, duration, activeId, setActiveId }: {
+  id: number; title: string; desc: string; duration: string;
+  activeId: number | null; setActiveId: (id: number | null) => void;
+}) {
+  const isPlaying = activeId === id;
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    if (!isPlaying) return;
+    const t = setInterval(() => setProgress(p => (p >= 100 ? 0 : p + 1.2)), 200);
+    return () => clearInterval(t);
+  }, [isPlaying]);
+  useEffect(() => { if (!isPlaying) setProgress(0); }, [isPlaying]);
+
+  return (
+    <div className="rounded-[14px] p-4 flex items-center gap-4" style={{ background: "#fff", boxShadow: SHADOW }}>
+      <button onClick={() => setActiveId(isPlaying ? null : id)}
+        className="h-12 w-12 rounded-full flex items-center justify-center shrink-0 transition-transform hover:scale-105"
+        style={{ background: isPlaying ? C.gold : C.dark, color: isPlaying ? C.dark : "#fff" }}>
+        {isPlaying ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
+      </button>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-baseline justify-between gap-3">
+          <div className="font-semibold truncate" style={{ color: C.text }}>{title}</div>
+          <div className="text-xs font-bold tabular-nums" style={{ color: C.textMid }}>{duration}</div>
+        </div>
+        <div className="text-xs mt-0.5 mb-2 line-clamp-1" style={{ color: C.textMid }}>{desc}</div>
+        <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: C.beigeLight }}>
+          <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${C.mid}, ${C.gold})` }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FaseAccordion({ fase, nome, desc, subitens, ativa, open, onToggle }: {
+  fase: number; nome: string; desc: string; subitens: string[]; ativa: boolean;
+  open: boolean; onToggle: () => void;
+}) {
+  return (
+    <div className="rounded-[18px] overflow-hidden" style={{ background: "#fff", boxShadow: SHADOW }}>
+      <button onClick={onToggle} className="w-full p-5 flex items-center gap-4 text-left">
+        <div className="h-11 w-11 rounded-full flex items-center justify-center shrink-0 text-sm font-extrabold"
+          style={{ background: ativa ? C.gold : C.beigeLight, color: C.dark }}>
+          {fase}
+        </div>
+        <div className="flex-1">
+          <div className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: ativa ? C.mid : C.textMid }}>
+            Fase {fase} {ativa && "· Em andamento"}
+          </div>
+          <div className="font-extrabold mt-0.5" style={{ color: C.text }}>{nome}</div>
+        </div>
+        {open ? <ChevronDown size={20} style={{ color: C.textMid }} /> : <ChevronRight size={20} style={{ color: C.textMid }} />}
+      </button>
+      {open && (
+        <div className="px-5 pb-5" style={{ paddingLeft: "80px" }}>
+          <p className="text-sm mb-3" style={{ color: C.textMid }}>{desc}</p>
+          <ul className="space-y-1.5">
+            {subitens.map((s, i) => (
+              <li key={i} className="flex items-center gap-2 text-sm" style={{ color: C.text }}>
+                {ativa ? <CheckCircle2 size={14} style={{ color: C.mid }} /> : <Circle size={14} style={{ color: C.textMuted }} />}
+                {s}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BloqueadorCard({ n, t, sub, por, open, onToggle }: {
+  n: number; t: string; sub: string; por: string; open: boolean; onToggle: () => void;
+}) {
+  return (
+    <div className="rounded-[18px] overflow-hidden" style={{ background: "#fff", boxShadow: SHADOW }}>
+      <button onClick={onToggle} className="w-full p-5 flex items-center gap-4 text-left">
+        <div className="h-10 w-10 rounded-[12px] flex items-center justify-center shrink-0 text-sm font-extrabold"
+          style={{ background: C.beigeLight, color: C.dark }}>
+          {n}
+        </div>
+        <div className="flex-1">
+          <div className="font-extrabold" style={{ color: C.text }}>{t}</div>
+          <div className="text-xs mt-0.5" style={{ color: C.textMid }}>{sub}</div>
+        </div>
+        {open ? <ChevronDown size={20} style={{ color: C.textMid }} /> : <ChevronRight size={20} style={{ color: C.textMid }} />}
+      </button>
+      {open && (
+        <div className="px-5 pb-5" style={{ paddingLeft: "76px" }}>
+          <div className="text-[11px] font-bold uppercase tracking-[0.18em] mb-1" style={{ color: C.mid }}>Por que bloqueia</div>
+          <p className="text-sm" style={{ color: C.text }}>{por}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => void }) {
+  const portal = DB.portalCliente;
+  const [videoPlaying, setVideoPlaying] = useState(false);
+  const [activeAudioId, setActiveAudioId] = useState<number | null>(null);
+  const [openFase, setOpenFase] = useState<number | null>(1);
+  const [openBloq, setOpenBloq] = useState<number | null>(null);
+
+  return (
+    <div className="min-h-screen" style={{ background: C.bg }}>
+      <header className="sticky top-0 z-30 flex items-center justify-between px-8 py-4"
+        style={{ background: C.dark, color: "#fff", boxShadow: SHADOW }}>
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-extrabold"
+            style={{ background: `linear-gradient(135deg, ${C.mid}, ${C.gold})`, color: "#fff" }}>
+            {cliente.init}
+          </div>
+          <div>
+            <div className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: "rgba(255,255,255,0.6)" }}>
+              Portal exclusivo · Notion
+            </div>
+            <div className="font-extrabold">{cliente.name}</div>
+          </div>
+        </div>
+        <button onClick={onExit}
+          className="rounded-[30px] px-5 py-2.5 text-sm font-semibold flex items-center gap-2 transition-all hover:-translate-y-0.5"
+          style={{ background: C.gold, color: C.dark }}>
+          <ArrowLeft size={14} /> Voltar para Gestão
+        </button>
+      </header>
+
+      <div className="mx-auto max-w-[1100px] p-8 space-y-8">
+        <section className="rounded-[18px] p-8" style={{ background: C.beigeLight }}>
+          <Eyebrow>Bloco 1 · Boas-vindas</Eyebrow>
+          <h2 className="text-3xl font-extrabold mt-2 mb-4" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+            Seja bem-vinda ao seu ecossistema.
+          </h2>
+          <p className="text-base leading-relaxed" style={{ color: C.text }}>
+            Seja bem-vinda ao seu ecossistema de <strong>posicionamento, desejo e marketing de diferenciação</strong>.
+            Este é o espaço onde toda a estratégia da sua marca pessoal acontece — da primeira reunião à análise mensal.
+            Reserve um tempo para explorar cada bloco abaixo com calma; tudo aqui foi desenhado para destravar o seu próximo nível.
+          </p>
+        </section>
+
+        <section className="grid grid-cols-2 gap-6 items-center">
+          <div className="aspect-video rounded-[18px] overflow-hidden relative flex items-center justify-center cursor-pointer group"
+            style={{ background: `linear-gradient(135deg, ${C.dark}, #4A2510)`, boxShadow: SHADOW }}
+            onClick={() => setVideoPlaying(v => !v)}>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="h-20 w-20 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
+                style={{ background: C.gold, color: C.dark }}>
+                {videoPlaying ? <Pause size={28} /> : <Play size={28} className="ml-1" />}
+              </div>
+            </div>
+            <div className="absolute bottom-4 left-4 flex items-center gap-2 text-xs font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
+              <Video size={14} /> {portal.videoBoasVindas}
+            </div>
+          </div>
+          <div>
+            <Eyebrow>Guia de navegação</Eyebrow>
+            <h3 className="text-2xl font-extrabold mt-2 mb-3" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+              Comece por aqui.
+            </h3>
+            <p className="text-sm leading-relaxed" style={{ color: C.textMid }}>
+              O vídeo ao lado contém orientações fundamentais sobre como funciona a nossa nova plataforma de trabalho
+              e o que você deve preencher até o dia do nosso encontro estratégico.
+            </p>
+          </div>
+        </section>
+
+        <section>
+          <Eyebrow>Bloco 2 · Linha do tempo da parceria</Eyebrow>
+          <h2 className="text-2xl font-extrabold mt-2 mb-5" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+            As 6 fases que vamos atravessar juntas.
+          </h2>
+          <div className="space-y-3">
+            {portal.etapasTimeline.map(f => (
+              <FaseAccordion key={f.fase} {...f}
+                open={openFase === f.fase}
+                onToggle={() => setOpenFase(openFase === f.fase ? null : f.fase)} />
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <Eyebrow>Bloco 3 · Gestão de expectativas</Eyebrow>
+          <h2 className="text-2xl font-extrabold mt-2 mb-2" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+            Boas-vidas & nossa dinâmica.
+          </h2>
+          <p className="text-sm mb-5" style={{ color: C.textMid }}>
+            Os áudios abaixo foram gravados especialmente para alinhar a nossa operação.
+            Não deixe de ouvi-los antes do nosso primeiro encontro estratégico!
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {portal.audios.map(a => (
+              <AudioPlayer key={a.id} {...a} activeId={activeAudioId} setActiveId={setActiveAudioId} />
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <Eyebrow>Bloco 4 · Referencial de entrega</Eyebrow>
+          <h2 className="text-2xl font-extrabold mt-2 mb-5" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+            O que está incluso na sua marca pessoal.
+          </h2>
+          <Card>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Instagram size={18} style={{ color: C.mid }} />
+                  <div className="font-extrabold">Instagram Feed</div>
+                  <TagBadge label="3x semana" variant="ativo" />
+                </div>
+                <p className="text-sm" style={{ color: C.textMid }}>
+                  Reels de posicionamento, bastidores refinados e Carrosséis educativos de alto valor.
+                </p>
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Instagram size={18} style={{ color: C.mid }} />
+                  <div className="font-extrabold">Instagram Stories</div>
+                  <TagBadge label="Diário" variant="ativo" />
+                </div>
+                <p className="text-sm" style={{ color: C.textMid }}>
+                  Mínimo de 3 blocos de narrativa ao longo do dia para gerar conexão e desejo.
+                </p>
+              </div>
+            </div>
+          </Card>
+        </section>
+
+        <section>
+          <Eyebrow>Bloco 5 · Insights & jornada</Eyebrow>
+          <h2 className="text-2xl font-extrabold mt-2 mb-5" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+            Onde você deposita ideias e como sua paciente decide comprar.
+          </h2>
+          <div className="grid grid-cols-2 gap-5">
+            <Card>
+              <SectionLabel>Banco de Insights</SectionLabel>
+              <p className="text-sm mb-4" style={{ color: C.textMid }}>
+                Envie aqui ideias espontâneas, dúvidas de balcão da especialista, prints de conversas com pacientes
+                e qualquer faísca que possa virar conteúdo. Nada se perde — tudo entra no radar editorial.
+              </p>
+              <a href={portal.insightsLink} target="_blank" rel="noreferrer">
+                <PillBtn variant="gold"><FolderOpen size={14} className="inline mr-2" /> Banco de Insights do Cliente</PillBtn>
+              </a>
+            </Card>
+            <Card>
+              <SectionLabel>Jornada de compra da paciente</SectionLabel>
+              <div className="space-y-3">
+                {[
+                  { t: "Topo de Funil", s: "Atração · Público Frio", c: "#DDE9F2", fg: "#1E4F7A" },
+                  { t: "Meio de Funil", s: "Conexão/Consideração · Público Morno", c: "#FFF3CD", fg: "#8A6914" },
+                  { t: "Base de Funil", s: "Conversão · Público Quente", c: "#FFE5D9", fg: "#A8431E" },
+                ].map((x, i) => (
+                  <div key={i} className="p-3 rounded-[12px] flex items-center gap-3" style={{ background: x.c }}>
+                    <div className="h-8 w-8 rounded-full flex items-center justify-center font-extrabold text-sm"
+                      style={{ background: "#fff", color: x.fg }}>{i + 1}</div>
+                    <div>
+                      <div className="font-extrabold text-sm" style={{ color: x.fg }}>{x.t}</div>
+                      <div className="text-xs" style={{ color: x.fg, opacity: 0.85 }}>{x.s}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        </section>
+
+        <section>
+          <Eyebrow>Bloco 6 · Bloqueadores de crescimento</Eyebrow>
+          <h2 className="text-2xl font-extrabold mt-2 mb-2" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+            Os 6 fatores que travam o algoritmo e o público.
+          </h2>
+          <p className="text-sm mb-5" style={{ color: C.textMid }}>
+            Identificar para evitar. Clique em cada card para entender por que aquele comportamento bloqueia o crescimento.
+          </p>
+          <div className="space-y-3">
+            {portal.bloqueadores.map(b => (
+              <BloqueadorCard key={b.n} {...b}
+                open={openBloq === b.n}
+                onToggle={() => setOpenBloq(openBloq === b.n ? null : b.n)} />
+            ))}
+          </div>
+        </section>
+
+        <footer className="pt-4 pb-8 text-center text-xs" style={{ color: C.textMuted }}>
+          Portal exclusivo {cliente.name} · gerido por Thamirys · Painel 360°
+        </footer>
+      </div>
+    </div>
+  );
+}
+
 /* ---------- Shell ---------- */
 export default function Painel360() {
   const [active, setActive] = useState<PageKey>("dash");
+  const [clienteId, setClienteId] = useState<number>(DB.clientes[0].id);
+  const [viewMode, setViewMode] = useState<"gestao" | "cliente">("gestao");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
-  }, [active]);
+  }, [active, viewMode]);
+
+  if (viewMode === "cliente") {
+    const cliente = DB.clientes.find(c => c.id === clienteId) ?? DB.clientes[0];
+    return (
+      <div className="h-screen overflow-y-auto" style={{ background: C.bg }}>
+        <PortalCliente cliente={cliente} onExit={() => setViewMode("gestao")} />
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen overflow-hidden flex" style={{ background: C.bg, color: C.text }}>
@@ -1045,6 +1414,13 @@ export default function Painel360() {
           {active === "prompts" && <PromptsPage />}
           {active === "estudo" && <EstudoPage />}
           {active === "ferramentas" && <FerramentasPage />}
+          {active === "central" && (
+            <CentralClientePage
+              selectedId={clienteId}
+              setSelectedId={setClienteId}
+              enterPortal={() => setViewMode("cliente")}
+            />
+          )}
         </div>
       </main>
     </div>
