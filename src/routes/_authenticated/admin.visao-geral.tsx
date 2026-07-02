@@ -1,7 +1,8 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import Painel360 from "@/components/Painel360";
 import { supabase } from "@/integrations/supabase/client";
+import { Scale } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/visao-geral")({
   component: AdminGate,
