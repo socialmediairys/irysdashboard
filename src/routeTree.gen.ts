@@ -16,6 +16,7 @@ import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAdminVisaoGeralRouteImport } from './routes/_authenticated/admin.visao-geral'
 import { Route as AuthenticatedAdminJuridicoRouteImport } from './routes/_authenticated/admin.juridico'
+import { Route as AuthenticatedAdminBibliotecaMidiaRouteImport } from './routes/_authenticated/admin.biblioteca-midia'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -53,12 +54,19 @@ const AuthenticatedAdminJuridicoRoute =
     path: '/admin/juridico',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminBibliotecaMidiaRoute =
+  AuthenticatedAdminBibliotecaMidiaRouteImport.update({
+    id: '/admin/biblioteca-midia',
+    path: '/admin/biblioteca-midia',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRoute
   '/portal': typeof AuthenticatedPortalRoute
+  '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
 }
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRoute
   '/portal': typeof AuthenticatedPortalRoute
+  '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
 }
@@ -77,6 +86,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
+  '/_authenticated/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
   '/_authenticated/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/_authenticated/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
 }
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app'
     | '/portal'
+    | '/admin/biblioteca-midia'
     | '/admin/juridico'
     | '/admin/visao-geral'
   fileRoutesByTo: FileRoutesByTo
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app'
     | '/portal'
+    | '/admin/biblioteca-midia'
     | '/admin/juridico'
     | '/admin/visao-geral'
   id:
@@ -104,6 +116,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/app'
     | '/_authenticated/portal'
+    | '/_authenticated/admin/biblioteca-midia'
     | '/_authenticated/admin/juridico'
     | '/_authenticated/admin/visao-geral'
   fileRoutesById: FileRoutesById
@@ -165,12 +178,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminJuridicoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/biblioteca-midia': {
+      id: '/_authenticated/admin/biblioteca-midia'
+      path: '/admin/biblioteca-midia'
+      fullPath: '/admin/biblioteca-midia'
+      preLoaderRoute: typeof AuthenticatedAdminBibliotecaMidiaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
+  AuthenticatedAdminBibliotecaMidiaRoute: typeof AuthenticatedAdminBibliotecaMidiaRoute
   AuthenticatedAdminJuridicoRoute: typeof AuthenticatedAdminJuridicoRoute
   AuthenticatedAdminVisaoGeralRoute: typeof AuthenticatedAdminVisaoGeralRoute
 }
@@ -178,6 +199,8 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppRoute: AuthenticatedAppRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
+  AuthenticatedAdminBibliotecaMidiaRoute:
+    AuthenticatedAdminBibliotecaMidiaRoute,
   AuthenticatedAdminJuridicoRoute: AuthenticatedAdminJuridicoRoute,
   AuthenticatedAdminVisaoGeralRoute: AuthenticatedAdminVisaoGeralRoute,
 }
