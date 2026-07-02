@@ -48,12 +48,20 @@ function AdminGate() {
   return (
     <>
       <Painel360 />
-      <Link
-        to="/admin/juridico"
-        className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-[#2C1505] text-white shadow-lg hover:bg-[#7A4A18] transition text-sm"
-      >
-        <Scale className="w-4 h-4" /> Jurídico
-      </Link>
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 items-end">
+        <Link
+          to="/admin/biblioteca-midia"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#7A4A18] text-white shadow-lg hover:bg-[#2C1505] transition text-sm"
+        >
+          <FolderOpen className="w-4 h-4" /> Biblioteca
+        </Link>
+        <Link
+          to="/admin/juridico"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#2C1505] text-white shadow-lg hover:bg-[#7A4A18] transition text-sm"
+        >
+          <Scale className="w-4 h-4" /> Jurídico
+        </Link>
+      </div>
     </>
   );
 }
