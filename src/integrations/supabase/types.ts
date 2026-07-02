@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      arquivos: {
+        Row: {
+          bucket: string
+          cliente_id: string | null
+          contexto: Database["public"]["Enums"]["arquivo_contexto"]
+          created_at: string
+          descricao: string | null
+          duracao_segundos: number | null
+          id: string
+          nome_original: string
+          nome_storage: string
+          ordem: number
+          tamanho_bytes: number | null
+          tarefa_id: string | null
+          tipo_arquivo: Database["public"]["Enums"]["arquivo_tipo"]
+          titulo: string | null
+          updated_at: string
+          uploader_id: string | null
+          url_publica: string | null
+          visivel_cliente: boolean
+        }
+        Insert: {
+          bucket: string
+          cliente_id?: string | null
+          contexto?: Database["public"]["Enums"]["arquivo_contexto"]
+          created_at?: string
+          descricao?: string | null
+          duracao_segundos?: number | null
+          id?: string
+          nome_original: string
+          nome_storage: string
+          ordem?: number
+          tamanho_bytes?: number | null
+          tarefa_id?: string | null
+          tipo_arquivo?: Database["public"]["Enums"]["arquivo_tipo"]
+          titulo?: string | null
+          updated_at?: string
+          uploader_id?: string | null
+          url_publica?: string | null
+          visivel_cliente?: boolean
+        }
+        Update: {
+          bucket?: string
+          cliente_id?: string | null
+          contexto?: Database["public"]["Enums"]["arquivo_contexto"]
+          created_at?: string
+          descricao?: string | null
+          duracao_segundos?: number | null
+          id?: string
+          nome_original?: string
+          nome_storage?: string
+          ordem?: number
+          tamanho_bytes?: number | null
+          tarefa_id?: string | null
+          tipo_arquivo?: Database["public"]["Enums"]["arquivo_tipo"]
+          titulo?: string | null
+          updated_at?: string
+          uploader_id?: string | null
+          url_publica?: string | null
+          visivel_cliente?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arquivos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           created_at: string
@@ -219,6 +290,48 @@ export type Database = {
           },
         ]
       }
+      progresso_audio: {
+        Row: {
+          arquivo_id: string
+          cliente_id: string
+          concluido: boolean
+          id: string
+          posicao_segundos: number
+          updated_at: string
+        }
+        Insert: {
+          arquivo_id: string
+          cliente_id: string
+          concluido?: boolean
+          id?: string
+          posicao_segundos?: number
+          updated_at?: string
+        }
+        Update: {
+          arquivo_id?: string
+          cliente_id?: string
+          concluido?: boolean
+          id?: string
+          posicao_segundos?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progresso_audio_arquivo_id_fkey"
+            columns: ["arquivo_id"]
+            isOneToOne: false
+            referencedRelation: "arquivos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progresso_audio_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suporte_tickets: {
         Row: {
           assunto: string
@@ -297,6 +410,20 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "cliente"
+      arquivo_contexto:
+        | "central_cliente"
+        | "onboarding_sistema"
+        | "tarefa"
+        | "recurso_marca"
+        | "documento_juridico"
+        | "geral"
+      arquivo_tipo:
+        | "audio"
+        | "video"
+        | "documento"
+        | "imagem"
+        | "design"
+        | "outro"
       checklist_responsavel: "admin" | "cliente"
       fin_categoria:
         | "assinatura_ferramenta"
@@ -438,6 +565,22 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "cliente"],
+      arquivo_contexto: [
+        "central_cliente",
+        "onboarding_sistema",
+        "tarefa",
+        "recurso_marca",
+        "documento_juridico",
+        "geral",
+      ],
+      arquivo_tipo: [
+        "audio",
+        "video",
+        "documento",
+        "imagem",
+        "design",
+        "outro",
+      ],
       checklist_responsavel: ["admin", "cliente"],
       fin_categoria: [
         "assinatura_ferramenta",
