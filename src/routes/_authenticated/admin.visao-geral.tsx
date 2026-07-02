@@ -45,5 +45,15 @@ function AdminGate() {
       </div>
     );
   }
-  return <Painel360 />;
+  return (
+    <>
+      <Painel360 />
+      <Link
+        to="/admin/juridico"
+        className="fixed bottom-4 right-4 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-[#2C1505] text-white shadow-lg hover:bg-[#7A4A18] transition text-sm"
+      >
+        <Scale className="w-4 h-4" /> Jurídico
+      </Link>
+    </>
+  );
 }
