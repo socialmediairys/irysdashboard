@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      agenda_itens: {
+        Row: {
+          cliente_id: string | null
+          concluido: boolean
+          created_at: string
+          data_hora: string
+          descricao: string | null
+          duracao_min: number | null
+          id: string
+          prioridade: string | null
+          responsavel_id: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          concluido?: boolean
+          created_at?: string
+          data_hora: string
+          descricao?: string | null
+          duracao_min?: number | null
+          id?: string
+          prioridade?: string | null
+          responsavel_id?: string | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string | null
+          concluido?: boolean
+          created_at?: string
+          data_hora?: string
+          descricao?: string | null
+          duracao_min?: number | null
+          id?: string
+          prioridade?: string | null
+          responsavel_id?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agenda_itens_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       arquivos: {
         Row: {
           bucket: string
@@ -181,6 +231,50 @@ export type Database = {
           },
         ]
       }
+      entradas_financeiras: {
+        Row: {
+          categoria: string | null
+          cliente_id: string | null
+          created_at: string
+          data_ref: string
+          descricao: string
+          id: string
+          status_pagamento: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          categoria?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          data_ref?: string
+          descricao: string
+          id?: string
+          status_pagamento?: string
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          categoria?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          data_ref?: string
+          descricao?: string
+          id?: string
+          status_pagamento?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entradas_financeiras_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financas_administrativas: {
         Row: {
           categoria: Database["public"]["Enums"]["fin_categoria"]
@@ -211,6 +305,45 @@ export type Database = {
           status_pagamento?: Database["public"]["Enums"]["fin_status"]
           tipo?: Database["public"]["Enums"]["fin_tipo"]
           valor?: number
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          observacoes: string | null
+          origem: string | null
+          potencial: string | null
+          responsavel_id: string | null
+          status: string
+          updated_at: string
+          valor: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          origem?: string | null
+          potencial?: string | null
+          responsavel_id?: string | null
+          status?: string
+          updated_at?: string
+          valor?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          origem?: string | null
+          potencial?: string | null
+          responsavel_id?: string | null
+          status?: string
+          updated_at?: string
+          valor?: number | null
         }
         Relationships: []
       }
@@ -331,6 +464,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saidas_financeiras: {
+        Row: {
+          categoria: string | null
+          created_at: string
+          data_ref: string
+          descricao: string
+          id: string
+          recorrente: boolean
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string
+          data_ref?: string
+          descricao: string
+          id?: string
+          recorrente?: boolean
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string
+          data_ref?: string
+          descricao?: string
+          id?: string
+          recorrente?: boolean
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: []
       }
       suporte_tickets: {
         Row: {
