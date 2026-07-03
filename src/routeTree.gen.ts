@@ -16,6 +16,9 @@ import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAdminVisaoGeralRouteImport } from './routes/_authenticated/admin.visao-geral'
 import { Route as AuthenticatedAdminJuridicoRouteImport } from './routes/_authenticated/admin.juridico'
+import { Route as AuthenticatedAdminFinanceiroRouteImport } from './routes/_authenticated/admin.financeiro'
+import { Route as AuthenticatedAdminEquipeRouteImport } from './routes/_authenticated/admin.equipe'
+import { Route as AuthenticatedAdminCrmRouteImport } from './routes/_authenticated/admin.crm'
 import { Route as AuthenticatedAdminBibliotecaMidiaRouteImport } from './routes/_authenticated/admin.biblioteca-midia'
 
 const AuthRoute = AuthRouteImport.update({
@@ -54,6 +57,23 @@ const AuthenticatedAdminJuridicoRoute =
     path: '/admin/juridico',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminFinanceiroRoute =
+  AuthenticatedAdminFinanceiroRouteImport.update({
+    id: '/admin/financeiro',
+    path: '/admin/financeiro',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminEquipeRoute =
+  AuthenticatedAdminEquipeRouteImport.update({
+    id: '/admin/equipe',
+    path: '/admin/equipe',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminCrmRoute = AuthenticatedAdminCrmRouteImport.update({
+  id: '/admin/crm',
+  path: '/admin/crm',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminBibliotecaMidiaRoute =
   AuthenticatedAdminBibliotecaMidiaRouteImport.update({
     id: '/admin/biblioteca-midia',
@@ -67,6 +87,9 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
+  '/admin/crm': typeof AuthenticatedAdminCrmRoute
+  '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
+  '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
 }
@@ -76,6 +99,9 @@ export interface FileRoutesByTo {
   '/app': typeof AuthenticatedAppRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
+  '/admin/crm': typeof AuthenticatedAdminCrmRoute
+  '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
+  '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
 }
@@ -87,6 +113,9 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
+  '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
+  '/_authenticated/admin/equipe': typeof AuthenticatedAdminEquipeRoute
+  '/_authenticated/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/_authenticated/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/_authenticated/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
 }
@@ -98,6 +127,9 @@ export interface FileRouteTypes {
     | '/app'
     | '/portal'
     | '/admin/biblioteca-midia'
+    | '/admin/crm'
+    | '/admin/equipe'
+    | '/admin/financeiro'
     | '/admin/juridico'
     | '/admin/visao-geral'
   fileRoutesByTo: FileRoutesByTo
@@ -107,6 +139,9 @@ export interface FileRouteTypes {
     | '/app'
     | '/portal'
     | '/admin/biblioteca-midia'
+    | '/admin/crm'
+    | '/admin/equipe'
+    | '/admin/financeiro'
     | '/admin/juridico'
     | '/admin/visao-geral'
   id:
@@ -117,6 +152,9 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/_authenticated/portal'
     | '/_authenticated/admin/biblioteca-midia'
+    | '/_authenticated/admin/crm'
+    | '/_authenticated/admin/equipe'
+    | '/_authenticated/admin/financeiro'
     | '/_authenticated/admin/juridico'
     | '/_authenticated/admin/visao-geral'
   fileRoutesById: FileRoutesById
@@ -178,6 +216,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminJuridicoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/financeiro': {
+      id: '/_authenticated/admin/financeiro'
+      path: '/admin/financeiro'
+      fullPath: '/admin/financeiro'
+      preLoaderRoute: typeof AuthenticatedAdminFinanceiroRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/equipe': {
+      id: '/_authenticated/admin/equipe'
+      path: '/admin/equipe'
+      fullPath: '/admin/equipe'
+      preLoaderRoute: typeof AuthenticatedAdminEquipeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/crm': {
+      id: '/_authenticated/admin/crm'
+      path: '/admin/crm'
+      fullPath: '/admin/crm'
+      preLoaderRoute: typeof AuthenticatedAdminCrmRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/biblioteca-midia': {
       id: '/_authenticated/admin/biblioteca-midia'
       path: '/admin/biblioteca-midia'
@@ -192,6 +251,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
   AuthenticatedAdminBibliotecaMidiaRoute: typeof AuthenticatedAdminBibliotecaMidiaRoute
+  AuthenticatedAdminCrmRoute: typeof AuthenticatedAdminCrmRoute
+  AuthenticatedAdminEquipeRoute: typeof AuthenticatedAdminEquipeRoute
+  AuthenticatedAdminFinanceiroRoute: typeof AuthenticatedAdminFinanceiroRoute
   AuthenticatedAdminJuridicoRoute: typeof AuthenticatedAdminJuridicoRoute
   AuthenticatedAdminVisaoGeralRoute: typeof AuthenticatedAdminVisaoGeralRoute
 }
@@ -201,6 +263,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
   AuthenticatedAdminBibliotecaMidiaRoute:
     AuthenticatedAdminBibliotecaMidiaRoute,
+  AuthenticatedAdminCrmRoute: AuthenticatedAdminCrmRoute,
+  AuthenticatedAdminEquipeRoute: AuthenticatedAdminEquipeRoute,
+  AuthenticatedAdminFinanceiroRoute: AuthenticatedAdminFinanceiroRoute,
   AuthenticatedAdminJuridicoRoute: AuthenticatedAdminJuridicoRoute,
   AuthenticatedAdminVisaoGeralRoute: AuthenticatedAdminVisaoGeralRoute,
 }
