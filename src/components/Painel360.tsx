@@ -997,37 +997,6 @@ function PromptsPage() {
   );
 }
 
-function EstudoPage() {
-  const total = DB.livros.length;
-  const done = DB.livros.filter(b => b.s === "done").length;
-  const buy = DB.livros.filter(b => b.s === "buy").length;
-  const sLabel: Record<string, string> = { done: "Lido", buy: "Comprar", pend: "Pendente" };
-  return (
-    <>
-      <PageHeader eyebrow="Estudo" title="Livros &" accent="aprendizado"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Adicionar livro</PillBtn>} />
-      <div className="grid grid-cols-3 gap-5 mb-6">
-        <MetricCard variant="hero" value={total} label="Total" />
-        <MetricCard variant="accent" value={done} label="Finalizados" />
-        <MetricCard value={buy} label="Para comprar" />
-      </div>
-      <Card>
-        <h3 className="font-extrabold text-lg mb-4">Lista de leitura</h3>
-        <div className="space-y-2">
-          {DB.livros.map((b, i) => (
-            <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-              <div>
-                <div className="font-semibold">{b.t}</div>
-                <div className="text-xs" style={{ color: C.textMid }}>{b.c}</div>
-              </div>
-              <TagBadge label={sLabel[b.s]} variant={b.s} />
-            </div>
-          ))}
-        </div>
-      </Card>
-    </>
-  );
-}
 
 function FerramentasPage() {
   const custo = DB.ferramentas.reduce((s, f) => {
