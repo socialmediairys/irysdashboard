@@ -496,8 +496,8 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
                 { e:"👥", n:"Clientes", s:`${clientesAtivos} ativos`, k:"clientes" as PageKey },
                 { e:"📈", n:"CRM", s:`${DB.leads.length} leads`, k:"crm" as PageKey },
                 { e:"💳", n:"Finanças", s:"Junho", k:"financas" as PageKey },
-                { e:"💡", n:"Estratégia", s:"Conteúdo", k:"estrategia" as PageKey },
-                { e:"🤖", n:"Prompts IA", s:"Frameworks", k:"prompts" as PageKey },
+                { e:"📝", n:"Conteúdo", s:"Calendário", k:"conteudo" as PageKey },
+                { e:"📚", n:"Biblioteca", s:"Refs & prompts", k:"biblioteca" as PageKey },
               ].map((c) => (
                 <button key={c.n} onClick={() => go(c.k)}
                   className="rounded-[10px] p-3 text-left transition-all hover:-translate-y-0.5"
