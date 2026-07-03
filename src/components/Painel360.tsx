@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect, type ReactNode, type CSSProperties } from "react";
 import {
   LayoutDashboard, Calendar, Users, TrendingUp, CreditCard, Instagram,
-  Lightbulb, PenLine, Bookmark, Bot, BookOpen, Wrench, Plus, Zap, ArrowRight,
+  Bookmark, Wrench, Plus, Zap, ArrowRight, Library, FileText, Settings, Menu,
   UserSquare2, Play, Pause, ChevronDown, ChevronRight, ArrowLeft, FolderOpen, Video, CheckCircle2, Circle,
 } from "lucide-react";
 
