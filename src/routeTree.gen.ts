@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminVisaoGeralRouteImport } from './routes/_authenticated/admin.visao-geral'
 import { Route as AuthenticatedAdminJuridicoRouteImport } from './routes/_authenticated/admin.juridico'
 import { Route as AuthenticatedAdminFinanceiroRouteImport } from './routes/_authenticated/admin.financeiro'
@@ -45,45 +46,51 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminVisaoGeralRoute =
   AuthenticatedAdminVisaoGeralRouteImport.update({
-    id: '/admin/visao-geral',
-    path: '/admin/visao-geral',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/visao-geral',
+    path: '/visao-geral',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminJuridicoRoute =
   AuthenticatedAdminJuridicoRouteImport.update({
-    id: '/admin/juridico',
-    path: '/admin/juridico',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/juridico',
+    path: '/juridico',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminFinanceiroRoute =
   AuthenticatedAdminFinanceiroRouteImport.update({
-    id: '/admin/financeiro',
-    path: '/admin/financeiro',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/financeiro',
+    path: '/financeiro',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminEquipeRoute =
   AuthenticatedAdminEquipeRouteImport.update({
-    id: '/admin/equipe',
-    path: '/admin/equipe',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/equipe',
+    path: '/equipe',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminCrmRoute = AuthenticatedAdminCrmRouteImport.update({
-  id: '/admin/crm',
-  path: '/admin/crm',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  id: '/crm',
+  path: '/crm',
+  getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
 const AuthenticatedAdminBibliotecaMidiaRoute =
   AuthenticatedAdminBibliotecaMidiaRouteImport.update({
-    id: '/admin/biblioteca-midia',
-    path: '/admin/biblioteca-midia',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/biblioteca-midia',
+    path: '/biblioteca-midia',
+    getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/admin'
     | '/app'
     | '/portal'
     | '/admin/biblioteca-midia'
@@ -136,6 +146,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/admin'
     | '/app'
     | '/portal'
     | '/admin/biblioteca-midia'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/admin'
     | '/_authenticated/app'
     | '/_authenticated/portal'
     | '/_authenticated/admin/biblioteca-midia'
@@ -202,54 +214,59 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/visao-geral': {
       id: '/_authenticated/admin/visao-geral'
-      path: '/admin/visao-geral'
+      path: '/visao-geral'
       fullPath: '/admin/visao-geral'
       preLoaderRoute: typeof AuthenticatedAdminVisaoGeralRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/juridico': {
       id: '/_authenticated/admin/juridico'
-      path: '/admin/juridico'
+      path: '/juridico'
       fullPath: '/admin/juridico'
       preLoaderRoute: typeof AuthenticatedAdminJuridicoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/financeiro': {
       id: '/_authenticated/admin/financeiro'
-      path: '/admin/financeiro'
+      path: '/financeiro'
       fullPath: '/admin/financeiro'
       preLoaderRoute: typeof AuthenticatedAdminFinanceiroRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/equipe': {
       id: '/_authenticated/admin/equipe'
-      path: '/admin/equipe'
+      path: '/equipe'
       fullPath: '/admin/equipe'
       preLoaderRoute: typeof AuthenticatedAdminEquipeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/crm': {
       id: '/_authenticated/admin/crm'
-      path: '/admin/crm'
+      path: '/crm'
       fullPath: '/admin/crm'
       preLoaderRoute: typeof AuthenticatedAdminCrmRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/biblioteca-midia': {
       id: '/_authenticated/admin/biblioteca-midia'
-      path: '/admin/biblioteca-midia'
+      path: '/biblioteca-midia'
       fullPath: '/admin/biblioteca-midia'
       preLoaderRoute: typeof AuthenticatedAdminBibliotecaMidiaRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedAdminRoute
     }
   }
 }
 
-interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAppRoute: typeof AuthenticatedAppRoute
-  AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
+interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminBibliotecaMidiaRoute: typeof AuthenticatedAdminBibliotecaMidiaRoute
   AuthenticatedAdminCrmRoute: typeof AuthenticatedAdminCrmRoute
   AuthenticatedAdminEquipeRoute: typeof AuthenticatedAdminEquipeRoute
@@ -258,9 +275,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminVisaoGeralRoute: typeof AuthenticatedAdminVisaoGeralRoute
 }
 
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAppRoute: AuthenticatedAppRoute,
-  AuthenticatedPortalRoute: AuthenticatedPortalRoute,
+const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminBibliotecaMidiaRoute:
     AuthenticatedAdminBibliotecaMidiaRoute,
   AuthenticatedAdminCrmRoute: AuthenticatedAdminCrmRoute,
@@ -268,6 +283,21 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminFinanceiroRoute: AuthenticatedAdminFinanceiroRoute,
   AuthenticatedAdminJuridicoRoute: AuthenticatedAdminJuridicoRoute,
   AuthenticatedAdminVisaoGeralRoute: AuthenticatedAdminVisaoGeralRoute,
+}
+
+const AuthenticatedAdminRouteWithChildren =
+  AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedAppRoute: typeof AuthenticatedAppRoute
+  AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedAppRoute: AuthenticatedAppRoute,
+  AuthenticatedPortalRoute: AuthenticatedPortalRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
