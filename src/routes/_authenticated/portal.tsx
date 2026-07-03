@@ -118,8 +118,10 @@ function PortalPage() {
       descricao: novoTicket.descricao,
       prioridade: "media",
     });
-    if (error) setMsg(error.message);
-    else {
+    if (error) {
+      console.error("[portal] abrirTicket failed:", error);
+      setMsg("Não foi possível abrir o ticket agora. Tente novamente em instantes.");
+    } else {
       setNovoTicket({ assunto: "", descricao: "" });
       setMsg("Ticket aberto!");
       load();
@@ -134,8 +136,10 @@ function PortalPage() {
       descricao: `Cliente ${cliente.nome} solicita renovação. Vencimento atual: ${cliente.data_vencimento_contrato}`,
       prioridade: "alta_urgente",
     });
-    if (error) setMsg(error.message);
-    else {
+    if (error) {
+      console.error("[portal] solicitarRenovacao failed:", error);
+      setMsg("Não foi possível registrar sua solicitação agora. Tente novamente em instantes.");
+    } else {
       setMsg("Renovação solicitada! Nosso time entrará em contato.");
       load();
     }
