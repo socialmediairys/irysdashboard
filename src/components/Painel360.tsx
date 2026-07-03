@@ -72,18 +72,6 @@ const DB = {
     { label:"IA · Headline",    title:"Prompt Headline", preview:"10 headlines magnéticas para [tema] com gatilhos de curiosidade, urgência e transformação.",            dark:false },
     { label:"IA · Conteúdo",    title:"Prompt Conteúdo", preview:"Calendário de 30 dias para [nicho] com mix educativo, prova social e venda.",                           dark:false },
   ],
-  livros: [
-    { t:"Charlie Munger: O Investidor Completo", c:"Investimentos", s:"done" },
-    { t:"Greats CEOs are Lazy",                  c:"Design",        s:"buy"  },
-    { t:"Seja Útil — Arnold Schwarzenegger",     c:"Dev. Pessoal",  s:"pend" },
-    { t:"A Fórmula do YouTube",                  c:"Marketing",     s:"pend" },
-    { t:"O Investidor Inteligente",              c:"Investimentos", s:"pend" },
-    { t:"Antifrágil — Nassim Taleb",             c:"Dev. Pessoal",  s:"buy"  },
-    { t:"A Lógica do Cisne Negro",               c:"Dev. Pessoal",  s:"buy"  },
-    { t:"O Design como Storytelling",            c:"Design",        s:"pend" },
-    { t:"SQL Guia Prático",                      c:"Programação",   s:"pend" },
-    { t:"Um Café com Sêneca",                    c:"Dev. Pessoal",  s:"pend" },
-  ],
   ferramentas: [
     { ico:"📅", name:"mLabs",           cat:"Agendamento de posts · R$120/mês",  integ:true  },
     { ico:"🎨", name:"Canva Pro",       cat:"Design e templates · R$55/mês",     integ:false },
