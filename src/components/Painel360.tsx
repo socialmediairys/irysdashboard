@@ -1403,9 +1403,143 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
   );
 }
 
+/* ---------- Unified pages (Bloco 1) ---------- */
+function TabBar({ tabs, active, onChange }: { tabs: { key: string; label: string }[]; active: string; onChange: (k: string) => void }) {
+  return (
+    <div className="mb-6 flex gap-1 border-b" style={{ borderColor: C.beigeLight }}>
+      {tabs.map((t) => {
+        const on = t.key === active;
+        return (
+          <button
+            key={t.key}
+            onClick={() => onChange(t.key)}
+            className="px-4 py-2 text-sm font-bold border-b-2 -mb-px transition-colors"
+            style={{
+              color: on ? C.dark : C.textMid,
+              borderColor: on ? C.gold : "transparent",
+            }}
+          >
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ConteudoPage() {
+  const [tab, setTab] = useState("calendario");
+  return (
+    <>
+      <TabBar
+        active={tab}
+        onChange={setTab}
+        tabs={[
+          { key: "calendario", label: "Calendário editorial" },
+          { key: "pipeline",   label: "Pipeline de produção" },
+          { key: "entregas",   label: "Entregas do mês" },
+        ]}
+      />
+      {tab === "calendario" && <EstrategiaPage />}
+      {tab === "pipeline"   && <OficinaPage />}
+      {tab === "entregas"   && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-2">Entregas do mês</h3>
+          <p className="text-sm" style={{ color: C.textMid }}>
+            Sistema de check por cliente — será implementado no Bloco 3.
+          </p>
+        </Card>
+      )}
+    </>
+  );
+}
+
+function BibliotecaPage() {
+  const [tab, setTab] = useState("referencias");
+  return (
+    <>
+      <TabBar
+        active={tab}
+        onChange={setTab}
+        tabs={[
+          { key: "referencias", label: "Referências" },
+          { key: "prompts",     label: "Prompts IA" },
+          { key: "ferramentas", label: "Ferramentas" },
+        ]}
+      />
+      {tab === "referencias" && <SwipePage />}
+      {tab === "prompts"     && <PromptsPage />}
+      {tab === "ferramentas" && <FerramentasPage />}
+    </>
+  );
+}
+
+function ConfigPage() {
+  const [tab, setTab] = useState("integracoes");
+  return (
+    <>
+      <PageHeader eyebrow="Sistema" title="Configurações &" accent="conta" />
+      <TabBar
+        active={tab}
+        onChange={setTab}
+        tabs={[
+          { key: "integracoes", label: "Integrações" },
+          { key: "juridico",    label: "Jurídico" },
+          { key: "equipe",      label: "Equipe" },
+          { key: "planos",      label: "Planos & Conta" },
+        ]}
+      />
+      {tab === "integracoes" && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-4">Integrações ativas</h3>
+          <div className="space-y-3">
+            {DB.integracoes.map((it, i) => (
+              <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{it.ico}</span>
+                  <div>
+                    <div className="font-semibold">{it.name}</div>
+                    <div className="text-xs" style={{ color: C.textMid }}>{it.desc}</div>
+                  </div>
+                </div>
+                {it.live && <LiveBadge label="Live" />}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+      {tab === "juridico" && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-2">Modelos de contrato e termos</h3>
+          <p className="text-sm mb-4" style={{ color: C.textMid }}>Gerencie contratos, termos e políticas com dados do CNPJ.</p>
+          <a href="/admin/juridico" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: C.dark, color: "#fff" }}>
+            Abrir módulo jurídico <ArrowRight size={14} />
+          </a>
+        </Card>
+      )}
+      {tab === "equipe" && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-2">Equipe & papéis</h3>
+          <p className="text-sm mb-4" style={{ color: C.textMid }}>Atribua papéis (admin, gestor, editor, social, financeiro, jurídico, cliente) aos membros.</p>
+          <a href="/admin/equipe" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: C.dark, color: "#fff" }}>
+            Gerenciar equipe <ArrowRight size={14} />
+          </a>
+        </Card>
+      )}
+      {tab === "planos" && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-2">Planos & Conta</h3>
+          <p className="text-sm" style={{ color: C.textMid }}>Em breve: gestão de plano, faturamento e dados da conta.</p>
+        </Card>
+      )}
+    </>
+  );
+}
+
 /* ---------- Shell ---------- */
 export default function Painel360() {
   const [active, setActive] = useState<PageKey>("dash");
+  const [collapsed, setCollapsed] = useState(false);
   const [clienteId, setClienteId] = useState<number>(DB.clientes[0].id);
   const [viewMode, setViewMode] = useState<"gestao" | "cliente">("gestao");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -1425,21 +1559,18 @@ export default function Painel360() {
 
   return (
     <div className="h-screen overflow-hidden flex" style={{ background: C.bg, color: C.text }}>
-      <Sidebar active={active} setActive={setActive} />
-      <main ref={scrollRef} className="flex-1 ml-16 overflow-y-auto">
+      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} />
+      <main ref={scrollRef} className={`flex-1 overflow-y-auto transition-[margin] duration-200 ${collapsed ? "ml-16" : "ml-60"}`}>
         <div className="mx-auto max-w-[1400px] p-8">
-          {active === "dash" && <DashboardPage go={setActive} />}
-          {active === "agenda" && <AgendaPage />}
-          {active === "clientes" && <ClientesPage />}
-          {active === "crm" && <CRMPage />}
-          {active === "financas" && <FinancasPage />}
-          {active === "social" && <SocialPage />}
-          {active === "estrategia" && <EstrategiaPage />}
-          {active === "oficina" && <OficinaPage />}
-          {active === "swipe" && <SwipePage />}
-          {active === "prompts" && <PromptsPage />}
-          {active === "estudo" && <EstudoPage />}
-          {active === "ferramentas" && <FerramentasPage />}
+          {active === "dash"       && <DashboardPage go={setActive} />}
+          {active === "agenda"     && <AgendaPage />}
+          {active === "clientes"   && <ClientesPage />}
+          {active === "conteudo"   && <ConteudoPage />}
+          {active === "social"     && <SocialPage />}
+          {active === "crm"        && <CRMPage />}
+          {active === "financas"   && <FinancasPage />}
+          {active === "biblioteca" && <BibliotecaPage />}
+          {active === "config"     && <ConfigPage />}
           {active === "central" && (
             <CentralClientePage
               selectedId={clienteId}
