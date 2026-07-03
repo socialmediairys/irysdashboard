@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect, type ReactNode, type CSSProperties } from "react";
 import {
   LayoutDashboard, Calendar, Users, TrendingUp, CreditCard, Instagram,
-  Lightbulb, PenLine, Bookmark, Bot, BookOpen, Wrench, Plus, Zap, ArrowRight,
+  Bookmark, Wrench, Plus, Zap, ArrowRight, Library, FileText, Settings, Menu,
   UserSquare2, Play, Pause, ChevronDown, ChevronRight, ArrowLeft, FolderOpen, Video, CheckCircle2, Circle,
 } from "lucide-react";
 
@@ -71,18 +71,6 @@ const DB = {
     { label:"IA · Reels",       title:"Prompt Reels",    preview:"Roteiro de Reels de 30s sobre [tema] para [nicho], com gancho nos primeiros 3 segundos.",               dark:true  },
     { label:"IA · Headline",    title:"Prompt Headline", preview:"10 headlines magnéticas para [tema] com gatilhos de curiosidade, urgência e transformação.",            dark:false },
     { label:"IA · Conteúdo",    title:"Prompt Conteúdo", preview:"Calendário de 30 dias para [nicho] com mix educativo, prova social e venda.",                           dark:false },
-  ],
-  livros: [
-    { t:"Charlie Munger: O Investidor Completo", c:"Investimentos", s:"done" },
-    { t:"Greats CEOs are Lazy",                  c:"Design",        s:"buy"  },
-    { t:"Seja Útil — Arnold Schwarzenegger",     c:"Dev. Pessoal",  s:"pend" },
-    { t:"A Fórmula do YouTube",                  c:"Marketing",     s:"pend" },
-    { t:"O Investidor Inteligente",              c:"Investimentos", s:"pend" },
-    { t:"Antifrágil — Nassim Taleb",             c:"Dev. Pessoal",  s:"buy"  },
-    { t:"A Lógica do Cisne Negro",               c:"Dev. Pessoal",  s:"buy"  },
-    { t:"O Design como Storytelling",            c:"Design",        s:"pend" },
-    { t:"SQL Guia Prático",                      c:"Programação",   s:"pend" },
-    { t:"Um Café com Sêneca",                    c:"Dev. Pessoal",  s:"pend" },
   ],
   ferramentas: [
     { ico:"📅", name:"mLabs",           cat:"Agendamento de posts · R$120/mês",  integ:true  },
@@ -283,50 +271,119 @@ function PageHeader({ eyebrow, title, accent, actions, badges }: {
 
 /* ---------- Sidebar ---------- */
 type PageKey =
-  | "dash" | "agenda" | "clientes" | "crm" | "financas" | "social"
-  | "estrategia" | "oficina" | "swipe" | "prompts" | "estudo" | "ferramentas" | "central";
+  | "dash" | "agenda" | "clientes" | "conteudo" | "social"
+  | "crm" | "financas" | "biblioteca" | "central" | "config";
 
-const NAV: { key: PageKey; label: string; icon: typeof LayoutDashboard }[] = [
-  { key: "dash", label: "Dashboard", icon: LayoutDashboard },
-  { key: "agenda", label: "Agenda", icon: Calendar },
-  { key: "clientes", label: "Clientes", icon: Users },
-  { key: "crm", label: "CRM", icon: TrendingUp },
-  { key: "financas", label: "Finanças", icon: CreditCard },
-  { key: "social", label: "Social Media", icon: Instagram },
-  { key: "estrategia", label: "Estratégia", icon: Lightbulb },
-  { key: "oficina", label: "Oficina", icon: PenLine },
-  { key: "swipe", label: "Swipe File", icon: Bookmark },
-  { key: "prompts", label: "Prompts IA", icon: Bot },
-  { key: "estudo", label: "Estudo", icon: BookOpen },
-  { key: "ferramentas", label: "Ferramentas", icon: Wrench },
-  { key: "central", label: "Central do Cliente", icon: UserSquare2 },
+type NavItem = { key: PageKey; label: string; icon: typeof LayoutDashboard };
+type NavGroup = { label: string; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  { label: "Operação", items: [
+    { key: "dash",     label: "Dashboard",  icon: LayoutDashboard },
+    { key: "agenda",   label: "Agenda",     icon: Calendar },
+    { key: "clientes", label: "Clientes",   icon: Users },
+    { key: "central",  label: "Portal do Cliente", icon: UserSquare2 },
+  ]},
+  { label: "Conteúdo", items: [
+    { key: "conteudo", label: "Calendário & Entregas", icon: FileText },
+    { key: "social",   label: "Métricas sociais", icon: Instagram },
+  ]},
+  { label: "Comercial", items: [
+    { key: "crm", label: "Pipeline de vendas", icon: TrendingUp },
+  ]},
+  { label: "Financeiro", items: [
+    { key: "financas", label: "Financeiro", icon: CreditCard },
+  ]},
+  { label: "Recursos", items: [
+    { key: "biblioteca", label: "Biblioteca", icon: Library },
+  ]},
 ];
 
-
-function Sidebar({ active, setActive }: { active: PageKey; setActive: (p: PageKey) => void }) {
+function Sidebar({
+  active, setActive, collapsed, setCollapsed,
+}: {
+  active: PageKey;
+  setActive: (p: PageKey) => void;
+  collapsed: boolean;
+  setCollapsed: (v: boolean) => void;
+}) {
+  const width = collapsed ? "w-16" : "w-60";
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-16 flex-col items-center justify-between py-4"
-      style={{ background: C.dark }}>
-      <div className="flex flex-col items-center gap-1">
-        {NAV.map((n) => {
-          const Icon = n.icon;
-          const isActive = active === n.key;
-          return (
-            <button key={n.key} onClick={() => setActive(n.key)}
-              className="group relative flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
-              style={{ background: isActive ? C.gold : "transparent", color: isActive ? C.dark : "rgba(255,255,255,0.7)" }}>
-              <Icon size={18} strokeWidth={2} />
-              <span className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md px-2 py-1 text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity z-50"
-                style={{ background: C.text, color: "#fff" }}>
-                {n.label}
-              </span>
-            </button>
-          );
-        })}
+    <aside
+      className={`fixed left-0 top-0 z-40 flex h-screen ${width} flex-col justify-between py-3 transition-[width] duration-200`}
+      style={{ background: C.dark }}
+    >
+      <div className="flex flex-col gap-1 overflow-y-auto px-2">
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="mb-2 flex h-10 items-center gap-2 rounded-lg px-2 text-white/80 hover:bg-white/5"
+          title={collapsed ? "Expandir menu" : "Recolher menu"}
+        >
+          <Menu size={18} />
+          {!collapsed && <span className="text-sm font-bold">Irys OS</span>}
+        </button>
+
+        {NAV_GROUPS.map((g) => (
+          <div key={g.label} className="mt-2">
+            {!collapsed && (
+              <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.4)" }}>
+                {g.label}
+              </div>
+            )}
+            {g.items.map((n) => {
+              const Icon = n.icon;
+              const isActive = active === n.key;
+              return (
+                <button
+                  key={n.key}
+                  onClick={() => setActive(n.key)}
+                  title={collapsed ? n.label : undefined}
+                  className={`group relative flex h-10 w-full items-center gap-3 rounded-lg px-2.5 text-left transition-colors ${collapsed ? "justify-center" : ""}`}
+                  style={{
+                    background: isActive ? C.gold : "transparent",
+                    color: isActive ? C.dark : "rgba(255,255,255,0.85)",
+                  }}
+                >
+                  <Icon size={18} strokeWidth={2} />
+                  {!collapsed && <span className="text-sm font-semibold">{n.label}</span>}
+                  {collapsed && (
+                    <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md px-2 py-1 text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity z-50"
+                      style={{ background: C.text, color: "#fff" }}>
+                      {n.label}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </div>
-      <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-extrabold"
-        style={{ background: `linear-gradient(135deg, ${C.mid}, ${C.gold})`, color: "#fff" }}>
-        T
+
+      <div className="px-2 pt-2 border-t border-white/10">
+        <button
+          onClick={() => setActive("config")}
+          title="Configurações"
+          className={`flex h-10 w-full items-center gap-3 rounded-lg px-2.5 transition-colors ${collapsed ? "justify-center" : ""}`}
+          style={{
+            background: active === "config" ? C.gold : "transparent",
+            color: active === "config" ? C.dark : "rgba(255,255,255,0.85)",
+          }}
+        >
+          <Settings size={18} />
+          {!collapsed && <span className="text-sm font-semibold">Configurações</span>}
+        </button>
+        <div className={`mt-2 flex items-center gap-2 rounded-lg px-2 py-2 ${collapsed ? "justify-center" : ""}`}>
+          <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-extrabold shrink-0"
+            style={{ background: `linear-gradient(135deg, ${C.mid}, ${C.gold})`, color: "#fff" }}>
+            T
+          </div>
+          {!collapsed && (
+            <div className="text-xs text-white/70">
+              <div className="font-bold text-white">{DB.user.name}</div>
+              <div className="text-[10px]">{DB.user.role}</div>
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   );
@@ -439,8 +496,8 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
                 { e:"👥", n:"Clientes", s:`${clientesAtivos} ativos`, k:"clientes" as PageKey },
                 { e:"📈", n:"CRM", s:`${DB.leads.length} leads`, k:"crm" as PageKey },
                 { e:"💳", n:"Finanças", s:"Junho", k:"financas" as PageKey },
-                { e:"💡", n:"Estratégia", s:"Conteúdo", k:"estrategia" as PageKey },
-                { e:"🤖", n:"Prompts IA", s:"Frameworks", k:"prompts" as PageKey },
+                { e:"📝", n:"Conteúdo", s:"Calendário", k:"conteudo" as PageKey },
+                { e:"📚", n:"Biblioteca", s:"Refs & prompts", k:"biblioteca" as PageKey },
               ].map((c) => (
                 <button key={c.n} onClick={() => go(c.k)}
                   className="rounded-[10px] p-3 text-left transition-all hover:-translate-y-0.5"
@@ -940,37 +997,6 @@ function PromptsPage() {
   );
 }
 
-function EstudoPage() {
-  const total = DB.livros.length;
-  const done = DB.livros.filter(b => b.s === "done").length;
-  const buy = DB.livros.filter(b => b.s === "buy").length;
-  const sLabel: Record<string, string> = { done: "Lido", buy: "Comprar", pend: "Pendente" };
-  return (
-    <>
-      <PageHeader eyebrow="Estudo" title="Livros &" accent="aprendizado"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Adicionar livro</PillBtn>} />
-      <div className="grid grid-cols-3 gap-5 mb-6">
-        <MetricCard variant="hero" value={total} label="Total" />
-        <MetricCard variant="accent" value={done} label="Finalizados" />
-        <MetricCard value={buy} label="Para comprar" />
-      </div>
-      <Card>
-        <h3 className="font-extrabold text-lg mb-4">Lista de leitura</h3>
-        <div className="space-y-2">
-          {DB.livros.map((b, i) => (
-            <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-              <div>
-                <div className="font-semibold">{b.t}</div>
-                <div className="text-xs" style={{ color: C.textMid }}>{b.c}</div>
-              </div>
-              <TagBadge label={sLabel[b.s]} variant={b.s} />
-            </div>
-          ))}
-        </div>
-      </Card>
-    </>
-  );
-}
 
 function FerramentasPage() {
   const custo = DB.ferramentas.reduce((s, f) => {
@@ -1377,9 +1403,143 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
   );
 }
 
+/* ---------- Unified pages (Bloco 1) ---------- */
+function TabBar({ tabs, active, onChange }: { tabs: { key: string; label: string }[]; active: string; onChange: (k: string) => void }) {
+  return (
+    <div className="mb-6 flex gap-1 border-b" style={{ borderColor: C.beigeLight }}>
+      {tabs.map((t) => {
+        const on = t.key === active;
+        return (
+          <button
+            key={t.key}
+            onClick={() => onChange(t.key)}
+            className="px-4 py-2 text-sm font-bold border-b-2 -mb-px transition-colors"
+            style={{
+              color: on ? C.dark : C.textMid,
+              borderColor: on ? C.gold : "transparent",
+            }}
+          >
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ConteudoPage() {
+  const [tab, setTab] = useState("calendario");
+  return (
+    <>
+      <TabBar
+        active={tab}
+        onChange={setTab}
+        tabs={[
+          { key: "calendario", label: "Calendário editorial" },
+          { key: "pipeline",   label: "Pipeline de produção" },
+          { key: "entregas",   label: "Entregas do mês" },
+        ]}
+      />
+      {tab === "calendario" && <EstrategiaPage />}
+      {tab === "pipeline"   && <OficinaPage />}
+      {tab === "entregas"   && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-2">Entregas do mês</h3>
+          <p className="text-sm" style={{ color: C.textMid }}>
+            Sistema de check por cliente — será implementado no Bloco 3.
+          </p>
+        </Card>
+      )}
+    </>
+  );
+}
+
+function BibliotecaPage() {
+  const [tab, setTab] = useState("referencias");
+  return (
+    <>
+      <TabBar
+        active={tab}
+        onChange={setTab}
+        tabs={[
+          { key: "referencias", label: "Referências" },
+          { key: "prompts",     label: "Prompts IA" },
+          { key: "ferramentas", label: "Ferramentas" },
+        ]}
+      />
+      {tab === "referencias" && <SwipePage />}
+      {tab === "prompts"     && <PromptsPage />}
+      {tab === "ferramentas" && <FerramentasPage />}
+    </>
+  );
+}
+
+function ConfigPage() {
+  const [tab, setTab] = useState("integracoes");
+  return (
+    <>
+      <PageHeader eyebrow="Sistema" title="Configurações &" accent="conta" />
+      <TabBar
+        active={tab}
+        onChange={setTab}
+        tabs={[
+          { key: "integracoes", label: "Integrações" },
+          { key: "juridico",    label: "Jurídico" },
+          { key: "equipe",      label: "Equipe" },
+          { key: "planos",      label: "Planos & Conta" },
+        ]}
+      />
+      {tab === "integracoes" && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-4">Integrações ativas</h3>
+          <div className="space-y-3">
+            {DB.integracoes.map((it, i) => (
+              <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">{it.ico}</span>
+                  <div>
+                    <div className="font-semibold">{it.name}</div>
+                    <div className="text-xs" style={{ color: C.textMid }}>{it.desc}</div>
+                  </div>
+                </div>
+                {it.live && <LiveBadge label="Live" />}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+      {tab === "juridico" && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-2">Modelos de contrato e termos</h3>
+          <p className="text-sm mb-4" style={{ color: C.textMid }}>Gerencie contratos, termos e políticas com dados do CNPJ.</p>
+          <a href="/admin/juridico" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: C.dark, color: "#fff" }}>
+            Abrir módulo jurídico <ArrowRight size={14} />
+          </a>
+        </Card>
+      )}
+      {tab === "equipe" && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-2">Equipe & papéis</h3>
+          <p className="text-sm mb-4" style={{ color: C.textMid }}>Atribua papéis (admin, gestor, editor, social, financeiro, jurídico, cliente) aos membros.</p>
+          <a href="/admin/equipe" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: C.dark, color: "#fff" }}>
+            Gerenciar equipe <ArrowRight size={14} />
+          </a>
+        </Card>
+      )}
+      {tab === "planos" && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-2">Planos & Conta</h3>
+          <p className="text-sm" style={{ color: C.textMid }}>Em breve: gestão de plano, faturamento e dados da conta.</p>
+        </Card>
+      )}
+    </>
+  );
+}
+
 /* ---------- Shell ---------- */
 export default function Painel360() {
   const [active, setActive] = useState<PageKey>("dash");
+  const [collapsed, setCollapsed] = useState(false);
   const [clienteId, setClienteId] = useState<number>(DB.clientes[0].id);
   const [viewMode, setViewMode] = useState<"gestao" | "cliente">("gestao");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -1399,21 +1559,18 @@ export default function Painel360() {
 
   return (
     <div className="h-screen overflow-hidden flex" style={{ background: C.bg, color: C.text }}>
-      <Sidebar active={active} setActive={setActive} />
-      <main ref={scrollRef} className="flex-1 ml-16 overflow-y-auto">
+      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} />
+      <main ref={scrollRef} className={`flex-1 overflow-y-auto transition-[margin] duration-200 ${collapsed ? "ml-16" : "ml-60"}`}>
         <div className="mx-auto max-w-[1400px] p-8">
-          {active === "dash" && <DashboardPage go={setActive} />}
-          {active === "agenda" && <AgendaPage />}
-          {active === "clientes" && <ClientesPage />}
-          {active === "crm" && <CRMPage />}
-          {active === "financas" && <FinancasPage />}
-          {active === "social" && <SocialPage />}
-          {active === "estrategia" && <EstrategiaPage />}
-          {active === "oficina" && <OficinaPage />}
-          {active === "swipe" && <SwipePage />}
-          {active === "prompts" && <PromptsPage />}
-          {active === "estudo" && <EstudoPage />}
-          {active === "ferramentas" && <FerramentasPage />}
+          {active === "dash"       && <DashboardPage go={setActive} />}
+          {active === "agenda"     && <AgendaPage />}
+          {active === "clientes"   && <ClientesPage />}
+          {active === "conteudo"   && <ConteudoPage />}
+          {active === "social"     && <SocialPage />}
+          {active === "crm"        && <CRMPage />}
+          {active === "financas"   && <FinancasPage />}
+          {active === "biblioteca" && <BibliotecaPage />}
+          {active === "config"     && <ConfigPage />}
           {active === "central" && (
             <CentralClientePage
               selectedId={clienteId}
