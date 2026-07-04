@@ -3,7 +3,15 @@ import {
   LayoutDashboard, Calendar, Users, TrendingUp, CreditCard, Instagram,
   Bookmark, Wrench, Plus, Zap, ArrowRight, Library, FileText, Settings, Menu,
   UserSquare2, Play, Pause, ChevronDown, ChevronRight, ArrowLeft, FolderOpen, Video, CheckCircle2, Circle,
+  RefreshCw, LinkIcon, LogOut, ExternalLink,
 } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  startGoogleCalendarAuth,
+  getGoogleCalendarStatus,
+  disconnectGoogleCalendar,
+  listGoogleCalendarEvents,
+} from "@/lib/google-calendar.functions";
 
 
 /* ---------- DB ---------- */
