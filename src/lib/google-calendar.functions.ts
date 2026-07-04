@@ -9,8 +9,32 @@ const SCOPES = [
   "email",
 ].join(" ");
 
-function signState(userId: string): string {
-  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+type GoogleOAuthConfig =
+  | { ok: true; clientId: string; clientSecret: string; signingSecret: string }
+  | { ok: false; error: string };
+
+function readGoogleOAuthConfig(): GoogleOAuthConfig {
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID?.trim();
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET?.trim();
+  const signingSecret = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.LOVABLE_API_KEY?.trim();
+  const missing = [
+    ...(!clientId ? ["GOOGLE_OAUTH_CLIENT_ID"] : []),
+    ...(!clientSecret ? ["GOOGLE_OAUTH_CLIENT_SECRET"] : []),
+    ...(!signingSecret ? ["chave interna de assinatura"] : []),
+  ];
+
+  if (missing.length > 0) {
+    console.error("Google Calendar OAuth configuration missing", { missing });
+    return {
+      ok: false,
+      error: `Configuração do Google Calendar incompleta: ${missing.join(", ")}. Atualize as credenciais e reinicie o backend.`,
+    };
+  }
+
+  return { ok: true, clientId, clientSecret, signingSecret };
+}
+
+function signState(userId: string, secret: string): string {
   const nonce = Math.random().toString(36).slice(2, 10);
   const payload = `${userId}.${nonce}`;
   const sig = createHmac("sha256", secret).update(payload).digest("hex");
@@ -21,12 +45,12 @@ export const startGoogleCalendarAuth = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { origin: string }) => input)
   .handler(async ({ data, context }) => {
-    const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
-    if (!clientId) throw new Error("GOOGLE_OAUTH_CLIENT_ID não configurado");
+    const config = readGoogleOAuthConfig();
+    if (!config.ok) return { ok: false as const, error: config.error };
     const redirectUri = `${data.origin}/api/public/google-calendar/callback`;
-    const state = signState(context.userId);
+    const state = signState(context.userId, config.signingSecret);
     const url = new URL("https://accounts.google.com/o/oauth2/v2/auth");
-    url.searchParams.set("client_id", clientId);
+    url.searchParams.set("client_id", config.clientId);
     url.searchParams.set("redirect_uri", redirectUri);
     url.searchParams.set("response_type", "code");
     url.searchParams.set("scope", SCOPES);
@@ -34,7 +58,7 @@ export const startGoogleCalendarAuth = createServerFn({ method: "POST" })
     url.searchParams.set("prompt", "consent");
     url.searchParams.set("include_granted_scopes", "true");
     url.searchParams.set("state", state);
-    return { url: url.toString() };
+    return { ok: true as const, url: url.toString() };
   });
 
 export const getGoogleCalendarStatus = createServerFn({ method: "GET" })
@@ -67,9 +91,11 @@ async function refreshIfNeeded(row: {
 }, userId: string, supabase: any) {
   const expiresAt = new Date(row.expires_at).getTime();
   if (expiresAt - Date.now() > 60_000) return row.access_token;
+  const config = readGoogleOAuthConfig();
+  if (!config.ok) throw new Error(config.error);
   const params = new URLSearchParams({
-    client_id: process.env.GOOGLE_OAUTH_CLIENT_ID!,
-    client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
+    client_id: config.clientId,
+    client_secret: config.clientSecret,
     refresh_token: row.refresh_token,
     grant_type: "refresh_token",
   });

@@ -589,9 +589,15 @@ function AgendaPage() {
 
   const handleConnect = async () => {
     setConnecting(true);
+    setError(null);
     try {
-      const { url } = await startAuth({ data: { origin: window.location.origin } });
-      window.location.href = url;
+      const result = await startAuth({ data: { origin: window.location.origin } });
+      if (!result.ok) {
+        setError(result.error);
+        setConnecting(false);
+        return;
+      }
+      window.location.href = result.url;
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha ao iniciar conexão");
       setConnecting(false);
