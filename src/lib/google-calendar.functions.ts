@@ -23,7 +23,7 @@ function readGoogleOAuthConfig(): GoogleOAuthConfig {
     ...(!signingSecret ? ["chave interna de assinatura"] : []),
   ];
 
-  if (missing.length > 0) {
+  if (!clientId || !clientSecret || !signingSecret) {
     console.error("Google Calendar OAuth configuration missing", { missing });
     return {
       ok: false,
