@@ -523,67 +523,196 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
   );
 }
 
+type GCalEvent = {
+  id: string;
+  title: string;
+  start?: string;
+  end?: string;
+  allDay: boolean;
+  htmlLink?: string;
+  location?: string | null;
+  description?: string | null;
+};
+
+function fmtTime(iso?: string, allDay?: boolean) {
+  if (!iso) return "";
+  if (allDay) return "Dia inteiro";
+  try {
+    return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  } catch { return ""; }
+}
+function fmtDay(iso?: string) {
+  if (!iso) return "";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" });
+  } catch { return ""; }
+}
+function isSameDay(a: Date, b: Date) {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
 function AgendaPage() {
-  const hoje = DB.agenda.filter(a => a.data === "Hoje");
-  const semana = DB.agenda.filter(a => a.data !== "Hoje");
+  const startAuth = useServerFn(startGoogleCalendarAuth);
+  const getStatus = useServerFn(getGoogleCalendarStatus);
+  const disconnect = useServerFn(disconnectGoogleCalendar);
+  const listEvents = useServerFn(listGoogleCalendarEvents);
+
+  const [status, setStatus] = useState<{ connected: boolean; email: string | null } | null>(null);
+  const [events, setEvents] = useState<GCalEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
+
+  const refresh = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const s = await getStatus();
+      setStatus(s);
+      if (s.connected) {
+        const now = new Date();
+        const end = new Date(now); end.setDate(end.getDate() + 14);
+        const res = await listEvents({ data: { timeMin: now.toISOString(), timeMax: end.toISOString() } });
+        setEvents(res.events as GCalEvent[]);
+      } else {
+        setEvents([]);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao carregar agenda");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { void refresh(); }, []);
+
+  const handleConnect = async () => {
+    setConnecting(true);
+    try {
+      const { url } = await startAuth({ data: { origin: window.location.origin } });
+      window.location.href = url;
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Falha ao iniciar conexão");
+      setConnecting(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!confirm("Desconectar o Google Calendar?")) return;
+    await disconnect();
+    await refresh();
+  };
+
+  const today = new Date();
+  const hoje = events.filter((e) => e.start && isSameDay(new Date(e.start), today));
+  const proximos = events.filter((e) => e.start && !isSameDay(new Date(e.start), today));
+
   return (
     <>
-      <PageHeader eyebrow="Google Agenda" title="Planejamento" accent="semanal"
-        badges={<LiveBadge label="Google Calendar" />}
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Novo evento</PillBtn>} />
-      <div className="grid grid-cols-2 gap-5 mb-6">
-        <Card>
-          <h3 className="font-extrabold text-lg mb-4">Hoje — Qui, 26 Jun</h3>
-          <div className="space-y-3">
-            {hoje.map((e, i) => (
-              <div key={i} className="flex gap-4 items-stretch">
-                <div className="min-w-[64px]">
-                  <div className="font-extrabold">{e.time}</div>
-                  <div className="text-xs" style={{ color: C.textMid }}>{e.dur}</div>
-                </div>
-                <div className="w-[3px] rounded-full" style={{ background: DOT_COLORS[e.cor] }} />
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold truncate">{e.name}</div>
-                  <div className="text-xs" style={{ color: C.textMid }}>{e.sub}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-        <Card dark>
-          <h3 className="font-extrabold text-lg mb-4">Esta semana</h3>
-          <div className="space-y-3">
-            {semana.map((e, i) => (
-              <div key={i} className="flex items-center justify-between rounded-[10px] p-3" style={{ background: "rgba(255,255,255,0.06)" }}>
-                <div className="min-w-0">
-                  <div className="font-semibold truncate">{e.name}</div>
-                  <div className="text-xs opacity-70">{e.data} · {e.time}</div>
-                </div>
-                <span className="rounded-full px-2.5 py-1 text-[11px] font-bold uppercase" style={{ background: DOT_COLORS[e.cor], color: "#fff" }}>
-                  {e.cor === "red" ? "Urgente" : e.cor === "amber" ? "Atenção" : e.cor === "blue" ? "Novo" : "Planejado"}
-                </span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-      <Card>
-        <h3 className="font-extrabold text-lg mb-4">Tarefas da semana</h3>
-        <div className="space-y-3">
-          {DB.agenda.slice(0, 5).map((t, i) => (
-            <div key={i} className="flex items-center justify-between rounded-[10px] p-3" style={{ background: C.beigeLight }}>
-              <div className="flex items-center gap-3 min-w-0">
-                <Dot color={t.cor} />
-                <span className="font-semibold truncate">{t.name}</span>
-              </div>
-              <TagBadge label={t.data} variant={t.cor === "red" ? "quente" : t.cor === "amber" ? "atencao" : "pendente"} />
+      <PageHeader
+        eyebrow="Google Agenda"
+        title="Planejamento"
+        accent={status?.connected ? "conectado" : "não conectado"}
+        badges={<LiveBadge label={status?.connected ? "Google Calendar" : "desconectado"} />}
+        actions={
+          status?.connected ? (
+            <div className="flex gap-2">
+              <PillBtn variant="ghost" onClick={refresh}><RefreshCw size={14} className="inline mr-1" /> Atualizar</PillBtn>
+              <PillBtn variant="ghost" onClick={handleDisconnect}><LogOut size={14} className="inline mr-1" /> Desconectar</PillBtn>
             </div>
-          ))}
-        </div>
-      </Card>
+          ) : (
+            <PillBtn onClick={handleConnect}>
+              <LinkIcon size={14} className="inline mr-1" /> {connecting ? "Redirecionando..." : "Conectar Google Calendar"}
+            </PillBtn>
+          )
+        }
+      />
+
+      {error && (
+        <Card>
+          <div className="text-sm" style={{ color: DOT_COLORS.red }}>{error}</div>
+        </Card>
+      )}
+
+      {!status?.connected && !loading && !error && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-2">Conecte sua conta do Google</h3>
+          <p className="text-sm mb-4" style={{ color: C.textMid }}>
+            Autorize o acesso ao seu Google Calendar para ver e organizar seus compromissos aqui. Somente você vê seus eventos — os tokens ficam vinculados ao seu usuário.
+          </p>
+          <PillBtn onClick={handleConnect}>
+            <LinkIcon size={14} className="inline mr-1" /> {connecting ? "Redirecionando..." : "Conectar Google Calendar"}
+          </PillBtn>
+        </Card>
+      )}
+
+      {loading && (
+        <Card><div className="text-sm" style={{ color: C.textMid }}>Carregando agenda...</div></Card>
+      )}
+
+      {status?.connected && !loading && (
+        <>
+          {status.email && (
+            <div className="mb-4 text-xs" style={{ color: C.textMid }}>Conta conectada: <b>{status.email}</b></div>
+          )}
+          <div className="grid grid-cols-2 gap-5 mb-6">
+            <Card>
+              <h3 className="font-extrabold text-lg mb-4">Hoje — {today.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" })}</h3>
+              {hoje.length === 0 ? (
+                <div className="text-sm" style={{ color: C.textMid }}>Nenhum evento hoje.</div>
+              ) : (
+                <div className="space-y-3">
+                  {hoje.map((e) => (
+                    <div key={e.id} className="flex gap-4 items-stretch">
+                      <div className="min-w-[72px]">
+                        <div className="font-extrabold">{fmtTime(e.start, e.allDay)}</div>
+                        <div className="text-xs" style={{ color: C.textMid }}>{fmtTime(e.end, e.allDay)}</div>
+                      </div>
+                      <div className="w-[3px] rounded-full" style={{ background: DOT_COLORS.blue }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold truncate">{e.title}</div>
+                        {e.location && <div className="text-xs truncate" style={{ color: C.textMid }}>{e.location}</div>}
+                      </div>
+                      {e.htmlLink && (
+                        <a href={e.htmlLink} target="_blank" rel="noreferrer" className="self-center text-xs">
+                          <ExternalLink size={14} />
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+            <Card dark>
+              <h3 className="font-extrabold text-lg mb-4">Próximos 14 dias</h3>
+              {proximos.length === 0 ? (
+                <div className="text-sm opacity-70">Nada planejado.</div>
+              ) : (
+                <div className="space-y-3 max-h-[420px] overflow-auto">
+                  {proximos.map((e) => (
+                    <div key={e.id} className="flex items-center justify-between rounded-[10px] p-3" style={{ background: "rgba(255,255,255,0.06)" }}>
+                      <div className="min-w-0">
+                        <div className="font-semibold truncate">{e.title}</div>
+                        <div className="text-xs opacity-70">{fmtDay(e.start)} · {fmtTime(e.start, e.allDay)}</div>
+                      </div>
+                      {e.htmlLink && (
+                        <a href={e.htmlLink} target="_blank" rel="noreferrer" className="opacity-80 hover:opacity-100">
+                          <ExternalLink size={14} />
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
+        </>
+      )}
     </>
   );
 }
+
 
 function ClientesPage() {
   const ativos = DB.clientes.filter(c => c.status === "ativo").length;
