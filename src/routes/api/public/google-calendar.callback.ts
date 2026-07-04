@@ -1,9 +1,37 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createHmac, timingSafeEqual } from "crypto";
 
-function verifyState(state: string): string | null {
+type GoogleOAuthConfig =
+  | { ok: true; clientId: string; clientSecret: string; signingSecret: string }
+  | { ok: false; error: string };
+
+function readGoogleOAuthConfig(): GoogleOAuthConfig {
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID?.trim();
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET?.trim();
+  const signingSecret = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.LOVABLE_API_KEY?.trim();
+  const missing = [
+    ...(!clientId ? ["GOOGLE_OAUTH_CLIENT_ID"] : []),
+    ...(!clientSecret ? ["GOOGLE_OAUTH_CLIENT_SECRET"] : []),
+    ...(!signingSecret ? ["chave interna de assinatura"] : []),
+  ];
+
+  if (!clientId || !clientSecret || !signingSecret) {
+    console.error("Google Calendar callback configuration missing", { missing });
+    return {
+      ok: false,
+      error: `Configuração do Google Calendar incompleta: ${missing.join(", ")}. Atualize as credenciais e reinicie o backend.`,
+    };
+  }
+
+  return { ok: true, clientId, clientSecret, signingSecret };
+}
+
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[char] ?? char);
+}
+
+function verifyState(state: string, secret: string): string | null {
   try {
-    const secret = process.env.SUPABASE_SERVICE_ROLE_KEY!;
     const decoded = Buffer.from(state, "base64url").toString("utf8");
     const parts = decoded.split(".");
     if (parts.length !== 3) return null;
@@ -33,9 +61,11 @@ export const Route = createFileRoute("/api/public/google-calendar/callback")({
         const code = url.searchParams.get("code");
         const state = url.searchParams.get("state");
         const errParam = url.searchParams.get("error");
-        if (errParam) return html(`<h1>Autorização cancelada</h1><p>${errParam}</p><a href="/">Voltar</a>`, 400);
+        if (errParam) return html(`<h1>Autorização cancelada</h1><p>${escapeHtml(errParam)}</p><a href="/">Voltar</a>`, 400);
         if (!code || !state) return html("<h1>Requisição inválida</h1>", 400);
-        const userId = verifyState(state);
+        const config = readGoogleOAuthConfig();
+        if (!config.ok) return html(`<h1>Configuração incompleta</h1><p>${escapeHtml(config.error)}</p>`, 500);
+        const userId = verifyState(state, config.signingSecret);
         if (!userId) return html("<h1>Estado inválido ou expirado</h1>", 400);
 
         const redirectUri = `${url.origin}/api/public/google-calendar/callback`;
@@ -44,8 +74,8 @@ export const Route = createFileRoute("/api/public/google-calendar/callback")({
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
             code,
-            client_id: process.env.GOOGLE_OAUTH_CLIENT_ID!,
-            client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
+            client_id: config.clientId,
+            client_secret: config.clientSecret,
             redirect_uri: redirectUri,
             grant_type: "authorization_code",
           }).toString(),
