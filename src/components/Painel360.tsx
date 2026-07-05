@@ -885,6 +885,71 @@ function initialsOf(nome: string) {
     .map(w => w[0]?.toUpperCase() ?? "").join("") || "?";
 }
 
+function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: string }) {
+  const send = useServerFn(sendWhatsappCobrancaTemplate);
+  const [open, setOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("cobranca_mensal");
+  const [sending, setSending] = useState(false);
+  async function submit() {
+    setSending(true);
+    try {
+      const res = await send({ data: { clienteId, templateName } });
+      toast.success(`Cobrança enviada para ${res.nome} (${res.valorFormatado})`);
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao enviar cobrança");
+    } finally {
+      setSending(false);
+    }
+  }
+  return (
+    <>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-9 w-9 text-emerald-600 hover:text-emerald-700"
+        aria-label="Enviar cobrança por WhatsApp"
+        onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+      >
+        <MessageCircle className="h-4 w-4" />
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enviar cobrança por WhatsApp</DialogTitle>
+            <DialogDescription>
+              Cliente: <strong>{nome}</strong>. O valor pendente será calculado automaticamente
+              a partir das entradas financeiras não pagas.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2">
+            <Label htmlFor="template">Nome do template (Meta)</Label>
+            <Input
+              id="template"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              placeholder="cobranca_mensal"
+            />
+            <p className="text-xs text-muted-foreground">
+              O template deve estar aprovado na Meta e ter 2 variáveis no corpo: nome e valor.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={sending}>
+              Cancelar
+            </Button>
+            <Button onClick={submit} disabled={sending || !templateName.trim()}>
+              {sending && <Loader2 className="h-4 w-4 animate-spin" />}
+              Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 function ClientesPage() {
   const { openCreate, openEdit, openDelete } = useCrud();
   const { rows, loading, error, refetch } = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
