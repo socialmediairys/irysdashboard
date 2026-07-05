@@ -798,6 +798,7 @@ function ClientesPage() {
 }
 
 function CRMPage() {
+  const { openCreate } = useCrud();
   const potencial = DB.leads.reduce((s, l) => s + l.val, 0);
   const quentes = DB.leads.filter(l => l.status === "quente").length;
   const propostas = DB.leads.filter(l => l.status === "proposta").length;
@@ -812,7 +813,8 @@ function CRMPage() {
   return (
     <>
       <PageHeader eyebrow="CRM" title="Pipeline de" accent="vendas"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Novo lead</PillBtn>} />
+        actions={<PillBtn onClick={() => openCreate("lead")}><Plus size={14} className="inline mr-1" /> Novo lead</PillBtn>} />
+
       <div className="grid grid-cols-4 gap-5 mb-6">
         <MetricCard variant="hero" value={brl(potencial)} label="Potencial no pipeline" />
         <MetricCard value={quentes} label="Leads quentes" />
