@@ -3,8 +3,9 @@ import {
   LayoutDashboard, Calendar, Users, TrendingUp, CreditCard, Instagram,
   Bookmark, Wrench, Plus, Zap, ArrowRight, Library, FileText, Settings, Menu,
   UserSquare2, Play, Pause, ChevronDown, ChevronRight, ArrowLeft, FolderOpen, Video, CheckCircle2, Circle,
-  RefreshCw, LinkIcon, LogOut, ExternalLink, Copy, MessageCircle, Loader2,
+  RefreshCw, LinkIcon, LogOut, ExternalLink, Copy, MessageCircle, Loader2, AlertCircle,
 } from "lucide-react";
+
 import { useServerFn } from "@tanstack/react-start";
 import {
   startGoogleCalendarAuth,
@@ -17,8 +18,10 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
 import { CrudProvider, useCrud } from "@/components/crud/CrudProvider";
 import { RowActions } from "@/components/crud/RowActions";
 import { useSupabaseList } from "@/hooks/useSupabaseList";
@@ -889,19 +892,42 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
   const send = useServerFn(sendWhatsappCobrancaTemplate);
   const [open, setOpen] = useState(false);
   const [templateName, setTemplateName] = useState("cobranca_mensal");
-  const [sending, setSending] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [result, setResult] = useState<{ nome: string; valorFormatado: string; to: string } | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  function reset() {
+    setStatus("idle");
+    setResult(null);
+    setErrorMsg(null);
+  }
+
+  function handleOpenChange(next: boolean) {
+    if (status === "loading") return;
+    if (!next) reset();
+    setOpen(next);
+  }
+
   async function submit() {
-    setSending(true);
+    setStatus("loading");
+    setErrorMsg(null);
     try {
       const res = await send({ data: { clienteId, templateName } });
+      setResult(res);
+      setStatus("success");
       toast.success(`Cobrança enviada para ${res.nome} (${res.valorFormatado})`);
-      setOpen(false);
+      setTimeout(() => {
+        setOpen(false);
+        setTimeout(reset, 200);
+      }, 1800);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Falha ao enviar cobrança");
-    } finally {
-      setSending(false);
+      const msg = e instanceof Error ? e.message : "Falha ao enviar cobrança";
+      setErrorMsg(msg);
+      setStatus("error");
+      toast.error(msg);
     }
   }
+
   return (
     <>
       <Button
@@ -914,41 +940,92 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
       >
         <MessageCircle className="h-4 w-4" />
       </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => { if (status === "loading") e.preventDefault(); }}>
           <DialogHeader>
-            <DialogTitle>Enviar cobrança por WhatsApp</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {status === "success" && <CheckCircle2 className="h-5 w-5 text-green-600" />}
+              {status === "error" && <AlertCircle className="h-5 w-5 text-destructive" />}
+              {status === "loading" && <Loader2 className="h-5 w-5 animate-spin" />}
+              {status === "idle" && <MessageCircle className="h-5 w-5" />}
+              Enviar cobrança por WhatsApp
+            </DialogTitle>
             <DialogDescription>
               Cliente: <strong>{nome}</strong>. O valor pendente será calculado automaticamente
               a partir das entradas financeiras não pagas.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-2">
-            <Label htmlFor="template">Nome do template (Meta)</Label>
-            <Input
-              id="template"
-              value={templateName}
-              onChange={(e) => setTemplateName(e.target.value)}
-              placeholder="cobranca_mensal"
-            />
-            <p className="text-xs text-muted-foreground">
-              O template deve estar aprovado na Meta e ter 2 variáveis no corpo: nome e valor.
-            </p>
-          </div>
+
+          {status === "success" && result && (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+              <div className="flex items-center gap-2 font-semibold">
+                <CheckCircle2 className="h-4 w-4" /> Cobrança enviada com sucesso
+              </div>
+              <div className="mt-1 pl-6">
+                Enviada para <strong>{result.to}</strong> — valor de {result.valorFormatado}.
+              </div>
+            </div>
+          )}
+
+          {status === "error" && errorMsg && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Erro ao enviar pela Meta</AlertTitle>
+              <AlertDescription className="break-words">
+                {errorMsg}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {status !== "success" && (
+            <div className="grid gap-2">
+              <Label htmlFor="template">Nome do template (Meta)</Label>
+              <Input
+                id="template"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="cobranca_mensal"
+                disabled={status === "loading"}
+              />
+              <p className="text-xs text-muted-foreground">
+                O template deve estar aprovado na Meta e ter 2 variáveis no corpo: nome e valor.
+              </p>
+            </div>
+          )}
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)} disabled={sending}>
-              Cancelar
-            </Button>
-            <Button onClick={submit} disabled={sending || !templateName.trim()}>
-              {sending && <Loader2 className="h-4 w-4 animate-spin" />}
-              Enviar
-            </Button>
+            {status === "error" ? (
+              <>
+                <Button variant="outline" onClick={() => setOpen(false)}>
+                  Fechar
+                </Button>
+                <Button onClick={submit} disabled={!templateName.trim()}>
+                  Tentar novamente
+                </Button>
+              </>
+            ) : status === "success" ? (
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Fechar
+              </Button>
+            ) : (
+
+              <>
+                <Button variant="outline" onClick={() => setOpen(false)} disabled={status === "loading"}>
+                  Cancelar
+                </Button>
+                <Button onClick={submit} disabled={status === "loading" || !templateName.trim()}>
+                  {status === "loading" && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Enviar
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
   );
 }
+
 
 function ClientesPage() {
   const { openCreate, openEdit, openDelete } = useCrud();
