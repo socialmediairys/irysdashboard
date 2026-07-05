@@ -1589,41 +1589,31 @@ type FerramentaRow = {
 
 function FerramentasPage() {
   const { openCreate, openEdit, openDelete } = useCrud();
-  const { rows: ferramentasDb } = useSupabaseList<FerramentaRow>("ferramentas", { order: { column: "nome" } });
+  const { rows: ferramentasDb, loading, error, refetch } = useSupabaseList<FerramentaRow>("ferramentas", { order: { column: "nome" } });
   const custo = ferramentasDb.reduce((s, f) => s + Number(f.custo_mensal || 0), 0);
   return (
     <>
       <PageHeader eyebrow="Ferramentas" title="Links &" accent="recursos"
-        badges={<LiveBadge label="Conectar nova" />}
         actions={<PillBtn onClick={() => openCreate("ferramenta")}><Plus size={14} className="inline mr-1" /> Adicionar ferramenta</PillBtn>} />
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5 mb-6">
-        <MetricCard variant="hero" value={DB.integracoes.length} label="Integrações ativas" />
-        <MetricCard value={ferramentasDb.length} label="Ferramentas" />
-        <MetricCard variant="accent" value={brl(custo)} label="Custo mensal" deltaType="neutral" />
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-5 mb-6">
+        <MetricCard variant="hero" value={loading ? "—" : ferramentasDb.length} label="Ferramentas" />
+        <MetricCard variant="accent" value={loading ? "—" : brl(custo)} label="Custo mensal" deltaType="neutral" />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
-        <Card>
-          <h3 className="font-extrabold text-lg mb-4">Integrações ativas</h3>
+      <Card>
+        <h3 className="font-extrabold text-lg mb-4">Ferramentas do workflow</h3>
+        <ListState
+          loading={loading}
+          error={error}
+          rows={ferramentasDb}
+          onRetry={refetch}
+          skeletonVariant="row"
+          skeletonCount={4}
+          emptyTitle="Nenhuma ferramenta cadastrada"
+          emptyDescription="Adicione as ferramentas que você usa no dia a dia para controlar custos e acessos."
+          actionLabel="Adicionar ferramenta"
+          onAction={() => openCreate("ferramenta")}
+        >
           <div className="space-y-3">
-            {DB.integracoes.map((it, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-xl">{it.ico}</span>
-                  <div className="min-w-0"><div className="font-semibold truncate">{it.name}</div><div className="text-xs" style={{ color: C.textMid }}>{it.desc}</div></div>
-                </div>
-                {it.live && <LiveBadge label="Live" />}
-              </div>
-            ))}
-          </div>
-        </Card>
-        <Card>
-          <h3 className="font-extrabold text-lg mb-4">Ferramentas do workflow</h3>
-          <div className="space-y-3">
-            {ferramentasDb.length === 0 && (
-              <div className="text-sm italic" style={{ color: C.textMuted }}>
-                Nenhuma ferramenta ainda. Clique em "Adicionar ferramenta".
-              </div>
-            )}
             {ferramentasDb.map((f) => (
               <div key={f.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
                 <a href={f.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 min-w-0 flex-1 hover:opacity-80">
@@ -1639,8 +1629,8 @@ function FerramentasPage() {
               </div>
             ))}
           </div>
-        </Card>
-      </div>
+        </ListState>
+      </Card>
     </>
   );
 }
