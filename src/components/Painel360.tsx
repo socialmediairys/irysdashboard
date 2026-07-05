@@ -431,6 +431,7 @@ function StatusLabel(s: string) {
 
 /* ---------- PAGES ---------- */
 function DashboardPage({ go }: { go: (p: PageKey) => void }) {
+  const { openCreate } = useCrud();
   const faturamento = useMemo(() => DB.clientes.filter(c => c.status === "ativo").reduce((s, c) => s + c.val, 0), []);
   const clientesAtivos = useMemo(() => DB.clientes.filter(c => c.status === "ativo").length, []);
   const postsEntregues = useMemo(() => DB.clientes.reduce((s, c) => s + c.feitos, 0), []);
@@ -445,9 +446,10 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
         badges={<LiveBadge label="Integrações ativas" />}
         actions={<>
           <PillBtn variant="ghost" onClick={() => go("agenda")}><Zap size={14} className="inline mr-1" /> Hoje</PillBtn>
-          <PillBtn><Plus size={14} className="inline mr-1" /> Nova tarefa</PillBtn>
+          <PillBtn onClick={() => openCreate("tarefa")}><Plus size={14} className="inline mr-1" /> Nova tarefa</PillBtn>
         </>}
       />
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6">
 
         <MetricCard variant="hero"    value={brl(faturamento)}   label="Faturamento" delta="↑ 12% vs maio" />
