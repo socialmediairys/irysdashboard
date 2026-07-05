@@ -1552,20 +1552,26 @@ function PromptsPage() {
       <PageHeader eyebrow="Biblioteca de Prompts IA" title="Prompts &" accent="frameworks"
         actions={<PillBtn onClick={() => openCreate("prompt")}><Plus size={14} className="inline mr-1" /> Novo prompt</PillBtn>} />
 
-      {prompts.length === 0 && (
-        <Card><div className="text-center py-8" style={{ color: C.textMid }}>
-          Nenhum prompt salvo. Clique em "Novo prompt".
-        </div></Card>
-      )}
-
-      {[...grouped.entries()].map(([cat, list]) => (
-        <div key={cat}>
-          <SectionLabel>{cat}</SectionLabel>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 mb-6">
-            {list.map(renderCard)}
+      <ListState
+        loading={loading}
+        error={error}
+        rows={prompts}
+        onRetry={refetch}
+        skeletonCount={4}
+        emptyTitle="Nenhum prompt salvo"
+        emptyDescription="Salve seus frameworks e prompts de IA favoritos para reutilizar."
+        actionLabel="Novo prompt"
+        onAction={() => openCreate("prompt")}
+      >
+        {[...grouped.entries()].map(([cat, list]) => (
+          <div key={cat}>
+            <SectionLabel>{cat}</SectionLabel>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 mb-6">
+              {list.map(renderCard)}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </ListState>
     </>
   );
 }
