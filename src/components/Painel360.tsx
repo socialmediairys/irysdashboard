@@ -1766,7 +1766,7 @@ function ConfigPage() {
 }
 
 /* ---------- Shell ---------- */
-export default function Painel360() {
+function Painel360Inner() {
   const [active, setActive] = useState<PageKey>("dash");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -1845,3 +1845,12 @@ export default function Painel360() {
     </div>
   );
 }
+
+export default function Painel360() {
+  return (
+    <CrudProvider>
+      <Painel360Inner />
+    </CrudProvider>
+  );
+}
+
