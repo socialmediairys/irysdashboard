@@ -18,6 +18,7 @@ import { useSupabaseList } from "@/hooks/useSupabaseList";
 import { toast } from "sonner";
 import { ListState } from "@/components/ListState";
 import { ProfileTab } from "@/components/ProfileTab";
+import { AccountTab } from "@/components/AccountTab";
 
 
 
@@ -2128,8 +2129,7 @@ function ConfigPage() {
       )}
       {tab === "planos" && (
         <Card>
-          <h3 className="font-extrabold text-lg mb-2">Planos & Conta</h3>
-          <p className="text-sm" style={{ color: C.textMid }}>Em breve: gestão de plano, faturamento e dados da conta.</p>
+          <AccountTab />
         </Card>
       )}
     </>
