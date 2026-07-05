@@ -999,10 +999,12 @@ function SocialPage() {
 }
 
 function EstrategiaPage() {
+  const { openCreate } = useCrud();
   return (
     <>
       <PageHeader eyebrow="Estratégia de Conteúdo" title="Clientes" accent="ativos"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Nova estratégia</PillBtn>} />
+        actions={<PillBtn onClick={() => openCreate("estrategia")}><Plus size={14} className="inline mr-1" /> Nova estratégia</PillBtn>} />
+
       <div className="grid grid-cols-3 gap-5 mb-6">
         {DB.clientes.filter(c => c.status === "ativo").map(c => (
           <Card key={c.id}>
