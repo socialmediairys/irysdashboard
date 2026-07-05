@@ -263,19 +263,20 @@ function PageHeader({ eyebrow, title, accent, actions, badges }: {
   eyebrow: string; title: string; accent?: string; actions?: ReactNode; badges?: ReactNode;
 }) {
   return (
-    <div className="mb-8 flex items-end justify-between gap-6 flex-wrap">
-      <div>
+    <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6">
+      <div className="min-w-0">
         <Eyebrow>{eyebrow}</Eyebrow>
-        <H1>
+        <h1 className="text-2xl md:text-4xl font-extrabold leading-tight mt-2" style={{ color: C.text, letterSpacing: "-0.03em" }}>
           {title}{" "}
           {accent && <em className="not-italic" style={{ color: C.textMuted, fontStyle: "italic", fontWeight: 500 }}>{accent}</em>}
-        </H1>
-        {badges && <div className="mt-4 flex gap-2 flex-wrap">{badges}</div>}
+        </h1>
+        {badges && <div className="mt-3 md:mt-4 flex gap-2 flex-wrap">{badges}</div>}
       </div>
-      {actions && <div className="flex items-center gap-3">{actions}</div>}
+      {actions && <div className="flex items-center gap-2 md:gap-3 flex-wrap">{actions}</div>}
     </div>
   );
 }
+
 
 /* ---------- Sidebar ---------- */
 type PageKey =
