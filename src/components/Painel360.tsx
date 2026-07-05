@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Calendar, Users, TrendingUp, CreditCard, Instagram,
   Bookmark, Wrench, Plus, Zap, ArrowRight, Library, FileText, Settings, Menu,
   UserSquare2, Play, Pause, ChevronDown, ChevronRight, ArrowLeft, FolderOpen, Video, CheckCircle2, Circle,
-  RefreshCw, LinkIcon, LogOut, ExternalLink,
+  RefreshCw, LinkIcon, LogOut, ExternalLink, Copy,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -12,6 +12,11 @@ import {
   disconnectGoogleCalendar,
   listGoogleCalendarEvents,
 } from "@/lib/google-calendar.functions";
+import { CrudProvider, useCrud } from "@/components/crud/CrudProvider";
+import { RowActions } from "@/components/crud/RowActions";
+import { useSupabaseList } from "@/hooks/useSupabaseList";
+import { toast } from "sonner";
+
 
 
 /* ---------- DB ---------- */
