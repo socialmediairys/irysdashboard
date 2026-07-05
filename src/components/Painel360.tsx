@@ -478,7 +478,8 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
             </div>
           </Card>
         </div>
-        <div className="col-span-2">
+        <div className="lg:col-span-2">
+
           <Card dark>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-extrabold text-lg">📅 Google Agenda — Hoje</h3>
