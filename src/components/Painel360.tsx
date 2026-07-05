@@ -16,6 +16,7 @@ import { CrudProvider, useCrud } from "@/components/crud/CrudProvider";
 import { RowActions } from "@/components/crud/RowActions";
 import { useSupabaseList } from "@/hooks/useSupabaseList";
 import { toast } from "sonner";
+import { ListState } from "@/components/ListState";
 
 
 
@@ -430,17 +431,73 @@ function StatusLabel(s: string) {
 }
 
 /* ---------- PAGES ---------- */
+type AgendaRow = {
+  id: string;
+  titulo: string;
+  descricao: string | null;
+  data_hora: string;
+  duracao_min: number | null;
+  prioridade: string | null;
+  concluido: boolean;
+};
+type TarefaRow = {
+  id: string;
+  titulo: string;
+  cliente_id: string | null;
+  status: string;
+  tipo: string;
+  prazo: string | null;
+};
+
+function isToday(iso: string): boolean {
+  const d = new Date(iso);
+  const n = new Date();
+  return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
+}
+function fmtHour(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
 function DashboardPage({ go }: { go: (p: PageKey) => void }) {
   const { openCreate } = useCrud();
-  const faturamento = useMemo(() => DB.clientes.filter(c => c.status === "ativo").reduce((s, c) => s + c.val, 0), []);
-  const clientesAtivos = useMemo(() => DB.clientes.filter(c => c.status === "ativo").length, []);
-  const postsEntregues = useMemo(() => DB.clientes.reduce((s, c) => s + c.feitos, 0), []);
-  const hoje = DB.agenda.filter(a => a.data === "Hoje");
+  const clientesQ = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
+  const leadsQ = useSupabaseList<LeadRow>("leads", { order: { column: "created_at", ascending: false } });
+  const agendaQ = useSupabaseList<AgendaRow>("agenda_itens", { order: { column: "data_hora" } });
+  const tarefasQ = useSupabaseList<TarefaRow>("tarefas", { order: { column: "created_at", ascending: false } });
+
+  const clientes = clientesQ.rows;
+  const leads = leadsQ.rows;
+  const agenda = agendaQ.rows;
+  const tarefas = tarefasQ.rows;
+
+  const faturamento = useMemo(
+    () => clientes.filter(c => c.status_contrato === "ativo").reduce((s, c) => s + (Number(c.valor_mensal) || 0), 0),
+    [clientes],
+  );
+  const clientesAtivos = useMemo(() => clientes.filter(c => c.status_contrato === "ativo").length, [clientes]);
+  const postsEntregues = useMemo(
+    () => tarefas.filter(t => t.status === "Publicado" || t.status === "Aprovado").length,
+    [tarefas],
+  );
+  const postsPrevistos = tarefas.length;
+  const hoje = useMemo(() => agenda.filter(a => isToday(a.data_hora)), [agenda]);
+  const leadsTop = leads.slice(0, 5);
+
+  const entregasPorCliente = useMemo(() => {
+    return clientes.map(c => {
+      const list = tarefas.filter(t => t.cliente_id === c.id);
+      const feitos = list.filter(t => t.status === "Publicado" || t.status === "Aprovado").length;
+      return { id: c.id, name: c.nome, feitos, total: list.length };
+    });
+  }, [clientes, tarefas]);
+
+  const anyLoading = clientesQ.loading || leadsQ.loading || agendaQ.loading || tarefasQ.loading;
 
   return (
     <>
       <PageHeader
-        eyebrow="Painel 360° · Junho 2026"
+        eyebrow="Painel 360°"
         title="Bem-vinda,"
         accent="Thamirys."
         badges={<LiveBadge label="Integrações ativas" />}
@@ -451,98 +508,131 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6">
-
-        <MetricCard variant="hero"    value={brl(faturamento)}   label="Faturamento" delta="↑ 12% vs maio" />
-        <MetricCard                    value={clientesAtivos}     label="Clientes ativos" delta="↑ 1 novo" />
-        <MetricCard variant="accent"   value={postsEntregues}     label="Posts entregues" delta="de 42 previstos" deltaType="neutral" />
-        <MetricCard                    value={DB.leads.length}    label="Leads pipeline" delta="↓ 2 perdidos" deltaType="down" />
+        <MetricCard variant="hero" value={anyLoading ? "—" : brl(faturamento)} label="Faturamento mensal" />
+        <MetricCard value={anyLoading ? "—" : clientesAtivos} label="Clientes ativos" />
+        <MetricCard variant="accent" value={anyLoading ? "—" : postsEntregues} label="Posts entregues" delta={postsPrevistos ? `de ${postsPrevistos} previstos` : "sem tarefas"} deltaType="neutral" />
+        <MetricCard value={anyLoading ? "—" : leads.length} label="Leads pipeline" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5 mb-6">
         <div className="lg:col-span-3">
-
           <Card>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-extrabold text-lg">CRM — Leads ativos</h3>
               <button onClick={() => go("crm")} className="text-xs font-bold uppercase tracking-wider" style={{ color: C.mid }}>ver CRM →</button>
             </div>
-            <div className="space-y-3">
-              {DB.leads.map((l, i) => (
-                <div key={i} className="flex items-center justify-between rounded-[10px] p-3" style={{ background: C.beigeLight }}>
-                  <div className="flex items-center gap-3">
-                    <Dot color={l.status === "quente" ? "red" : l.status === "negociando" ? "amber" : l.status === "proposta" ? "purple" : "blue"} />
-                    <div>
-                      <div className="font-semibold">{l.name}</div>
-                      <div className="text-xs" style={{ color: C.textMid }}>{l.origem} · {l.potencial}</div>
+            <ListState
+              loading={leadsQ.loading}
+              error={leadsQ.error}
+              rows={leadsTop}
+              onRetry={leadsQ.refetch}
+              skeletonVariant="row"
+              skeletonCount={4}
+              emptyTitle="Nenhum lead ativo"
+              emptyDescription="Adicione seu primeiro lead para começar a acompanhar o pipeline."
+              actionLabel="Novo lead"
+              onAction={() => openCreate("lead")}
+            >
+              <div className="space-y-3">
+                {leadsTop.map((l) => (
+                  <div key={l.id} className="flex items-center justify-between rounded-[10px] p-3" style={{ background: C.beigeLight }}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Dot color={l.etapa === "Negociando" ? "amber" : l.etapa === "Proposta Enviada" ? "purple" : "blue"} />
+                      <div className="min-w-0">
+                        <div className="font-semibold truncate">{l.nome}</div>
+                        <div className="text-xs truncate" style={{ color: C.textMid }}>{(l.origem ?? "—")} · {(l.potencial ?? "—")}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <TagBadge label={l.etapa} variant="frio" />
+                      <span className="font-extrabold" style={{ color: C.mid }}>{brl(Number(l.valor) || 0)}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <TagBadge label={StatusLabel(l.status)} variant={l.status} />
-                    <span className="font-extrabold" style={{ color: C.mid }}>{brl(l.val)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </ListState>
           </Card>
         </div>
         <div className="lg:col-span-2">
-
           <Card dark>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-extrabold text-lg">📅 Google Agenda — Hoje</h3>
+              <h3 className="font-extrabold text-lg">📅 Agenda — Hoje</h3>
               <button onClick={() => go("agenda")} className="text-xs font-bold uppercase tracking-wider" style={{ color: C.gold }}>agenda →</button>
             </div>
-            <div className="space-y-3">
-              {hoje.map((e, i) => (
-                <div key={i} className="flex items-center justify-between rounded-[10px] p-3" style={{ background: "rgba(255,255,255,0.06)" }}>
-                  <div className="min-w-0">
-                    <div className="font-semibold truncate">{e.name}</div>
-                    <div className="text-xs opacity-70">{e.time} · {e.dur}</div>
+            {agendaQ.loading && hoje.length === 0 ? (
+              <div className="space-y-2">
+                {[0,1,2].map(i => (
+                  <div key={i} className="h-14 rounded-[10px] animate-pulse" style={{ background: "rgba(255,255,255,0.08)" }} />
+                ))}
+              </div>
+            ) : agendaQ.error ? (
+              <div className="text-sm opacity-80">Erro ao carregar agenda.</div>
+            ) : hoje.length === 0 ? (
+              <div className="text-sm opacity-70 py-4">Nenhum compromisso para hoje.</div>
+            ) : (
+              <div className="space-y-3">
+                {hoje.map((e) => (
+                  <div key={e.id} className="flex items-center justify-between rounded-[10px] p-3" style={{ background: "rgba(255,255,255,0.06)" }}>
+                    <div className="min-w-0">
+                      <div className="font-semibold truncate">{e.titulo}</div>
+                      <div className="text-xs opacity-70">{fmtHour(e.data_hora)}{e.duracao_min ? ` · ${e.duracao_min}min` : ""}</div>
+                    </div>
+                    <span className="rounded-full px-2.5 py-1 text-[11px] font-bold uppercase"
+                      style={{ background: e.prioridade === "alta" ? "#C8351A" : "rgba(255,255,255,0.15)", color: "#fff" }}>
+                      {e.prioridade === "alta" ? "Urgente" : "Hoje"}
+                    </span>
                   </div>
-                  <span className="rounded-full px-2.5 py-1 text-[11px] font-bold uppercase"
-                    style={{ background: e.cor === "red" ? "#C8351A" : e.cor === "green" ? "#2E7D32" : "rgba(255,255,255,0.15)", color: "#fff" }}>
-                    {e.cor === "red" ? "Urgente" : "Hoje"}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </Card>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5">
         <div className="lg:col-span-3">
-
           <Card>
-            <h3 className="font-extrabold text-lg mb-4">Entregas por cliente — Junho</h3>
-            <div className="space-y-4">
-              {DB.clientes.map((c) => (
-                <div key={c.id}>
-                  <div className="flex justify-between text-sm mb-1.5">
-                    <span className="font-semibold">{c.name}</span>
-                    <span style={{ color: C.textMid }}>{c.feitos}/{c.posts}</span>
+            <h3 className="font-extrabold text-lg mb-4">Entregas por cliente</h3>
+            <ListState
+              loading={clientesQ.loading || tarefasQ.loading}
+              error={clientesQ.error || tarefasQ.error}
+              rows={entregasPorCliente}
+              onRetry={() => { clientesQ.refetch(); tarefasQ.refetch(); }}
+              skeletonVariant="row"
+              skeletonCount={4}
+              emptyTitle="Sem clientes cadastrados"
+              emptyDescription="Cadastre clientes para acompanhar as entregas do mês."
+              actionLabel="Novo cliente"
+              onAction={() => openCreate("cliente")}
+            >
+              <div className="space-y-4">
+                {entregasPorCliente.map((c) => (
+                  <div key={c.id}>
+                    <div className="flex justify-between text-sm mb-1.5">
+                      <span className="font-semibold truncate pr-2">{c.name}</span>
+                      <span style={{ color: C.textMid }}>{c.feitos}/{c.total || 0}</span>
+                    </div>
+                    <ProgressBar value={c.feitos} max={Math.max(1, c.total)} colorByPercent />
                   </div>
-                  <ProgressBar value={c.feitos} max={c.posts} colorByPercent />
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </ListState>
           </Card>
         </div>
         <div className="lg:col-span-2">
-
           <Card>
             <h3 className="font-extrabold text-lg mb-4">Acesso rápido</h3>
             <div className="grid grid-cols-3 gap-3">
               {[
                 { e:"📅", n:"Agenda", s:"Hoje", k:"agenda" as PageKey },
                 { e:"👥", n:"Clientes", s:`${clientesAtivos} ativos`, k:"clientes" as PageKey },
-                { e:"📈", n:"CRM", s:`${DB.leads.length} leads`, k:"crm" as PageKey },
+                { e:"📈", n:"CRM", s:`${leads.length} leads`, k:"crm" as PageKey },
                 { e:"💳", n:"Finanças", s:"Junho", k:"financas" as PageKey },
                 { e:"📝", n:"Conteúdo", s:"Calendário", k:"conteudo" as PageKey },
                 { e:"📚", n:"Biblioteca", s:"Refs & prompts", k:"biblioteca" as PageKey },
               ].map((c) => (
                 <button key={c.n} onClick={() => go(c.k)}
-                  className="rounded-[10px] p-3 text-left transition-all hover:-translate-y-0.5"
+                  className="rounded-[10px] p-3 text-left transition-all hover:-translate-y-0.5 min-h-11"
                   style={{ background: C.beigeLight }}>
                   <div className="text-xl">{c.e}</div>
                   <div className="text-sm font-bold mt-1">{c.n}</div>
@@ -786,7 +876,7 @@ function initialsOf(nome: string) {
 
 function ClientesPage() {
   const { openCreate, openEdit, openDelete } = useCrud();
-  const { rows, loading } = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
+  const { rows, loading, error, refetch } = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
   const ativos = rows.filter(c => c.status_contrato === "ativo").length;
   const maxVal = Math.max(1, ...rows.map(c => Number(c.valor_mensal) || 0));
   return (
@@ -794,54 +884,58 @@ function ClientesPage() {
       <PageHeader eyebrow="Clientes" title={`${ativos} clientes`} accent="ativos"
         actions={<PillBtn onClick={() => openCreate("cliente")}><Plus size={14} className="inline mr-1" /> Novo cliente</PillBtn>} />
 
-      {loading && <div className="text-sm mb-4" style={{ color: C.textMid }}>Carregando…</div>}
-      {!loading && rows.length === 0 && (
-        <Card><div className="text-center py-8" style={{ color: C.textMid }}>
-          Nenhum cliente ainda. Clique em "Novo cliente".
-        </div></Card>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
-        {rows.map((c) => (
-          <Card key={c.id}>
-            <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg flex-shrink-0"
-                style={{ background: C.beige, color: C.dark }}>{c.init || initialsOf(c.nome)}</div>
-              <div className="min-w-0 flex-1">
-                <div className="font-extrabold truncate">{c.nome}</div>
-                <div className="text-xs" style={{ color: C.textMid }}>{c.plano_label || c.plano_atual || "—"}</div>
-                <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}/mês</div>
+      <ListState
+        loading={loading}
+        error={error}
+        rows={rows}
+        onRetry={refetch}
+        skeletonCount={6}
+        emptyTitle="Nenhum cliente ainda"
+        emptyDescription="Cadastre seu primeiro cliente para começar a acompanhar contratos e receita."
+        actionLabel="Novo cliente"
+        onAction={() => openCreate("cliente")}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
+          {rows.map((c) => (
+            <Card key={c.id}>
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg flex-shrink-0"
+                  style={{ background: C.beige, color: C.dark }}>{c.init || initialsOf(c.nome)}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-extrabold truncate">{c.nome}</div>
+                  <div className="text-xs" style={{ color: C.textMid }}>{c.plano_label || c.plano_atual || "—"}</div>
+                  <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}/mês</div>
+                </div>
+                <RowActions onEdit={() => openEdit("cliente", c)} onDelete={() => openDelete("cliente", c)} />
               </div>
-              <RowActions onEdit={() => openEdit("cliente", c)} onDelete={() => openDelete("cliente", c)} />
-            </div>
-            <div className="mt-4">
-              <TagBadge
-                label={CLIENTE_STATUS_LABEL[c.status_contrato] ?? c.status_contrato}
-                variant={CLIENTE_STATUS_VARIANT[c.status_contrato] ?? "frio"}
-              />
-            </div>
-          </Card>
-        ))}
-      </div>
-      {rows.length > 0 && (
+              <div className="mt-4">
+                <TagBadge
+                  label={CLIENTE_STATUS_LABEL[c.status_contrato] ?? c.status_contrato}
+                  variant={CLIENTE_STATUS_VARIANT[c.status_contrato] ?? "frio"}
+                />
+              </div>
+            </Card>
+          ))}
+        </div>
         <Card>
           <h3 className="font-extrabold text-lg mb-4">Receita mensal por cliente (MRR)</h3>
           <div className="space-y-4">
             {rows.map((c) => (
               <div key={c.id}>
                 <div className="flex justify-between text-sm mb-1.5">
-                  <span className="font-semibold">{c.nome}</span>
-                  <span className="font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}</span>
+                  <span className="font-semibold truncate pr-2">{c.nome}</span>
+                  <span className="font-extrabold shrink-0" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}</span>
                 </div>
                 <ProgressBar value={Number(c.valor_mensal) || 0} max={maxVal} />
               </div>
             ))}
           </div>
         </Card>
-      )}
+      </ListState>
     </>
   );
 }
+
 
 
 type LeadRow = {
@@ -863,7 +957,8 @@ const ETAPA_COLS = ["Lead/Entrada", "Reunião Marcada", "Proposta Enviada", "Neg
 
 function CRMPage() {
   const { openCreate, openEdit, openDelete } = useCrud();
-  const { rows: leads } = useSupabaseList<LeadRow>("leads", { order: { column: "created_at", ascending: false } });
+  const leadsQ = useSupabaseList<LeadRow>("leads", { order: { column: "created_at", ascending: false } });
+  const { rows: leads, loading, error, refetch } = leadsQ;
   const { rows: clientes } = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
 
   const potencial = leads.reduce((s, l) => s + Number(l.valor || 0), 0);
@@ -921,45 +1016,52 @@ function CRMPage() {
 
       <Card>
         <h3 className="font-extrabold text-lg mb-4">Todos os leads</h3>
-        {leads.length === 0 ? (
-          <div className="text-center py-6" style={{ color: C.textMid }}>Nenhum lead ainda. Clique em "Novo lead".</div>
-        ) : (
-          <>
-            {/* Desktop table */}
-            <table className="hidden md:table w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs uppercase tracking-wider" style={{ color: C.textMid }}>
-                  <th className="py-2">Nome</th><th>Valor</th><th>Etapa</th><th>Origem</th><th>Potencial</th><th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {leads.map((l) => (
-                  <tr key={l.id} className="border-t" style={{ borderColor: C.beigeLight }}>
-                    <td className="py-3 font-semibold">{l.nome}</td>
-                    <td className="font-extrabold" style={{ color: C.mid }}>{brl(Number(l.valor) || 0)}</td>
-                    <td><TagBadge label={l.etapa} variant="frio" /></td>
-                    <td style={{ color: C.textMid }}>{l.origem ?? "—"}</td>
-                    <td style={{ color: C.textMid }}>{l.potencial ?? "—"}</td>
-                    <td><RowActions onEdit={() => openEdit("lead", l)} onDelete={() => openDelete("lead", l)} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {/* Mobile cards */}
-            <div className="md:hidden space-y-3">
+        <ListState
+          loading={loading}
+          error={error}
+          rows={leads}
+          onRetry={refetch}
+          skeletonVariant="row"
+          skeletonCount={4}
+          emptyTitle="Nenhum lead ainda"
+          emptyDescription="Adicione seu primeiro lead para começar o pipeline."
+          actionLabel="Novo lead"
+          onAction={() => openCreate("lead")}
+        >
+          {/* Desktop table */}
+          <table className="hidden md:table w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase tracking-wider" style={{ color: C.textMid }}>
+                <th className="py-2">Nome</th><th>Valor</th><th>Etapa</th><th>Origem</th><th>Potencial</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
               {leads.map((l) => (
-                <div key={l.id} className="rounded-[10px] p-3 flex items-start justify-between gap-2" style={{ background: C.beigeLight }}>
-                  <div className="min-w-0">
-                    <div className="font-semibold truncate">{l.nome}</div>
-                    <div className="font-extrabold text-sm" style={{ color: C.mid }}>{brl(Number(l.valor) || 0)}</div>
-                    <div className="text-xs mt-1" style={{ color: C.textMid }}>{l.etapa} · {l.origem ?? "—"}</div>
-                  </div>
-                  <RowActions onEdit={() => openEdit("lead", l)} onDelete={() => openDelete("lead", l)} />
-                </div>
+                <tr key={l.id} className="border-t" style={{ borderColor: C.beigeLight }}>
+                  <td className="py-3 font-semibold">{l.nome}</td>
+                  <td className="font-extrabold" style={{ color: C.mid }}>{brl(Number(l.valor) || 0)}</td>
+                  <td><TagBadge label={l.etapa} variant="frio" /></td>
+                  <td style={{ color: C.textMid }}>{l.origem ?? "—"}</td>
+                  <td style={{ color: C.textMid }}>{l.potencial ?? "—"}</td>
+                  <td><RowActions onEdit={() => openEdit("lead", l)} onDelete={() => openDelete("lead", l)} /></td>
+                </tr>
               ))}
-            </div>
-          </>
-        )}
+            </tbody>
+          </table>
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {leads.map((l) => (
+              <div key={l.id} className="rounded-[10px] p-3 flex items-start justify-between gap-2" style={{ background: C.beigeLight }}>
+                <div className="min-w-0">
+                  <div className="font-semibold truncate">{l.nome}</div>
+                  <div className="font-extrabold text-sm" style={{ color: C.mid }}>{brl(Number(l.valor) || 0)}</div>
+                  <div className="text-xs mt-1" style={{ color: C.textMid }}>{l.etapa} · {l.origem ?? "—"}</div>
+                </div>
+                <RowActions onEdit={() => openEdit("lead", l)} onDelete={() => openDelete("lead", l)} />
+              </div>
+            ))}
+          </div>
+        </ListState>
       </Card>
     </>
   );
@@ -981,7 +1083,7 @@ type LancamentoRow = {
 
 function FinancasPage() {
   const { openCreate, openEdit, openDelete } = useCrud();
-  const { rows } = useSupabaseList<LancamentoRow>("financas_administrativas", { order: { column: "data_vencimento", ascending: false } });
+  const { rows, loading, error, refetch } = useSupabaseList<LancamentoRow>("financas_administrativas", { order: { column: "data_vencimento", ascending: false } });
   const entradas = rows.filter(r => r.tipo === "entrada");
   const saidas = rows.filter(r => r.tipo === "saida");
   const totalE = entradas.reduce((s, e) => s + Number(e.valor || 0), 0);
@@ -1001,44 +1103,57 @@ function FinancasPage() {
         <MetricCard value={brl(totalS)} label="Saídas" deltaType="down" />
         <MetricCard variant="accent" value={brl(lucro)} label="Lucro líquido" delta={`Margem ${margem}%`} deltaType="neutral" />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
-        <Card>
-          <h3 className="font-extrabold text-lg mb-4">Entradas do mês</h3>
-          <div className="space-y-2">
-            {entradas.length === 0 && <div className="text-sm italic" style={{ color: C.textMuted }}>Nenhuma entrada.</div>}
-            {entradas.map((e) => (
-              <div key={e.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold truncate">{e.descricao}</div>
-                  <div className="text-xs" style={{ color: C.textMid }}>{catLabel(e)} · {e.status_pagamento}</div>
+      <ListState
+        loading={loading}
+        error={error}
+        rows={rows}
+        onRetry={refetch}
+        skeletonVariant="row"
+        skeletonCount={4}
+        emptyTitle="Nenhum lançamento ainda"
+        emptyDescription="Registre entradas e saídas para acompanhar o fluxo financeiro."
+        actionLabel="Novo lançamento"
+        onAction={() => openCreate("lancamento")}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
+          <Card>
+            <h3 className="font-extrabold text-lg mb-4">Entradas do mês</h3>
+            <div className="space-y-2">
+              {entradas.length === 0 && <div className="text-sm italic" style={{ color: C.textMuted }}>Nenhuma entrada.</div>}
+              {entradas.map((e) => (
+                <div key={e.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold truncate">{e.descricao}</div>
+                    <div className="text-xs" style={{ color: C.textMid }}>{catLabel(e)} · {e.status_pagamento}</div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="font-extrabold" style={{ color: "#2E7D32" }}>+{brl(Number(e.valor))}</div>
+                    <RowActions onEdit={() => openEdit("lancamento", e)} onDelete={() => openDelete("lancamento", e)} />
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="font-extrabold" style={{ color: "#2E7D32" }}>+{brl(Number(e.valor))}</div>
-                  <RowActions onEdit={() => openEdit("lancamento", e)} onDelete={() => openDelete("lancamento", e)} />
+              ))}
+            </div>
+          </Card>
+          <Card>
+            <h3 className="font-extrabold text-lg mb-4">Saídas do mês</h3>
+            <div className="space-y-2">
+              {saidas.length === 0 && <div className="text-sm italic" style={{ color: C.textMuted }}>Nenhuma saída.</div>}
+              {saidas.map((e) => (
+                <div key={e.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold truncate">{e.descricao}</div>
+                    <div className="text-xs" style={{ color: C.textMid }}>{catLabel(e)} · {e.status_pagamento}</div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="font-extrabold" style={{ color: "#C8351A" }}>-{brl(Number(e.valor))}</div>
+                    <RowActions onEdit={() => openEdit("lancamento", e)} onDelete={() => openDelete("lancamento", e)} />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-        <Card>
-          <h3 className="font-extrabold text-lg mb-4">Saídas do mês</h3>
-          <div className="space-y-2">
-            {saidas.length === 0 && <div className="text-sm italic" style={{ color: C.textMuted }}>Nenhuma saída.</div>}
-            {saidas.map((e) => (
-              <div key={e.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold truncate">{e.descricao}</div>
-                  <div className="text-xs" style={{ color: C.textMid }}>{catLabel(e)} · {e.status_pagamento}</div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <div className="font-extrabold" style={{ color: "#C8351A" }}>-{brl(Number(e.valor))}</div>
-                  <RowActions onEdit={() => openEdit("lancamento", e)} onDelete={() => openDelete("lancamento", e)} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </ListState>
     </>
   );
 }
@@ -1141,7 +1256,7 @@ type EstrategiaRow = {
 
 function EstrategiaPage() {
   const { openCreate, openEdit, openDelete } = useCrud();
-  const { rows: estrategias } = useSupabaseList<EstrategiaRow>("estrategias", { order: { column: "created_at", ascending: false } });
+  const { rows: estrategias, loading, error, refetch } = useSupabaseList<EstrategiaRow>("estrategias", { order: { column: "created_at", ascending: false } });
   const { rows: clientes } = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
   const clienteMap = new Map(clientes.map(c => [c.id, c]));
 
@@ -1150,41 +1265,53 @@ function EstrategiaPage() {
       <PageHeader eyebrow="Estratégia de Conteúdo" title="Estratégias" accent="ativas"
         actions={<PillBtn onClick={() => openCreate("estrategia")}><Plus size={14} className="inline mr-1" /> Nova estratégia</PillBtn>} />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
-        {estrategias.map((e) => {
-          const cli = clienteMap.get(e.cliente_id);
-          const pilares = Array.isArray(e.pilares) ? e.pilares : [];
-          const formatos = Array.isArray(e.formatos) ? e.formatos : [];
-          return (
-            <Card key={e.id}>
-              <div className="flex items-start gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg" style={{ background: C.beige, color: C.dark }}>
-                  {cli ? (cli.init || initialsOf(cli.nome)) : "?"}
+      <ListState
+        loading={loading}
+        error={error}
+        rows={estrategias}
+        onRetry={refetch}
+        skeletonCount={3}
+        emptyTitle="Nenhuma estratégia cadastrada"
+        emptyDescription="Monte a primeira estratégia vinculada a um cliente para começar."
+        actionLabel="Nova estratégia"
+        onAction={() => openCreate("estrategia")}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
+          {estrategias.map((e) => {
+            const cli = clienteMap.get(e.cliente_id);
+            const pilares = Array.isArray(e.pilares) ? e.pilares : [];
+            const formatos = Array.isArray(e.formatos) ? e.formatos : [];
+            return (
+              <Card key={e.id}>
+                <div className="flex items-start gap-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg" style={{ background: C.beige, color: C.dark }}>
+                    {cli ? (cli.init || initialsOf(cli.nome)) : "?"}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-extrabold truncate">{cli?.nome ?? "Cliente desconhecido"}</div>
+                    <div className="text-xs" style={{ color: C.textMid }}>{cli?.plano_label || cli?.plano_atual || "—"}</div>
+                  </div>
+                  <RowActions onEdit={() => openEdit("estrategia", e)} onDelete={() => openDelete("estrategia", e)} />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-extrabold truncate">{cli?.nome ?? "Cliente desconhecido"}</div>
-                  <div className="text-xs" style={{ color: C.textMid }}>{cli?.plano_label || cli?.plano_atual || "—"}</div>
+                <div className="mt-4 space-y-1.5 text-sm">
+                  <div className="flex justify-between gap-2"><span style={{ color: C.textMid }}>Pilares</span><span className="font-semibold text-right truncate">{pilares.join(" · ") || "—"}</span></div>
+                  <div className="flex justify-between"><span style={{ color: C.textMid }}>Entregáveis</span><span className="font-semibold">{e.qtd_entregaveis}/mês</span></div>
+                  <div className="flex justify-between gap-2"><span style={{ color: C.textMid }}>Formato</span><span className="font-semibold text-right truncate">{formatos.join(" · ") || "—"}</span></div>
                 </div>
-                <RowActions onEdit={() => openEdit("estrategia", e)} onDelete={() => openDelete("estrategia", e)} />
-              </div>
-              <div className="mt-4 space-y-1.5 text-sm">
-                <div className="flex justify-between gap-2"><span style={{ color: C.textMid }}>Pilares</span><span className="font-semibold text-right truncate">{pilares.join(" · ") || "—"}</span></div>
-                <div className="flex justify-between"><span style={{ color: C.textMid }}>Entregáveis</span><span className="font-semibold">{e.qtd_entregaveis}/mês</span></div>
-                <div className="flex justify-between gap-2"><span style={{ color: C.textMid }}>Formato</span><span className="font-semibold text-right truncate">{formatos.join(" · ") || "—"}</span></div>
-              </div>
-              {e.objetivo && <div className="mt-3 text-xs" style={{ color: C.textMid }}>{e.objetivo}</div>}
-            </Card>
-          );
-        })}
-        <button
-          onClick={() => openCreate("estrategia")}
-          className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center transition-all hover:-translate-y-0.5 min-h-[180px]"
-          style={{ borderColor: C.beige, color: C.textMid }}
-        >
-          <Plus size={28} />
-          <div className="mt-2 font-semibold">Nova estratégia</div>
-        </button>
-      </div>
+                {e.objetivo && <div className="mt-3 text-xs" style={{ color: C.textMid }}>{e.objetivo}</div>}
+              </Card>
+            );
+          })}
+          <button
+            onClick={() => openCreate("estrategia")}
+            className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center transition-all hover:-translate-y-0.5 min-h-[180px]"
+            style={{ borderColor: C.beige, color: C.textMid }}
+          >
+            <Plus size={28} />
+            <div className="mt-2 font-semibold">Nova estratégia</div>
+          </button>
+        </div>
+      </ListState>
     </>
   );
 }
@@ -1192,43 +1319,118 @@ function EstrategiaPage() {
 
 
 function OficinaPage() {
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const tarefasQ = useSupabaseList<TarefaRow>("tarefas", { order: { column: "created_at", ascending: false } });
+  const clientesQ = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
+  const clienteMap = useMemo(() => new Map(clientesQ.rows.map(c => [c.id, c])), [clientesQ.rows]);
+  const tarefas = tarefasQ.rows;
+
+  const naFila = tarefas.filter(t => t.status === "Backlog" || t.status === "Ideação").length;
+  const emProducao = tarefas.filter(t => t.status === "Em produção" || t.status === "Aguardando aprovação").length;
+  const aprovados = tarefas.filter(t => t.status === "Aprovado").length;
+  const publicados = tarefas.filter(t => t.status === "Publicado").length;
+  const destaques = tarefas.filter(t => t.status === "Em produção" || t.status === "Aguardando aprovação").slice(0, 6);
+
+  const statusVariant = (s: string): string => {
+    if (s === "Aprovado" || s === "Publicado") return "ativo";
+    if (s === "Em produção" || s === "Aguardando aprovação") return "pendente";
+    if (s === "Backlog" || s === "Ideação") return "frio";
+    return "pendente";
+  };
+
   return (
     <>
       <PageHeader eyebrow="Oficina de Conteúdo" title="Criação &" accent="aprovação"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Nova ideia</PillBtn>} />
-      <div className="grid grid-cols-4 gap-5 mb-6">
-        <MetricCard value={12} label="Ideias na fila" />
-        <MetricCard variant="hero" value={8} label="Em produção" />
-        <MetricCard variant="accent" value={38} label="Aprovados" />
-        <MetricCard value={34} label="Publicados" />
+        actions={<PillBtn onClick={() => openCreate("tarefa")}><Plus size={14} className="inline mr-1" /> Nova tarefa</PillBtn>} />
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6">
+        <MetricCard value={tarefasQ.loading ? "—" : naFila} label="Ideias na fila" />
+        <MetricCard variant="hero" value={tarefasQ.loading ? "—" : emProducao} label="Em produção" />
+        <MetricCard variant="accent" value={tarefasQ.loading ? "—" : aprovados} label="Aprovados" />
+        <MetricCard value={tarefasQ.loading ? "—" : publicados} label="Publicados" />
       </div>
-      <SectionLabel>Ideias em destaque</SectionLabel>
-      <div className="grid grid-cols-3 gap-5 mb-6">
-        {DB.ideias.map((it, i) => (
-          <Card key={i} dark={it.dark}>
-            <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: it.dark ? C.gold : C.mid }}>{it.tag}</div>
-            <div className="mt-2 font-extrabold text-lg leading-snug">{it.title}</div>
-            <div className="mt-1 text-xs opacity-70">{it.sub}</div>
-          </Card>
-        ))}
+
+      <SectionLabel>Em destaque</SectionLabel>
+      <div className="mb-6">
+        <ListState
+          loading={tarefasQ.loading}
+          error={tarefasQ.error}
+          rows={destaques}
+          onRetry={tarefasQ.refetch}
+          skeletonCount={3}
+          emptyTitle="Nenhuma tarefa em produção"
+          emptyDescription="Crie uma tarefa para acompanhar o fluxo de criação e aprovação."
+          actionLabel="Nova tarefa"
+          onAction={() => openCreate("tarefa")}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+            {destaques.map((t, i) => {
+              const cli = t.cliente_id ? clienteMap.get(t.cliente_id) : null;
+              const dark = i % 2 === 0;
+              return (
+                <Card key={t.id} dark={dark}>
+                  <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: dark ? C.gold : C.mid }}>
+                    {t.tipo}{cli ? ` · ${cli.nome}` : ""}
+                  </div>
+                  <div className="mt-2 font-extrabold text-lg leading-snug break-words">{t.titulo}</div>
+                  <div className="mt-1 text-xs opacity-70">{t.status}{t.prazo ? ` · prazo ${new Date(t.prazo).toLocaleDateString("pt-BR")}` : ""}</div>
+                </Card>
+              );
+            })}
+          </div>
+        </ListState>
       </div>
+
       <Card>
         <h3 className="font-extrabold text-lg mb-4">Pipeline de produção</h3>
-        <table className="w-full text-sm">
-          <thead><tr className="text-left text-xs uppercase tracking-wider" style={{ color: C.textMid }}>
-            <th className="py-2">Conteúdo</th><th>Cliente</th><th>Formato</th><th>Status</th>
-          </tr></thead>
-          <tbody>
-            {DB.ideias.map((it, i) => (
-              <tr key={i} className="border-t" style={{ borderColor: C.beigeLight }}>
-                <td className="py-3 font-semibold">{it.title}</td>
-                <td>{DB.clientes[i % DB.clientes.length].name}</td>
-                <td>{it.tag.split("·")[1]?.trim() || "Post"}</td>
-                <td><TagBadge label={i % 3 === 0 ? "Aprovado" : "Pendente"} variant={i % 3 === 0 ? "ativo" : "pendente"} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <ListState
+          loading={tarefasQ.loading}
+          error={tarefasQ.error}
+          rows={tarefas}
+          onRetry={tarefasQ.refetch}
+          skeletonVariant="row"
+          skeletonCount={5}
+          emptyTitle="Sem tarefas ainda"
+          actionLabel="Nova tarefa"
+          onAction={() => openCreate("tarefa")}
+        >
+          {/* Desktop table */}
+          <table className="hidden md:table w-full text-sm">
+            <thead><tr className="text-left text-xs uppercase tracking-wider" style={{ color: C.textMid }}>
+              <th className="py-2">Conteúdo</th><th>Cliente</th><th>Formato</th><th>Status</th><th></th>
+            </tr></thead>
+            <tbody>
+              {tarefas.map((t) => {
+                const cli = t.cliente_id ? clienteMap.get(t.cliente_id) : null;
+                return (
+                  <tr key={t.id} className="border-t" style={{ borderColor: C.beigeLight }}>
+                    <td className="py-3 font-semibold">{t.titulo}</td>
+                    <td>{cli?.nome ?? "—"}</td>
+                    <td>{t.tipo}</td>
+                    <td><TagBadge label={t.status} variant={statusVariant(t.status)} /></td>
+                    <td><RowActions onEdit={() => openEdit("tarefa", t)} onDelete={() => openDelete("tarefa", t)} /></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-3">
+            {tarefas.map((t) => {
+              const cli = t.cliente_id ? clienteMap.get(t.cliente_id) : null;
+              return (
+                <div key={t.id} className="rounded-[10px] p-3 flex items-start justify-between gap-2" style={{ background: C.beigeLight }}>
+                  <div className="min-w-0">
+                    <div className="font-semibold truncate">{t.titulo}</div>
+                    <div className="text-xs mt-1" style={{ color: C.textMid }}>{t.tipo}{cli ? ` · ${cli.nome}` : ""}</div>
+                    <div className="mt-2"><TagBadge label={t.status} variant={statusVariant(t.status)} /></div>
+                  </div>
+                  <RowActions onEdit={() => openEdit("tarefa", t)} onDelete={() => openDelete("tarefa", t)} />
+                </div>
+              );
+            })}
+          </div>
+        </ListState>
       </Card>
     </>
   );
