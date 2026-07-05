@@ -521,7 +521,8 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
             </div>
           </Card>
         </div>
-        <div className="col-span-2">
+        <div className="lg:col-span-2">
+
           <Card>
             <h3 className="font-extrabold text-lg mb-4">Acesso rápido</h3>
             <div className="grid grid-cols-3 gap-3">
