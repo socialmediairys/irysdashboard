@@ -451,8 +451,9 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
         <MetricCard                    value={DB.leads.length}    label="Leads pipeline" delta="↓ 2 perdidos" deltaType="down" />
       </div>
 
-      <div className="grid grid-cols-5 gap-5 mb-6">
-        <div className="col-span-3">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5 mb-6">
+        <div className="lg:col-span-3">
+
           <Card>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-extrabold text-lg">CRM — Leads ativos</h3>
