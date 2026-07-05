@@ -1130,58 +1130,66 @@ function SocialPage() {
   );
 }
 
+type EstrategiaRow = {
+  id: string;
+  cliente_id: string;
+  pilares: string[];
+  formatos: string[];
+  qtd_entregaveis: number;
+  objetivo: string | null;
+};
+
 function EstrategiaPage() {
-  const { openCreate } = useCrud();
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const { rows: estrategias } = useSupabaseList<EstrategiaRow>("estrategias", { order: { column: "created_at", ascending: false } });
+  const { rows: clientes } = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
+  const clienteMap = new Map(clientes.map(c => [c.id, c]));
+
   return (
     <>
-      <PageHeader eyebrow="Estratégia de Conteúdo" title="Clientes" accent="ativos"
+      <PageHeader eyebrow="Estratégia de Conteúdo" title="Estratégias" accent="ativas"
         actions={<PillBtn onClick={() => openCreate("estrategia")}><Plus size={14} className="inline mr-1" /> Nova estratégia</PillBtn>} />
 
-      <div className="grid grid-cols-3 gap-5 mb-6">
-        {DB.clientes.filter(c => c.status === "ativo").map(c => (
-          <Card key={c.id}>
-            <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg" style={{ background: C.beige, color: C.dark }}>{c.init}</div>
-              <div className="min-w-0">
-                <div className="font-extrabold truncate">{c.name}</div>
-                <div className="text-xs" style={{ color: C.textMid }}>{c.pkg}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
+        {estrategias.map((e) => {
+          const cli = clienteMap.get(e.cliente_id);
+          const pilares = Array.isArray(e.pilares) ? e.pilares : [];
+          const formatos = Array.isArray(e.formatos) ? e.formatos : [];
+          return (
+            <Card key={e.id}>
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg" style={{ background: C.beige, color: C.dark }}>
+                  {cli ? (cli.init || initialsOf(cli.nome)) : "?"}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-extrabold truncate">{cli?.nome ?? "Cliente desconhecido"}</div>
+                  <div className="text-xs" style={{ color: C.textMid }}>{cli?.plano_label || cli?.plano_atual || "—"}</div>
+                </div>
+                <RowActions onEdit={() => openEdit("estrategia", e)} onDelete={() => openDelete("estrategia", e)} />
               </div>
-            </div>
-            <div className="mt-4 space-y-1.5 text-sm">
-              <div className="flex justify-between"><span style={{ color: C.textMid }}>Pilares</span><span className="font-semibold">Educativo · Vendas</span></div>
-              <div className="flex justify-between"><span style={{ color: C.textMid }}>Entregáveis</span><span className="font-semibold">{c.posts}/mês</span></div>
-              <div className="flex justify-between"><span style={{ color: C.textMid }}>Formato</span><span className="font-semibold">Reels · Carrossel</span></div>
-            </div>
-          </Card>
-        ))}
-        <div className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center transition-all hover:-translate-y-0.5"
-          style={{ borderColor: C.beige, color: C.textMid }}>
+              <div className="mt-4 space-y-1.5 text-sm">
+                <div className="flex justify-between gap-2"><span style={{ color: C.textMid }}>Pilares</span><span className="font-semibold text-right truncate">{pilares.join(" · ") || "—"}</span></div>
+                <div className="flex justify-between"><span style={{ color: C.textMid }}>Entregáveis</span><span className="font-semibold">{e.qtd_entregaveis}/mês</span></div>
+                <div className="flex justify-between gap-2"><span style={{ color: C.textMid }}>Formato</span><span className="font-semibold text-right truncate">{formatos.join(" · ") || "—"}</span></div>
+              </div>
+              {e.objetivo && <div className="mt-3 text-xs" style={{ color: C.textMid }}>{e.objetivo}</div>}
+            </Card>
+          );
+        })}
+        <button
+          onClick={() => openCreate("estrategia")}
+          className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center transition-all hover:-translate-y-0.5 min-h-[180px]"
+          style={{ borderColor: C.beige, color: C.textMid }}
+        >
           <Plus size={28} />
           <div className="mt-2 font-semibold">Nova estratégia</div>
-        </div>
+        </button>
       </div>
-      <Card>
-        <h3 className="font-extrabold text-lg mb-4">Conteúdos planejados</h3>
-        <table className="w-full text-sm">
-          <thead><tr className="text-left text-xs uppercase tracking-wider" style={{ color: C.textMid }}>
-            <th className="py-2">Conteúdo</th><th>Cliente</th><th>Data</th><th>Rede</th><th>Status</th>
-          </tr></thead>
-          <tbody>
-            {DB.ideias.map((it, i) => (
-              <tr key={i} className="border-t" style={{ borderColor: C.beigeLight }}>
-                <td className="py-3 font-semibold">{it.title}</td>
-                <td>{DB.clientes[i % DB.clientes.length].name}</td>
-                <td style={{ color: C.textMid }}>{20 + i} Jun</td>
-                <td>Instagram</td>
-                <td><TagBadge label={i % 2 ? "Pendente" : "Ativo"} variant={i % 2 ? "pendente" : "ativo"} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
     </>
   );
 }
+
+
 
 function OficinaPage() {
   return (
