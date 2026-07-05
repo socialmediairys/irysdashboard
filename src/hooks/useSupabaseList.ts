@@ -18,17 +18,19 @@ export function useSupabaseList<T extends { id: string }>(
   const [rows, setRows] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
+    setError(null);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let q = (supabase.from(table as any) as any).select("*");
     if (options.order) {
       q = q.order(options.order.column, { ascending: options.order.ascending ?? true });
     }
-    const { data, error } = await q;
-    if (error) {
-      toast.error(`Erro ao carregar: ${error.message}`);
+    const { data, error: err } = await q;
+    if (err) {
+      setError(err.message);
       setRows([]);
     } else {
       setRows((data ?? []) as T[]);
@@ -110,5 +112,5 @@ export function useSupabaseList<T extends { id: string }>(
     [table],
   );
 
-  return { rows, loading, saving, refetch: fetchAll, create, update, remove };
+  return { rows, loading, saving, error, refetch: fetchAll, create, update, remove };
 }
