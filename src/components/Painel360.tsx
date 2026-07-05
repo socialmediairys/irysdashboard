@@ -754,48 +754,95 @@ function AgendaPage() {
 }
 
 
+type ClienteRow = {
+  id: string;
+  nome: string;
+  plano_label: string | null;
+  plano_atual: string | null;
+  valor_mensal: number | null;
+  status_contrato: string;
+  email: string | null;
+  init: string | null;
+};
+
+const CLIENTE_STATUS_VARIANT: Record<string, string> = {
+  ativo: "ativo",
+  pendente_assinatura: "atencao",
+  vencido: "proposta",
+  cancelado: "frio",
+};
+const CLIENTE_STATUS_LABEL: Record<string, string> = {
+  ativo: "Ativo",
+  pendente_assinatura: "Atenção",
+  vencido: "Vencido",
+  cancelado: "Inativo",
+};
+
+function initialsOf(nome: string) {
+  return nome
+    .split(/\s+/).filter(Boolean).slice(0, 2)
+    .map(w => w[0]?.toUpperCase() ?? "").join("") || "?";
+}
+
 function ClientesPage() {
-  const { openCreate } = useCrud();
-  const ativos = DB.clientes.filter(c => c.status === "ativo").length;
-  const maxVal = Math.max(...DB.clientes.map(c => c.val));
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const { rows, loading } = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
+  const ativos = rows.filter(c => c.status_contrato === "ativo").length;
+  const maxVal = Math.max(1, ...rows.map(c => Number(c.valor_mensal) || 0));
   return (
     <>
       <PageHeader eyebrow="Clientes" title={`${ativos} clientes`} accent="ativos"
         actions={<PillBtn onClick={() => openCreate("cliente")}><Plus size={14} className="inline mr-1" /> Novo cliente</PillBtn>} />
 
-      <div className="grid grid-cols-3 gap-5 mb-6">
-        {DB.clientes.map((c) => (
+      {loading && <div className="text-sm mb-4" style={{ color: C.textMid }}>Carregando…</div>}
+      {!loading && rows.length === 0 && (
+        <Card><div className="text-center py-8" style={{ color: C.textMid }}>
+          Nenhum cliente ainda. Clique em "Novo cliente".
+        </div></Card>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
+        {rows.map((c) => (
           <Card key={c.id}>
             <div className="flex items-start gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg flex-shrink-0"
-                style={{ background: C.beige, color: C.dark }}>{c.init}</div>
+                style={{ background: C.beige, color: C.dark }}>{c.init || initialsOf(c.nome)}</div>
               <div className="min-w-0 flex-1">
-                <div className="font-extrabold truncate">{c.name}</div>
-                <div className="text-xs" style={{ color: C.textMid }}>{c.pkg}</div>
-                <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(c.val)}/mês</div>
+                <div className="font-extrabold truncate">{c.nome}</div>
+                <div className="text-xs" style={{ color: C.textMid }}>{c.plano_label || c.plano_atual || "—"}</div>
+                <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}/mês</div>
               </div>
+              <RowActions onEdit={() => openEdit("cliente", c)} onDelete={() => openDelete("cliente", c)} />
             </div>
-            <div className="mt-4"><TagBadge label={StatusLabel(c.status)} variant={c.status} /></div>
+            <div className="mt-4">
+              <TagBadge
+                label={CLIENTE_STATUS_LABEL[c.status_contrato] ?? c.status_contrato}
+                variant={CLIENTE_STATUS_VARIANT[c.status_contrato] ?? "frio"}
+              />
+            </div>
           </Card>
         ))}
       </div>
-      <Card>
-        <h3 className="font-extrabold text-lg mb-4">Receita mensal por cliente (MRR)</h3>
-        <div className="space-y-4">
-          {DB.clientes.map((c) => (
-            <div key={c.id}>
-              <div className="flex justify-between text-sm mb-1.5">
-                <span className="font-semibold">{c.name}</span>
-                <span className="font-extrabold" style={{ color: C.mid }}>{brl(c.val)}</span>
+      {rows.length > 0 && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-4">Receita mensal por cliente (MRR)</h3>
+          <div className="space-y-4">
+            {rows.map((c) => (
+              <div key={c.id}>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span className="font-semibold">{c.nome}</span>
+                  <span className="font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}</span>
+                </div>
+                <ProgressBar value={Number(c.valor_mensal) || 0} max={maxVal} />
               </div>
-              <ProgressBar value={c.val} max={maxVal} />
-            </div>
-          ))}
-        </div>
-      </Card>
+            ))}
+          </div>
+        </Card>
+      )}
     </>
   );
 }
+
 
 function CRMPage() {
   const { openCreate } = useCrud();
