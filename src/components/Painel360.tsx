@@ -2066,7 +2066,7 @@ function BibliotecaPage() {
 }
 
 function ConfigPage() {
-  const [tab, setTab] = useState("integracoes");
+  const [tab, setTab] = useState("perfil");
   return (
     <>
       <PageHeader eyebrow="Sistema" title="Configurações &" accent="conta" />
@@ -2074,12 +2074,19 @@ function ConfigPage() {
         active={tab}
         onChange={setTab}
         tabs={[
+          { key: "perfil",      label: "Perfil" },
           { key: "integracoes", label: "Integrações" },
           { key: "juridico",    label: "Jurídico" },
           { key: "equipe",      label: "Equipe" },
           { key: "planos",      label: "Planos & Conta" },
         ]}
       />
+      {tab === "perfil" && (
+        <Card>
+          <ProfileTab />
+        </Card>
+      )}
+
       {tab === "integracoes" && (
         <Card>
           <h3 className="font-extrabold text-lg mb-4">Integrações ativas</h3>
