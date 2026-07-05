@@ -755,12 +755,14 @@ function AgendaPage() {
 
 
 function ClientesPage() {
+  const { openCreate } = useCrud();
   const ativos = DB.clientes.filter(c => c.status === "ativo").length;
   const maxVal = Math.max(...DB.clientes.map(c => c.val));
   return (
     <>
       <PageHeader eyebrow="Clientes" title={`${ativos} clientes`} accent="ativos"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Novo cliente</PillBtn>} />
+        actions={<PillBtn onClick={() => openCreate("cliente")}><Plus size={14} className="inline mr-1" /> Novo cliente</PillBtn>} />
+
       <div className="grid grid-cols-3 gap-5 mb-6">
         {DB.clientes.map((c) => (
           <Card key={c.id}>
