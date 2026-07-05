@@ -143,7 +143,24 @@
     font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
+
+  html {
+    scroll-padding-bottom: 6rem;
+  }
+
+  /* Prevent iOS auto-zoom on focus */
+  @media (max-width: 767px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Responsive media by default */
+  img, video, canvas, svg {
+    max-width: 100%;
+  }
 }
+
 
 @theme inline {
   --color-p-dark: #2C1505;
