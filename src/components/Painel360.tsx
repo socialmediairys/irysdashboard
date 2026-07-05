@@ -754,141 +754,268 @@ function AgendaPage() {
 }
 
 
+type ClienteRow = {
+  id: string;
+  nome: string;
+  plano_label: string | null;
+  plano_atual: string | null;
+  valor_mensal: number | null;
+  status_contrato: string;
+  email: string | null;
+  init: string | null;
+};
+
+const CLIENTE_STATUS_VARIANT: Record<string, string> = {
+  ativo: "ativo",
+  pendente_assinatura: "atencao",
+  vencido: "proposta",
+  cancelado: "frio",
+};
+const CLIENTE_STATUS_LABEL: Record<string, string> = {
+  ativo: "Ativo",
+  pendente_assinatura: "Atenção",
+  vencido: "Vencido",
+  cancelado: "Inativo",
+};
+
+function initialsOf(nome: string) {
+  return nome
+    .split(/\s+/).filter(Boolean).slice(0, 2)
+    .map(w => w[0]?.toUpperCase() ?? "").join("") || "?";
+}
+
 function ClientesPage() {
-  const { openCreate } = useCrud();
-  const ativos = DB.clientes.filter(c => c.status === "ativo").length;
-  const maxVal = Math.max(...DB.clientes.map(c => c.val));
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const { rows, loading } = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
+  const ativos = rows.filter(c => c.status_contrato === "ativo").length;
+  const maxVal = Math.max(1, ...rows.map(c => Number(c.valor_mensal) || 0));
   return (
     <>
       <PageHeader eyebrow="Clientes" title={`${ativos} clientes`} accent="ativos"
         actions={<PillBtn onClick={() => openCreate("cliente")}><Plus size={14} className="inline mr-1" /> Novo cliente</PillBtn>} />
 
-      <div className="grid grid-cols-3 gap-5 mb-6">
-        {DB.clientes.map((c) => (
+      {loading && <div className="text-sm mb-4" style={{ color: C.textMid }}>Carregando…</div>}
+      {!loading && rows.length === 0 && (
+        <Card><div className="text-center py-8" style={{ color: C.textMid }}>
+          Nenhum cliente ainda. Clique em "Novo cliente".
+        </div></Card>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
+        {rows.map((c) => (
           <Card key={c.id}>
             <div className="flex items-start gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg flex-shrink-0"
-                style={{ background: C.beige, color: C.dark }}>{c.init}</div>
+                style={{ background: C.beige, color: C.dark }}>{c.init || initialsOf(c.nome)}</div>
               <div className="min-w-0 flex-1">
-                <div className="font-extrabold truncate">{c.name}</div>
-                <div className="text-xs" style={{ color: C.textMid }}>{c.pkg}</div>
-                <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(c.val)}/mês</div>
+                <div className="font-extrabold truncate">{c.nome}</div>
+                <div className="text-xs" style={{ color: C.textMid }}>{c.plano_label || c.plano_atual || "—"}</div>
+                <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}/mês</div>
               </div>
+              <RowActions onEdit={() => openEdit("cliente", c)} onDelete={() => openDelete("cliente", c)} />
             </div>
-            <div className="mt-4"><TagBadge label={StatusLabel(c.status)} variant={c.status} /></div>
+            <div className="mt-4">
+              <TagBadge
+                label={CLIENTE_STATUS_LABEL[c.status_contrato] ?? c.status_contrato}
+                variant={CLIENTE_STATUS_VARIANT[c.status_contrato] ?? "frio"}
+              />
+            </div>
           </Card>
         ))}
       </div>
-      <Card>
-        <h3 className="font-extrabold text-lg mb-4">Receita mensal por cliente (MRR)</h3>
-        <div className="space-y-4">
-          {DB.clientes.map((c) => (
-            <div key={c.id}>
-              <div className="flex justify-between text-sm mb-1.5">
-                <span className="font-semibold">{c.name}</span>
-                <span className="font-extrabold" style={{ color: C.mid }}>{brl(c.val)}</span>
+      {rows.length > 0 && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-4">Receita mensal por cliente (MRR)</h3>
+          <div className="space-y-4">
+            {rows.map((c) => (
+              <div key={c.id}>
+                <div className="flex justify-between text-sm mb-1.5">
+                  <span className="font-semibold">{c.nome}</span>
+                  <span className="font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}</span>
+                </div>
+                <ProgressBar value={Number(c.valor_mensal) || 0} max={maxVal} />
               </div>
-              <ProgressBar value={c.val} max={maxVal} />
-            </div>
-          ))}
-        </div>
-      </Card>
+            ))}
+          </div>
+        </Card>
+      )}
     </>
   );
 }
 
+
+type LeadRow = {
+  id: string;
+  nome: string;
+  valor: number | null;
+  etapa: string;
+  status: string;
+  origem: string | null;
+  potencial: string | null;
+  email: string | null;
+  telefone: string | null;
+  proxima_acao: string | null;
+  data_proxima_acao: string | null;
+  observacoes: string | null;
+};
+
+const ETAPA_COLS = ["Lead/Entrada", "Reunião Marcada", "Proposta Enviada", "Negociando"];
+
 function CRMPage() {
-  const { openCreate } = useCrud();
-  const potencial = DB.leads.reduce((s, l) => s + l.val, 0);
-  const quentes = DB.leads.filter(l => l.status === "quente").length;
-  const propostas = DB.leads.filter(l => l.status === "proposta").length;
-  const ativos = DB.clientes.filter(c => c.status === "ativo").length;
-  const cols = [
-    { title: "Lead / Entrada", items: DB.leads.filter(l => l.status === "quente") },
-    { title: "Reunião Marcada", items: DB.leads.filter(l => l.status === "frio") },
-    { title: "Proposta Enviada", items: DB.leads.filter(l => l.status === "proposta") },
-    { title: "Negociando", items: DB.leads.filter(l => l.status === "negociando") },
-    { title: "✅ Ativo", items: DB.clientes.filter(c => c.status === "ativo").map(c => ({ name: c.name, val: c.val })) },
-  ];
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const { rows: leads } = useSupabaseList<LeadRow>("leads", { order: { column: "created_at", ascending: false } });
+  const { rows: clientes } = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
+
+  const potencial = leads.reduce((s, l) => s + Number(l.valor || 0), 0);
+  const quentes = leads.filter(l => l.etapa === "Lead/Entrada").length;
+  const propostas = leads.filter(l => l.etapa === "Proposta Enviada").length;
+  const ativos = clientes.filter(c => c.status_contrato === "ativo").length;
+
   return (
     <>
       <PageHeader eyebrow="CRM" title="Pipeline de" accent="vendas"
         actions={<PillBtn onClick={() => openCreate("lead")}><Plus size={14} className="inline mr-1" /> Novo lead</PillBtn>} />
 
-      <div className="grid grid-cols-4 gap-5 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6">
         <MetricCard variant="hero" value={brl(potencial)} label="Potencial no pipeline" />
         <MetricCard value={quentes} label="Leads quentes" />
         <MetricCard variant="accent" value={propostas} label="Propostas enviadas" />
         <MetricCard value={ativos} label="Clientes · Recorrência" />
       </div>
-      <div className="grid grid-cols-5 gap-4 mb-6">
-        {cols.map((col) => (
-          <div key={col.title} className="rounded-[12px] p-4" style={{ background: C.beigeLight }}>
-            <div className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: C.textMid }}>{col.title}</div>
-            <div className="space-y-2">
-              {col.items.length === 0 && <div className="text-xs italic" style={{ color: C.textMuted }}>—</div>}
-              {col.items.map((it, i) => (
-                <div key={i} className="rounded-[10px] bg-white p-3" style={{ boxShadow: SHADOW }}>
-                  <div className="font-semibold text-sm">{it.name}</div>
-                  <div className="font-extrabold mt-1" style={{ color: C.mid }}>{brl(it.val)}</div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
+        {ETAPA_COLS.map((title) => {
+          const items = leads.filter(l => l.etapa === title);
+          return (
+            <div key={title} className="rounded-[12px] p-4" style={{ background: C.beigeLight }}>
+              <div className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: C.textMid }}>{title}</div>
+              <div className="space-y-2">
+                {items.length === 0 && <div className="text-xs italic" style={{ color: C.textMuted }}>—</div>}
+                {items.map((it) => (
+                  <button
+                    key={it.id}
+                    onClick={() => openEdit("lead", it)}
+                    className="w-full text-left rounded-[10px] bg-white p-3 hover:brightness-95"
+                    style={{ boxShadow: SHADOW }}
+                  >
+                    <div className="font-semibold text-sm">{it.nome}</div>
+                    <div className="font-extrabold mt-1" style={{ color: C.mid }}>{brl(Number(it.valor) || 0)}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+        <div className="rounded-[12px] p-4" style={{ background: C.beigeLight }}>
+          <div className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: C.textMid }}>✅ Ativo</div>
+          <div className="space-y-2">
+            {clientes.filter(c => c.status_contrato === "ativo").map((c) => (
+              <div key={c.id} className="rounded-[10px] bg-white p-3" style={{ boxShadow: SHADOW }}>
+                <div className="font-semibold text-sm">{c.nome}</div>
+                <div className="font-extrabold mt-1" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <Card>
+        <h3 className="font-extrabold text-lg mb-4">Todos os leads</h3>
+        {leads.length === 0 ? (
+          <div className="text-center py-6" style={{ color: C.textMid }}>Nenhum lead ainda. Clique em "Novo lead".</div>
+        ) : (
+          <>
+            {/* Desktop table */}
+            <table className="hidden md:table w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wider" style={{ color: C.textMid }}>
+                  <th className="py-2">Nome</th><th>Valor</th><th>Etapa</th><th>Origem</th><th>Potencial</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {leads.map((l) => (
+                  <tr key={l.id} className="border-t" style={{ borderColor: C.beigeLight }}>
+                    <td className="py-3 font-semibold">{l.nome}</td>
+                    <td className="font-extrabold" style={{ color: C.mid }}>{brl(Number(l.valor) || 0)}</td>
+                    <td><TagBadge label={l.etapa} variant="frio" /></td>
+                    <td style={{ color: C.textMid }}>{l.origem ?? "—"}</td>
+                    <td style={{ color: C.textMid }}>{l.potencial ?? "—"}</td>
+                    <td><RowActions onEdit={() => openEdit("lead", l)} onDelete={() => openDelete("lead", l)} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-3">
+              {leads.map((l) => (
+                <div key={l.id} className="rounded-[10px] p-3 flex items-start justify-between gap-2" style={{ background: C.beigeLight }}>
+                  <div className="min-w-0">
+                    <div className="font-semibold truncate">{l.nome}</div>
+                    <div className="font-extrabold text-sm" style={{ color: C.mid }}>{brl(Number(l.valor) || 0)}</div>
+                    <div className="text-xs mt-1" style={{ color: C.textMid }}>{l.etapa} · {l.origem ?? "—"}</div>
+                  </div>
+                  <RowActions onEdit={() => openEdit("lead", l)} onDelete={() => openDelete("lead", l)} />
                 </div>
               ))}
             </div>
-          </div>
-        ))}
-      </div>
-      <Card>
-        <h3 className="font-extrabold text-lg mb-4">Todos os leads</h3>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-left text-xs uppercase tracking-wider" style={{ color: C.textMid }}>
-              <th className="py-2">Nome</th><th>Valor</th><th>Status</th><th>Origem</th><th>Potencial</th>
-            </tr>
-          </thead>
-          <tbody>
-            {DB.leads.map((l, i) => (
-              <tr key={i} className="border-t" style={{ borderColor: C.beigeLight }}>
-                <td className="py-3 font-semibold">{l.name}</td>
-                <td className="font-extrabold" style={{ color: C.mid }}>{brl(l.val)}</td>
-                <td><TagBadge label={StatusLabel(l.status)} variant={l.status} /></td>
-                <td style={{ color: C.textMid }}>{l.origem}</td>
-                <td style={{ color: C.textMid }}>{l.potencial}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          </>
+        )}
       </Card>
     </>
   );
 }
 
+
+
+type LancamentoRow = {
+  id: string;
+  tipo: "entrada" | "saida";
+  descricao: string | null;
+  valor: number;
+  data_vencimento: string;
+  status_pagamento: string;
+  categoria_livre: string | null;
+  categoria: string;
+  cliente_id: string | null;
+};
+
 function FinancasPage() {
-  const { openCreate } = useCrud();
-  const totalE = DB.entradas.reduce((s, e) => s + e.val, 0);
-  const totalS = DB.saidas.reduce((s, e) => s + e.val, 0);
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const { rows } = useSupabaseList<LancamentoRow>("financas_administrativas", { order: { column: "data_vencimento", ascending: false } });
+  const entradas = rows.filter(r => r.tipo === "entrada");
+  const saidas = rows.filter(r => r.tipo === "saida");
+  const totalE = entradas.reduce((s, e) => s + Number(e.valor || 0), 0);
+  const totalS = saidas.reduce((s, e) => s + Number(e.valor || 0), 0);
   const lucro = totalE - totalS;
   const margem = totalE > 0 ? Math.round((lucro / totalE) * 100) : 0;
+
+  const catLabel = (r: LancamentoRow) => r.categoria_livre || r.categoria || "—";
+
   return (
     <>
       <PageHeader eyebrow="Finanças" title="Junho" accent="2026"
         actions={<PillBtn onClick={() => openCreate("lancamento")}><Plus size={14} className="inline mr-1" /> Lançamento</PillBtn>} />
 
-      <div className="grid grid-cols-3 gap-5 mb-6">
-        <MetricCard variant="hero" value={brl(totalE)} label="Entradas" delta="↑ vs maio" />
-        <MetricCard value={brl(totalS)} label="Saídas" delta="↑ 8% vs maio" deltaType="down" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-5 mb-6">
+        <MetricCard variant="hero" value={brl(totalE)} label="Entradas" />
+        <MetricCard value={brl(totalS)} label="Saídas" deltaType="down" />
         <MetricCard variant="accent" value={brl(lucro)} label="Lucro líquido" delta={`Margem ${margem}%`} deltaType="neutral" />
       </div>
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
         <Card>
           <h3 className="font-extrabold text-lg mb-4">Entradas do mês</h3>
           <div className="space-y-2">
-            {DB.entradas.map((e, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                <div>
-                  <div className="font-semibold">{e.name}</div>
-                  <div className="text-xs" style={{ color: C.textMid }}>{e.cat}</div>
+            {entradas.length === 0 && <div className="text-sm italic" style={{ color: C.textMuted }}>Nenhuma entrada.</div>}
+            {entradas.map((e) => (
+              <div key={e.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold truncate">{e.descricao}</div>
+                  <div className="text-xs" style={{ color: C.textMid }}>{catLabel(e)} · {e.status_pagamento}</div>
                 </div>
-                <div className="font-extrabold" style={{ color: "#2E7D32" }}>+{brl(e.val)}</div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="font-extrabold" style={{ color: "#2E7D32" }}>+{brl(Number(e.valor))}</div>
+                  <RowActions onEdit={() => openEdit("lancamento", e)} onDelete={() => openDelete("lancamento", e)} />
+                </div>
               </div>
             ))}
           </div>
@@ -896,13 +1023,17 @@ function FinancasPage() {
         <Card>
           <h3 className="font-extrabold text-lg mb-4">Saídas do mês</h3>
           <div className="space-y-2">
-            {DB.saidas.map((e, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                <div>
-                  <div className="font-semibold">{e.name}</div>
-                  <div className="text-xs" style={{ color: C.textMid }}>{e.cat}</div>
+            {saidas.length === 0 && <div className="text-sm italic" style={{ color: C.textMuted }}>Nenhuma saída.</div>}
+            {saidas.map((e) => (
+              <div key={e.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold truncate">{e.descricao}</div>
+                  <div className="text-xs" style={{ color: C.textMid }}>{catLabel(e)} · {e.status_pagamento}</div>
                 </div>
-                <div className="font-extrabold" style={{ color: "#C8351A" }}>-{brl(e.val)}</div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="font-extrabold" style={{ color: "#C8351A" }}>-{brl(Number(e.valor))}</div>
+                  <RowActions onEdit={() => openEdit("lancamento", e)} onDelete={() => openDelete("lancamento", e)} />
+                </div>
               </div>
             ))}
           </div>
@@ -911,6 +1042,7 @@ function FinancasPage() {
     </>
   );
 }
+
 
 function SocialPage() {
   return (
@@ -998,58 +1130,66 @@ function SocialPage() {
   );
 }
 
+type EstrategiaRow = {
+  id: string;
+  cliente_id: string;
+  pilares: string[];
+  formatos: string[];
+  qtd_entregaveis: number;
+  objetivo: string | null;
+};
+
 function EstrategiaPage() {
-  const { openCreate } = useCrud();
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const { rows: estrategias } = useSupabaseList<EstrategiaRow>("estrategias", { order: { column: "created_at", ascending: false } });
+  const { rows: clientes } = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
+  const clienteMap = new Map(clientes.map(c => [c.id, c]));
+
   return (
     <>
-      <PageHeader eyebrow="Estratégia de Conteúdo" title="Clientes" accent="ativos"
+      <PageHeader eyebrow="Estratégia de Conteúdo" title="Estratégias" accent="ativas"
         actions={<PillBtn onClick={() => openCreate("estrategia")}><Plus size={14} className="inline mr-1" /> Nova estratégia</PillBtn>} />
 
-      <div className="grid grid-cols-3 gap-5 mb-6">
-        {DB.clientes.filter(c => c.status === "ativo").map(c => (
-          <Card key={c.id}>
-            <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg" style={{ background: C.beige, color: C.dark }}>{c.init}</div>
-              <div className="min-w-0">
-                <div className="font-extrabold truncate">{c.name}</div>
-                <div className="text-xs" style={{ color: C.textMid }}>{c.pkg}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
+        {estrategias.map((e) => {
+          const cli = clienteMap.get(e.cliente_id);
+          const pilares = Array.isArray(e.pilares) ? e.pilares : [];
+          const formatos = Array.isArray(e.formatos) ? e.formatos : [];
+          return (
+            <Card key={e.id}>
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg" style={{ background: C.beige, color: C.dark }}>
+                  {cli ? (cli.init || initialsOf(cli.nome)) : "?"}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-extrabold truncate">{cli?.nome ?? "Cliente desconhecido"}</div>
+                  <div className="text-xs" style={{ color: C.textMid }}>{cli?.plano_label || cli?.plano_atual || "—"}</div>
+                </div>
+                <RowActions onEdit={() => openEdit("estrategia", e)} onDelete={() => openDelete("estrategia", e)} />
               </div>
-            </div>
-            <div className="mt-4 space-y-1.5 text-sm">
-              <div className="flex justify-between"><span style={{ color: C.textMid }}>Pilares</span><span className="font-semibold">Educativo · Vendas</span></div>
-              <div className="flex justify-between"><span style={{ color: C.textMid }}>Entregáveis</span><span className="font-semibold">{c.posts}/mês</span></div>
-              <div className="flex justify-between"><span style={{ color: C.textMid }}>Formato</span><span className="font-semibold">Reels · Carrossel</span></div>
-            </div>
-          </Card>
-        ))}
-        <div className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center transition-all hover:-translate-y-0.5"
-          style={{ borderColor: C.beige, color: C.textMid }}>
+              <div className="mt-4 space-y-1.5 text-sm">
+                <div className="flex justify-between gap-2"><span style={{ color: C.textMid }}>Pilares</span><span className="font-semibold text-right truncate">{pilares.join(" · ") || "—"}</span></div>
+                <div className="flex justify-between"><span style={{ color: C.textMid }}>Entregáveis</span><span className="font-semibold">{e.qtd_entregaveis}/mês</span></div>
+                <div className="flex justify-between gap-2"><span style={{ color: C.textMid }}>Formato</span><span className="font-semibold text-right truncate">{formatos.join(" · ") || "—"}</span></div>
+              </div>
+              {e.objetivo && <div className="mt-3 text-xs" style={{ color: C.textMid }}>{e.objetivo}</div>}
+            </Card>
+          );
+        })}
+        <button
+          onClick={() => openCreate("estrategia")}
+          className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center transition-all hover:-translate-y-0.5 min-h-[180px]"
+          style={{ borderColor: C.beige, color: C.textMid }}
+        >
           <Plus size={28} />
           <div className="mt-2 font-semibold">Nova estratégia</div>
-        </div>
+        </button>
       </div>
-      <Card>
-        <h3 className="font-extrabold text-lg mb-4">Conteúdos planejados</h3>
-        <table className="w-full text-sm">
-          <thead><tr className="text-left text-xs uppercase tracking-wider" style={{ color: C.textMid }}>
-            <th className="py-2">Conteúdo</th><th>Cliente</th><th>Data</th><th>Rede</th><th>Status</th>
-          </tr></thead>
-          <tbody>
-            {DB.ideias.map((it, i) => (
-              <tr key={i} className="border-t" style={{ borderColor: C.beigeLight }}>
-                <td className="py-3 font-semibold">{it.title}</td>
-                <td>{DB.clientes[i % DB.clientes.length].name}</td>
-                <td style={{ color: C.textMid }}>{20 + i} Jun</td>
-                <td>Instagram</td>
-                <td><TagBadge label={i % 2 ? "Pendente" : "Ativo"} variant={i % 2 ? "pendente" : "ativo"} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
     </>
   );
 }
+
+
 
 function OficinaPage() {
   return (
@@ -1094,116 +1234,128 @@ function OficinaPage() {
   );
 }
 
+type ReferenciaRow = {
+  id: string;
+  titulo: string;
+  categoria: string;
+  url: string;
+  descricao: string | null;
+};
+
 function SwipePage() {
-  const { openCreate } = useCrud();
-  const links = [
-    { e:"🎯", n:"Hooks virais", s:"Coleção 2026" },
-    { e:"💎", n:"CTAs convertentes", s:"50 modelos" },
-    { e:"📝", n:"Headlines salvos", s:"Copy direto" },
-    { e:"🎨", n:"Refs visuais", s:"Moodboards" },
-    { e:"🔥", n:"Reels virais", s:"Análises" },
-    { e:"📊", n:"Cases reais", s:"Estudo de caso" },
-    { e:"💡", n:"Frameworks", s:"Copy + design" },
-  ];
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const { rows: referencias } = useSupabaseList<ReferenciaRow>("referencias", { order: { column: "created_at", ascending: false } });
   return (
     <>
       <PageHeader eyebrow="Swipe File" title="Links &" accent="referências"
         actions={<PillBtn onClick={() => openCreate("referencia")}><Plus size={14} className="inline mr-1" /> Adicionar referência</PillBtn>} />
 
-      <SectionLabel>Links úteis</SectionLabel>
-      <div className="grid grid-cols-4 gap-5 mb-6">
-        {links.map((l, i) => (
-          <Card key={i} className="!p-0 overflow-hidden">
-            <div className="p-6 text-3xl" style={{ background: C.beige }}>{l.e}</div>
-            <div className="p-4">
-              <div className="font-extrabold">{l.n}</div>
-              <div className="text-xs" style={{ color: C.textMid }}>{l.s}</div>
+      <SectionLabel>Suas referências salvas</SectionLabel>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
+        {referencias.map((r) => (
+          <Card key={r.id}>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: C.mid }}>{r.categoria}</div>
+                <a href={r.url} target="_blank" rel="noopener noreferrer" className="mt-2 font-extrabold text-lg block truncate hover:underline">
+                  {r.titulo}
+                </a>
+                {r.descricao && <div className="mt-1 text-xs" style={{ color: C.textMid }}>{r.descricao}</div>}
+                <a href={r.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs" style={{ color: C.mid }}>
+                  Abrir <ExternalLink size={12} />
+                </a>
+              </div>
+              <RowActions onEdit={() => openEdit("referencia", r)} onDelete={() => openDelete("referencia", r)} />
             </div>
           </Card>
         ))}
-        <div className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center"
-          style={{ borderColor: C.beige, color: C.textMid }}>
-          <Plus size={28} /><div className="mt-2 font-semibold">Adicionar</div>
-        </div>
-      </div>
-      <SectionLabel>Material de apoio</SectionLabel>
-      <div className="grid grid-cols-2 gap-5">
-        {[
-          { t:"Templates Canva", items: [["🎨","Carrossel base","10 templates"],["📱","Stories pack","20 layouts"],["🎬","Capas Reels","15 modelos"]] },
-          { t:"Recursos", items: [["🖼️","Fotos brand","Banco interno"],["🎵","Áudios virais","Coleção"],["📐","Grade IG","Auxiliar"]] },
-        ].map((s, i) => (
-          <Card key={i}>
-            <h3 className="font-extrabold text-lg mb-4">{s.t}</h3>
-            <div className="space-y-2">
-              {s.items.map((it, j) => (
-                <div key={j} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{it[0]}</span>
-                    <div><div className="font-semibold">{it[1]}</div><div className="text-xs" style={{ color: C.textMid }}>{it[2]}</div></div>
-                  </div>
-                  <ArrowRight size={16} style={{ color: C.textMid }} />
-                </div>
-              ))}
-            </div>
-          </Card>
-        ))}
+        <button
+          onClick={() => openCreate("referencia")}
+          className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center min-h-[160px]"
+          style={{ borderColor: C.beige, color: C.textMid }}
+        >
+          <Plus size={28} /><div className="mt-2 font-semibold">Adicionar referência</div>
+        </button>
       </div>
     </>
   );
 }
 
+
+type PromptRow = {
+  id: string;
+  titulo: string;
+  categoria: string;
+  conteudo: string;
+};
+
 function PromptsPage() {
-  const { openCreate } = useCrud();
-  const frameworks = DB.prompts.slice(0, 4);
-  const ia = DB.prompts.slice(4, 8);
-  const mj = [
-    { label:"MidJourney · v6", title:"Prompt MJ Lifestyle", preview:"Editorial lifestyle photo, brand colors, soft golden light, marble surface --ar 4:5 --v 6", dark:true },
-    { label:"MidJourney · v6", title:"Prompt MJ Produto", preview:"Hero product shot, premium minimal, studio lighting, beige backdrop --ar 1:1 --v 6", dark:false },
-  ];
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const { rows: prompts } = useSupabaseList<PromptRow>("prompts", { order: { column: "created_at", ascending: false } });
+
   const copyPrompt = (text: string) => {
     navigator.clipboard.writeText(text).then(
       () => toast.success("Prompt copiado!"),
       () => toast.error("Não foi possível copiar")
     );
   };
-  const render = (list: typeof DB.prompts) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 mb-6">
-      {list.map((p, i) => (
-        <Card key={i} dark={p.dark}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: p.dark ? C.gold : C.mid }}>{p.label}</div>
-              <div className="mt-2 font-extrabold text-lg">{p.title}</div>
-              <div className="mt-2 text-sm opacity-80 overflow-hidden" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{p.preview}</div>
-            </div>
-            <button
-              onClick={() => copyPrompt(p.preview)}
-              className="shrink-0 rounded-lg p-2 hover:bg-black/10 transition-colors"
-              aria-label="Copiar prompt"
-              title="Copiar"
-              style={{ color: p.dark ? "#fff" : C.mid }}
-            >
-              <Copy size={16} />
-            </button>
+
+  // group by categoria
+  const grouped = new Map<string, PromptRow[]>();
+  for (const p of prompts) {
+    const arr = grouped.get(p.categoria) ?? [];
+    arr.push(p);
+    grouped.set(p.categoria, arr);
+  }
+
+  const renderCard = (p: PromptRow) => (
+    <Card key={p.id}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: C.mid }}>{p.categoria}</div>
+          <div className="mt-2 font-extrabold text-lg break-words">{p.titulo}</div>
+          <div className="mt-2 text-sm opacity-80 overflow-hidden whitespace-pre-wrap" style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}>
+            {p.conteudo}
           </div>
-        </Card>
-      ))}
-    </div>
+        </div>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <button
+            onClick={() => copyPrompt(p.conteudo)}
+            className="rounded-lg p-2 hover:bg-black/5 transition-colors"
+            aria-label="Copiar prompt" title="Copiar"
+            style={{ color: C.mid }}
+          >
+            <Copy size={16} />
+          </button>
+          <RowActions onEdit={() => openEdit("prompt", p)} onDelete={() => openDelete("prompt", p)} />
+        </div>
+      </div>
+    </Card>
   );
+
   return (
     <>
       <PageHeader eyebrow="Biblioteca de Prompts IA" title="Prompts &" accent="frameworks"
         actions={<PillBtn onClick={() => openCreate("prompt")}><Plus size={14} className="inline mr-1" /> Novo prompt</PillBtn>} />
 
-      <SectionLabel>Frameworks de copy</SectionLabel>
-      {render(frameworks)}
-      <SectionLabel>Prompts Mestre IA</SectionLabel>
-      {render(ia)}
-      <SectionLabel>MidJourney</SectionLabel>
-      {render(mj)}
+      {prompts.length === 0 && (
+        <Card><div className="text-center py-8" style={{ color: C.textMid }}>
+          Nenhum prompt salvo. Clique em "Novo prompt".
+        </div></Card>
+      )}
+
+      {[...grouped.entries()].map(([cat, list]) => (
+        <div key={cat}>
+          <SectionLabel>{cat}</SectionLabel>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 mb-6">
+            {list.map(renderCard)}
+          </div>
+        </div>
+      ))}
     </>
   );
 }
+
 
 
 type FerramentaRow = {
