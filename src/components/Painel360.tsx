@@ -1153,19 +1153,39 @@ function SwipePage() {
 }
 
 function PromptsPage() {
+  const { openCreate } = useCrud();
   const frameworks = DB.prompts.slice(0, 4);
   const ia = DB.prompts.slice(4, 8);
   const mj = [
     { label:"MidJourney · v6", title:"Prompt MJ Lifestyle", preview:"Editorial lifestyle photo, brand colors, soft golden light, marble surface --ar 4:5 --v 6", dark:true },
     { label:"MidJourney · v6", title:"Prompt MJ Produto", preview:"Hero product shot, premium minimal, studio lighting, beige backdrop --ar 1:1 --v 6", dark:false },
   ];
+  const copyPrompt = (text: string) => {
+    navigator.clipboard.writeText(text).then(
+      () => toast.success("Prompt copiado!"),
+      () => toast.error("Não foi possível copiar")
+    );
+  };
   const render = (list: typeof DB.prompts) => (
-    <div className="grid grid-cols-2 gap-5 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 mb-6">
       {list.map((p, i) => (
         <Card key={i} dark={p.dark}>
-          <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: p.dark ? C.gold : C.mid }}>{p.label}</div>
-          <div className="mt-2 font-extrabold text-lg">{p.title}</div>
-          <div className="mt-2 text-sm opacity-80 overflow-hidden" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{p.preview}</div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: p.dark ? C.gold : C.mid }}>{p.label}</div>
+              <div className="mt-2 font-extrabold text-lg">{p.title}</div>
+              <div className="mt-2 text-sm opacity-80 overflow-hidden" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{p.preview}</div>
+            </div>
+            <button
+              onClick={() => copyPrompt(p.preview)}
+              className="shrink-0 rounded-lg p-2 hover:bg-black/10 transition-colors"
+              aria-label="Copiar prompt"
+              title="Copiar"
+              style={{ color: p.dark ? "#fff" : C.mid }}
+            >
+              <Copy size={16} />
+            </button>
+          </div>
         </Card>
       ))}
     </div>
@@ -1173,7 +1193,8 @@ function PromptsPage() {
   return (
     <>
       <PageHeader eyebrow="Biblioteca de Prompts IA" title="Prompts &" accent="frameworks"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Novo prompt</PillBtn>} />
+        actions={<PillBtn onClick={() => openCreate("prompt")}><Plus size={14} className="inline mr-1" /> Novo prompt</PillBtn>} />
+
       <SectionLabel>Frameworks de copy</SectionLabel>
       {render(frameworks)}
       <SectionLabel>Prompts Mestre IA</SectionLabel>
