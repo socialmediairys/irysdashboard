@@ -503,8 +503,9 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-5">
-        <div className="col-span-3">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5">
+        <div className="lg:col-span-3">
+
           <Card>
             <h3 className="font-extrabold text-lg mb-4">Entregas por cliente — Junho</h3>
             <div className="space-y-4">
