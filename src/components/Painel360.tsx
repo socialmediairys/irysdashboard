@@ -1206,28 +1206,38 @@ function PromptsPage() {
 }
 
 
+type FerramentaRow = {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  url: string;
+  custo_mensal: number;
+  categoria: string;
+};
+
 function FerramentasPage() {
-  const custo = DB.ferramentas.reduce((s, f) => {
-    const m = /R\$(\d+)/.exec(f.cat); return s + (m ? Number(m[1]) : 0);
-  }, 0);
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const { rows: ferramentasDb } = useSupabaseList<FerramentaRow>("ferramentas", { order: { column: "nome" } });
+  const custo = ferramentasDb.reduce((s, f) => s + Number(f.custo_mensal || 0), 0);
   return (
     <>
       <PageHeader eyebrow="Ferramentas" title="Links &" accent="recursos"
-        badges={<LiveBadge label="Conectar nova" />} />
-      <div className="grid grid-cols-3 gap-5 mb-6">
+        badges={<LiveBadge label="Conectar nova" />}
+        actions={<PillBtn onClick={() => openCreate("ferramenta")}><Plus size={14} className="inline mr-1" /> Adicionar ferramenta</PillBtn>} />
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5 mb-6">
         <MetricCard variant="hero" value={DB.integracoes.length} label="Integrações ativas" />
-        <MetricCard value={DB.ferramentas.length} label="Ferramentas" />
+        <MetricCard value={ferramentasDb.length} label="Ferramentas" />
         <MetricCard variant="accent" value={brl(custo)} label="Custo mensal" deltaType="neutral" />
       </div>
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
         <Card>
           <h3 className="font-extrabold text-lg mb-4">Integrações ativas</h3>
           <div className="space-y-3">
             {DB.integracoes.map((it, i) => (
               <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <span className="text-xl">{it.ico}</span>
-                  <div><div className="font-semibold">{it.name}</div><div className="text-xs" style={{ color: C.textMid }}>{it.desc}</div></div>
+                  <div className="min-w-0"><div className="font-semibold truncate">{it.name}</div><div className="text-xs" style={{ color: C.textMid }}>{it.desc}</div></div>
                 </div>
                 {it.live && <LiveBadge label="Live" />}
               </div>
@@ -1237,13 +1247,23 @@ function FerramentasPage() {
         <Card>
           <h3 className="font-extrabold text-lg mb-4">Ferramentas do workflow</h3>
           <div className="space-y-3">
-            {DB.ferramentas.map((f, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{f.ico}</span>
-                  <div><div className="font-semibold">{f.name}</div><div className="text-xs" style={{ color: C.textMid }}>{f.cat}</div></div>
-                </div>
-                <ArrowRight size={16} style={{ color: C.textMid }} />
+            {ferramentasDb.length === 0 && (
+              <div className="text-sm italic" style={{ color: C.textMuted }}>
+                Nenhuma ferramenta ainda. Clique em "Adicionar ferramenta".
+              </div>
+            )}
+            {ferramentasDb.map((f) => (
+              <div key={f.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                <a href={f.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 min-w-0 flex-1 hover:opacity-80">
+                  <span className="text-xl">🔧</span>
+                  <div className="min-w-0">
+                    <div className="font-semibold truncate">{f.nome}</div>
+                    <div className="text-xs" style={{ color: C.textMid }}>
+                      {f.categoria}{Number(f.custo_mensal) > 0 ? ` · ${brl(Number(f.custo_mensal))}/mês` : " · grátis"}
+                    </div>
+                  </div>
+                </a>
+                <RowActions onEdit={() => openEdit("ferramenta", f)} onDelete={() => openDelete("ferramenta", f)} />
               </div>
             ))}
           </div>
@@ -1252,6 +1272,7 @@ function FerramentasPage() {
     </>
   );
 }
+
 
 /* ---------- Central do Cliente (gestão) ---------- */
 type Cliente = (typeof DB.clientes)[number];
