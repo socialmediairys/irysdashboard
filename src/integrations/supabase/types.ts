@@ -147,6 +147,7 @@ export type Database = {
           link_contrato_assinado: string | null
           nome: string
           plano_atual: Database["public"]["Enums"]["plano_atual"] | null
+          plano_label: string | null
           status_contrato: Database["public"]["Enums"]["status_contrato"]
           telefone: string | null
           updated_at: string
@@ -166,6 +167,7 @@ export type Database = {
           link_contrato_assinado?: string | null
           nome: string
           plano_atual?: Database["public"]["Enums"]["plano_atual"] | null
+          plano_label?: string | null
           status_contrato?: Database["public"]["Enums"]["status_contrato"]
           telefone?: string | null
           updated_at?: string
@@ -185,6 +187,7 @@ export type Database = {
           link_contrato_assinado?: string | null
           nome?: string
           plano_atual?: Database["public"]["Enums"]["plano_atual"] | null
+          plano_label?: string | null
           status_contrato?: Database["public"]["Enums"]["status_contrato"]
           telefone?: string | null
           updated_at?: string
@@ -275,9 +278,88 @@ export type Database = {
           },
         ]
       }
+      estrategias: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          formatos: Json
+          id: string
+          objetivo: string | null
+          pilares: Json
+          qtd_entregaveis: number
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          formatos?: Json
+          id?: string
+          objetivo?: string | null
+          pilares?: Json
+          qtd_entregaveis?: number
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          formatos?: Json
+          id?: string
+          objetivo?: string | null
+          pilares?: Json
+          qtd_entregaveis?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estrategias_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ferramentas: {
+        Row: {
+          categoria: string
+          created_at: string
+          criado_por: string | null
+          custo_mensal: number
+          descricao: string | null
+          id: string
+          nome: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          criado_por?: string | null
+          custo_mensal?: number
+          descricao?: string | null
+          id?: string
+          nome: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          criado_por?: string | null
+          custo_mensal?: number
+          descricao?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       financas_administrativas: {
         Row: {
           categoria: Database["public"]["Enums"]["fin_categoria"]
+          categoria_livre: string | null
+          cliente_id: string | null
           created_at: string
           data_vencimento: string
           descricao: string | null
@@ -288,6 +370,8 @@ export type Database = {
         }
         Insert: {
           categoria?: Database["public"]["Enums"]["fin_categoria"]
+          categoria_livre?: string | null
+          cliente_id?: string | null
           created_at?: string
           data_vencimento: string
           descricao?: string | null
@@ -298,6 +382,8 @@ export type Database = {
         }
         Update: {
           categoria?: Database["public"]["Enums"]["fin_categoria"]
+          categoria_livre?: string | null
+          cliente_id?: string | null
           created_at?: string
           data_vencimento?: string
           descricao?: string | null
@@ -306,7 +392,15 @@ export type Database = {
           tipo?: Database["public"]["Enums"]["fin_tipo"]
           valor?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "financas_administrativas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       google_calendar_tokens: {
         Row: {
@@ -344,37 +438,52 @@ export type Database = {
       leads: {
         Row: {
           created_at: string
+          data_proxima_acao: string | null
+          email: string | null
+          etapa: string
           id: string
           nome: string
           observacoes: string | null
           origem: string | null
           potencial: string | null
+          proxima_acao: string | null
           responsavel_id: string | null
           status: string
+          telefone: string | null
           updated_at: string
           valor: number | null
         }
         Insert: {
           created_at?: string
+          data_proxima_acao?: string | null
+          email?: string | null
+          etapa?: string
           id?: string
           nome: string
           observacoes?: string | null
           origem?: string | null
           potencial?: string | null
+          proxima_acao?: string | null
           responsavel_id?: string | null
           status?: string
+          telefone?: string | null
           updated_at?: string
           valor?: number | null
         }
         Update: {
           created_at?: string
+          data_proxima_acao?: string | null
+          email?: string | null
+          etapa?: string
           id?: string
           nome?: string
           observacoes?: string | null
           origem?: string | null
           potencial?: string | null
+          proxima_acao?: string | null
           responsavel_id?: string | null
           status?: string
+          telefone?: string | null
           updated_at?: string
           valor?: number | null
         }
@@ -498,6 +607,69 @@ export type Database = {
           },
         ]
       }
+      prompts: {
+        Row: {
+          categoria: string
+          conteudo: string
+          created_at: string
+          criado_por: string | null
+          id: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          categoria?: string
+          conteudo: string
+          created_at?: string
+          criado_por?: string | null
+          id?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          categoria?: string
+          conteudo?: string
+          created_at?: string
+          criado_por?: string | null
+          id?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      referencias: {
+        Row: {
+          categoria: string
+          created_at: string
+          criado_por: string | null
+          descricao: string | null
+          id: string
+          titulo: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          categoria?: string
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          titulo: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          categoria?: string
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          titulo?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       saidas_financeiras: {
         Row: {
           categoria: string | null
@@ -568,6 +740,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "suporte_tickets_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tarefas: {
+        Row: {
+          arquivo_url: string | null
+          cliente_id: string | null
+          created_at: string
+          criado_por: string | null
+          descricao: string | null
+          id: string
+          prazo: string | null
+          prioridade: string
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          arquivo_url?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          prazo?: string | null
+          prioridade?: string
+          status?: string
+          tipo?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          arquivo_url?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          prazo?: string | null
+          prioridade?: string
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefas_cliente_id_fkey"
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
