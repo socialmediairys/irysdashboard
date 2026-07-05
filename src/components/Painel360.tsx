@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Calendar, Users, TrendingUp, CreditCard, Instagram,
   Bookmark, Wrench, Plus, Zap, ArrowRight, Library, FileText, Settings, Menu,
   UserSquare2, Play, Pause, ChevronDown, ChevronRight, ArrowLeft, FolderOpen, Video, CheckCircle2, Circle,
-  RefreshCw, LinkIcon, LogOut, ExternalLink, Copy,
+  RefreshCw, LinkIcon, LogOut, ExternalLink, Copy, MessageCircle, Loader2,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -12,6 +12,13 @@ import {
   disconnectGoogleCalendar,
   listGoogleCalendarEvents,
 } from "@/lib/google-calendar.functions";
+import { sendWhatsappCobrancaTemplate } from "@/lib/whatsapp.functions";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { CrudProvider, useCrud } from "@/components/crud/CrudProvider";
 import { RowActions } from "@/components/crud/RowActions";
 import { useSupabaseList } from "@/hooks/useSupabaseList";
