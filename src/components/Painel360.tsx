@@ -999,12 +999,12 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
                 <Button variant="outline" onClick={() => setOpen(false)}>
                   Fechar
                 </Button>
-                <Button onClick={submit} disabled={!templateName.trim() || status === "loading"}>
-                  {status === "loading" && <Loader2 className="h-4 w-4 animate-spin" />}
+                <Button onClick={submit} disabled={!templateName.trim()}>
                   Tentar novamente
                 </Button>
               </>
             ) : status === "success" ? (
+
               <Button variant="outline" onClick={() => setOpen(false)}>
                 Fechar
               </Button>
