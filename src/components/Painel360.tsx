@@ -2092,21 +2092,7 @@ function ConfigPage() {
 
       {tab === "integracoes" && (
         <Card>
-          <h3 className="font-extrabold text-lg mb-4">Integrações ativas</h3>
-          <div className="space-y-3">
-            {DB.integracoes.map((it, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{it.ico}</span>
-                  <div>
-                    <div className="font-semibold">{it.name}</div>
-                    <div className="text-xs" style={{ color: C.textMid }}>{it.desc}</div>
-                  </div>
-                </div>
-                {it.live && <LiveBadge label="Live" />}
-              </div>
-            ))}
-          </div>
+          <IntegrationsTab />
         </Card>
       )}
       {tab === "juridico" && (
