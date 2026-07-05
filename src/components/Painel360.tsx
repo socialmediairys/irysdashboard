@@ -1234,63 +1234,53 @@ function OficinaPage() {
   );
 }
 
+type ReferenciaRow = {
+  id: string;
+  titulo: string;
+  categoria: string;
+  url: string;
+  descricao: string | null;
+};
+
 function SwipePage() {
-  const { openCreate } = useCrud();
-  const links = [
-    { e:"🎯", n:"Hooks virais", s:"Coleção 2026" },
-    { e:"💎", n:"CTAs convertentes", s:"50 modelos" },
-    { e:"📝", n:"Headlines salvos", s:"Copy direto" },
-    { e:"🎨", n:"Refs visuais", s:"Moodboards" },
-    { e:"🔥", n:"Reels virais", s:"Análises" },
-    { e:"📊", n:"Cases reais", s:"Estudo de caso" },
-    { e:"💡", n:"Frameworks", s:"Copy + design" },
-  ];
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const { rows: referencias } = useSupabaseList<ReferenciaRow>("referencias", { order: { column: "created_at", ascending: false } });
   return (
     <>
       <PageHeader eyebrow="Swipe File" title="Links &" accent="referências"
         actions={<PillBtn onClick={() => openCreate("referencia")}><Plus size={14} className="inline mr-1" /> Adicionar referência</PillBtn>} />
 
-      <SectionLabel>Links úteis</SectionLabel>
-      <div className="grid grid-cols-4 gap-5 mb-6">
-        {links.map((l, i) => (
-          <Card key={i} className="!p-0 overflow-hidden">
-            <div className="p-6 text-3xl" style={{ background: C.beige }}>{l.e}</div>
-            <div className="p-4">
-              <div className="font-extrabold">{l.n}</div>
-              <div className="text-xs" style={{ color: C.textMid }}>{l.s}</div>
+      <SectionLabel>Suas referências salvas</SectionLabel>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
+        {referencias.map((r) => (
+          <Card key={r.id}>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: C.mid }}>{r.categoria}</div>
+                <a href={r.url} target="_blank" rel="noopener noreferrer" className="mt-2 font-extrabold text-lg block truncate hover:underline">
+                  {r.titulo}
+                </a>
+                {r.descricao && <div className="mt-1 text-xs" style={{ color: C.textMid }}>{r.descricao}</div>}
+                <a href={r.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs" style={{ color: C.mid }}>
+                  Abrir <ExternalLink size={12} />
+                </a>
+              </div>
+              <RowActions onEdit={() => openEdit("referencia", r)} onDelete={() => openDelete("referencia", r)} />
             </div>
           </Card>
         ))}
-        <div className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center"
-          style={{ borderColor: C.beige, color: C.textMid }}>
-          <Plus size={28} /><div className="mt-2 font-semibold">Adicionar</div>
-        </div>
-      </div>
-      <SectionLabel>Material de apoio</SectionLabel>
-      <div className="grid grid-cols-2 gap-5">
-        {[
-          { t:"Templates Canva", items: [["🎨","Carrossel base","10 templates"],["📱","Stories pack","20 layouts"],["🎬","Capas Reels","15 modelos"]] },
-          { t:"Recursos", items: [["🖼️","Fotos brand","Banco interno"],["🎵","Áudios virais","Coleção"],["📐","Grade IG","Auxiliar"]] },
-        ].map((s, i) => (
-          <Card key={i}>
-            <h3 className="font-extrabold text-lg mb-4">{s.t}</h3>
-            <div className="space-y-2">
-              {s.items.map((it, j) => (
-                <div key={j} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{it[0]}</span>
-                    <div><div className="font-semibold">{it[1]}</div><div className="text-xs" style={{ color: C.textMid }}>{it[2]}</div></div>
-                  </div>
-                  <ArrowRight size={16} style={{ color: C.textMid }} />
-                </div>
-              ))}
-            </div>
-          </Card>
-        ))}
+        <button
+          onClick={() => openCreate("referencia")}
+          className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center min-h-[160px]"
+          style={{ borderColor: C.beige, color: C.textMid }}
+        >
+          <Plus size={28} /><div className="mt-2 font-semibold">Adicionar referência</div>
+        </button>
       </div>
     </>
   );
 }
+
 
 function PromptsPage() {
   const { openCreate } = useCrud();
