@@ -982,7 +982,10 @@ function ClientesPage() {
                   <div className="text-xs" style={{ color: C.textMid }}>{c.plano_label || c.plano_atual || "—"}</div>
                   <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}/mês</div>
                 </div>
-                <RowActions onEdit={() => openEdit("cliente", c)} onDelete={() => openDelete("cliente", c)} />
+                <div className="flex items-center gap-1 shrink-0">
+                  <CobrancaWhatsappButton clienteId={c.id} nome={c.nome} />
+                  <RowActions onEdit={() => openEdit("cliente", c)} onDelete={() => openDelete("cliente", c)} />
+                </div>
               </div>
               <div className="mt-4">
                 <TagBadge
