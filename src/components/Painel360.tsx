@@ -1282,58 +1282,80 @@ function SwipePage() {
 }
 
 
+type PromptRow = {
+  id: string;
+  titulo: string;
+  categoria: string;
+  conteudo: string;
+};
+
 function PromptsPage() {
-  const { openCreate } = useCrud();
-  const frameworks = DB.prompts.slice(0, 4);
-  const ia = DB.prompts.slice(4, 8);
-  const mj = [
-    { label:"MidJourney · v6", title:"Prompt MJ Lifestyle", preview:"Editorial lifestyle photo, brand colors, soft golden light, marble surface --ar 4:5 --v 6", dark:true },
-    { label:"MidJourney · v6", title:"Prompt MJ Produto", preview:"Hero product shot, premium minimal, studio lighting, beige backdrop --ar 1:1 --v 6", dark:false },
-  ];
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const { rows: prompts } = useSupabaseList<PromptRow>("prompts", { order: { column: "created_at", ascending: false } });
+
   const copyPrompt = (text: string) => {
     navigator.clipboard.writeText(text).then(
       () => toast.success("Prompt copiado!"),
       () => toast.error("Não foi possível copiar")
     );
   };
-  const render = (list: typeof DB.prompts) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 mb-6">
-      {list.map((p, i) => (
-        <Card key={i} dark={p.dark}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: p.dark ? C.gold : C.mid }}>{p.label}</div>
-              <div className="mt-2 font-extrabold text-lg">{p.title}</div>
-              <div className="mt-2 text-sm opacity-80 overflow-hidden" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{p.preview}</div>
-            </div>
-            <button
-              onClick={() => copyPrompt(p.preview)}
-              className="shrink-0 rounded-lg p-2 hover:bg-black/10 transition-colors"
-              aria-label="Copiar prompt"
-              title="Copiar"
-              style={{ color: p.dark ? "#fff" : C.mid }}
-            >
-              <Copy size={16} />
-            </button>
+
+  // group by categoria
+  const grouped = new Map<string, PromptRow[]>();
+  for (const p of prompts) {
+    const arr = grouped.get(p.categoria) ?? [];
+    arr.push(p);
+    grouped.set(p.categoria, arr);
+  }
+
+  const renderCard = (p: PromptRow) => (
+    <Card key={p.id}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: C.mid }}>{p.categoria}</div>
+          <div className="mt-2 font-extrabold text-lg break-words">{p.titulo}</div>
+          <div className="mt-2 text-sm opacity-80 overflow-hidden whitespace-pre-wrap" style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}>
+            {p.conteudo}
           </div>
-        </Card>
-      ))}
-    </div>
+        </div>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <button
+            onClick={() => copyPrompt(p.conteudo)}
+            className="rounded-lg p-2 hover:bg-black/5 transition-colors"
+            aria-label="Copiar prompt" title="Copiar"
+            style={{ color: C.mid }}
+          >
+            <Copy size={16} />
+          </button>
+          <RowActions onEdit={() => openEdit("prompt", p)} onDelete={() => openDelete("prompt", p)} />
+        </div>
+      </div>
+    </Card>
   );
+
   return (
     <>
       <PageHeader eyebrow="Biblioteca de Prompts IA" title="Prompts &" accent="frameworks"
         actions={<PillBtn onClick={() => openCreate("prompt")}><Plus size={14} className="inline mr-1" /> Novo prompt</PillBtn>} />
 
-      <SectionLabel>Frameworks de copy</SectionLabel>
-      {render(frameworks)}
-      <SectionLabel>Prompts Mestre IA</SectionLabel>
-      {render(ia)}
-      <SectionLabel>MidJourney</SectionLabel>
-      {render(mj)}
+      {prompts.length === 0 && (
+        <Card><div className="text-center py-8" style={{ color: C.textMid }}>
+          Nenhum prompt salvo. Clique em "Novo prompt".
+        </div></Card>
+      )}
+
+      {[...grouped.entries()].map(([cat, list]) => (
+        <div key={cat}>
+          <SectionLabel>{cat}</SectionLabel>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 mb-6">
+            {list.map(renderCard)}
+          </div>
+        </div>
+      ))}
     </>
   );
 }
+
 
 
 type FerramentaRow = {
