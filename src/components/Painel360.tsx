@@ -863,6 +863,7 @@ function CRMPage() {
 }
 
 function FinancasPage() {
+  const { openCreate } = useCrud();
   const totalE = DB.entradas.reduce((s, e) => s + e.val, 0);
   const totalS = DB.saidas.reduce((s, e) => s + e.val, 0);
   const lucro = totalE - totalS;
@@ -870,7 +871,8 @@ function FinancasPage() {
   return (
     <>
       <PageHeader eyebrow="Finanças" title="Junho" accent="2026"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Lançamento</PillBtn>} />
+        actions={<PillBtn onClick={() => openCreate("lancamento")}><Plus size={14} className="inline mr-1" /> Lançamento</PillBtn>} />
+
       <div className="grid grid-cols-3 gap-5 mb-6">
         <MetricCard variant="hero" value={brl(totalE)} label="Entradas" delta="↑ vs maio" />
         <MetricCard value={brl(totalS)} label="Saídas" delta="↑ 8% vs maio" deltaType="down" />
