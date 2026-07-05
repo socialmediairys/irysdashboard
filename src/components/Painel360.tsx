@@ -1705,6 +1705,7 @@ function ConfigPage() {
 export default function Painel360() {
   const [active, setActive] = useState<PageKey>("dash");
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [clienteId, setClienteId] = useState<number>(DB.clientes[0].id);
   const [viewMode, setViewMode] = useState<"gestao" | "cliente">("gestao");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -1723,10 +1724,42 @@ export default function Painel360() {
   }
 
   return (
-    <div className="h-screen overflow-hidden flex" style={{ background: C.bg, color: C.text }}>
-      <Sidebar active={active} setActive={setActive} collapsed={collapsed} setCollapsed={setCollapsed} />
-      <main ref={scrollRef} className={`flex-1 overflow-y-auto transition-[margin] duration-200 ${collapsed ? "ml-16" : "ml-60"}`}>
-        <div className="mx-auto max-w-[1400px] p-8">
+    <div className="h-screen overflow-hidden flex flex-col md:flex-row" style={{ background: C.bg, color: C.text }}>
+      {/* Mobile header */}
+      <header
+        className="md:hidden sticky top-0 z-20 flex h-14 items-center justify-between px-4 shrink-0"
+        style={{ background: C.dark, color: "#fff" }}
+      >
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-white/10"
+          aria-label="Abrir menu"
+        >
+          <Menu size={22} />
+        </button>
+        <span className="font-extrabold tracking-tight">Irys OS</span>
+        <div
+          className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-extrabold"
+          style={{ background: `linear-gradient(135deg, ${C.mid}, ${C.gold})`, color: "#fff" }}
+        >
+          T
+        </div>
+      </header>
+
+      <Sidebar
+        active={active}
+        setActive={setActive}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
+      />
+      <main
+        ref={scrollRef}
+        className={`flex-1 overflow-y-auto transition-[margin] duration-200 ml-0 ${collapsed ? "md:ml-16" : "md:ml-60"}`}
+      >
+        <div className="mx-auto max-w-[1400px] p-4 md:p-8">
+
           {active === "dash"       && <DashboardPage go={setActive} />}
           {active === "agenda"     && <AgendaPage />}
           {active === "clientes"   && <ClientesPage />}
