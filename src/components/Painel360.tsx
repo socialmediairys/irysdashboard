@@ -1505,7 +1505,7 @@ type PromptRow = {
 
 function PromptsPage() {
   const { openCreate, openEdit, openDelete } = useCrud();
-  const { rows: prompts } = useSupabaseList<PromptRow>("prompts", { order: { column: "created_at", ascending: false } });
+  const { rows: prompts, loading, error, refetch } = useSupabaseList<PromptRow>("prompts", { order: { column: "created_at", ascending: false } });
 
   const copyPrompt = (text: string) => {
     navigator.clipboard.writeText(text).then(
