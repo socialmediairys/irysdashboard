@@ -967,33 +967,55 @@ function CRMPage() {
 
 
 
+type LancamentoRow = {
+  id: string;
+  tipo: "entrada" | "saida";
+  descricao: string | null;
+  valor: number;
+  data_vencimento: string;
+  status_pagamento: string;
+  categoria_livre: string | null;
+  categoria: string;
+  cliente_id: string | null;
+};
+
 function FinancasPage() {
-  const { openCreate } = useCrud();
-  const totalE = DB.entradas.reduce((s, e) => s + e.val, 0);
-  const totalS = DB.saidas.reduce((s, e) => s + e.val, 0);
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const { rows } = useSupabaseList<LancamentoRow>("financas_administrativas", { order: { column: "data_vencimento", ascending: false } });
+  const entradas = rows.filter(r => r.tipo === "entrada");
+  const saidas = rows.filter(r => r.tipo === "saida");
+  const totalE = entradas.reduce((s, e) => s + Number(e.valor || 0), 0);
+  const totalS = saidas.reduce((s, e) => s + Number(e.valor || 0), 0);
   const lucro = totalE - totalS;
   const margem = totalE > 0 ? Math.round((lucro / totalE) * 100) : 0;
+
+  const catLabel = (r: LancamentoRow) => r.categoria_livre || r.categoria || "—";
+
   return (
     <>
       <PageHeader eyebrow="Finanças" title="Junho" accent="2026"
         actions={<PillBtn onClick={() => openCreate("lancamento")}><Plus size={14} className="inline mr-1" /> Lançamento</PillBtn>} />
 
-      <div className="grid grid-cols-3 gap-5 mb-6">
-        <MetricCard variant="hero" value={brl(totalE)} label="Entradas" delta="↑ vs maio" />
-        <MetricCard value={brl(totalS)} label="Saídas" delta="↑ 8% vs maio" deltaType="down" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-5 mb-6">
+        <MetricCard variant="hero" value={brl(totalE)} label="Entradas" />
+        <MetricCard value={brl(totalS)} label="Saídas" deltaType="down" />
         <MetricCard variant="accent" value={brl(lucro)} label="Lucro líquido" delta={`Margem ${margem}%`} deltaType="neutral" />
       </div>
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
         <Card>
           <h3 className="font-extrabold text-lg mb-4">Entradas do mês</h3>
           <div className="space-y-2">
-            {DB.entradas.map((e, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                <div>
-                  <div className="font-semibold">{e.name}</div>
-                  <div className="text-xs" style={{ color: C.textMid }}>{e.cat}</div>
+            {entradas.length === 0 && <div className="text-sm italic" style={{ color: C.textMuted }}>Nenhuma entrada.</div>}
+            {entradas.map((e) => (
+              <div key={e.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold truncate">{e.descricao}</div>
+                  <div className="text-xs" style={{ color: C.textMid }}>{catLabel(e)} · {e.status_pagamento}</div>
                 </div>
-                <div className="font-extrabold" style={{ color: "#2E7D32" }}>+{brl(e.val)}</div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="font-extrabold" style={{ color: "#2E7D32" }}>+{brl(Number(e.valor))}</div>
+                  <RowActions onEdit={() => openEdit("lancamento", e)} onDelete={() => openDelete("lancamento", e)} />
+                </div>
               </div>
             ))}
           </div>
@@ -1001,13 +1023,17 @@ function FinancasPage() {
         <Card>
           <h3 className="font-extrabold text-lg mb-4">Saídas do mês</h3>
           <div className="space-y-2">
-            {DB.saidas.map((e, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                <div>
-                  <div className="font-semibold">{e.name}</div>
-                  <div className="text-xs" style={{ color: C.textMid }}>{e.cat}</div>
+            {saidas.length === 0 && <div className="text-sm italic" style={{ color: C.textMuted }}>Nenhuma saída.</div>}
+            {saidas.map((e) => (
+              <div key={e.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold truncate">{e.descricao}</div>
+                  <div className="text-xs" style={{ color: C.textMid }}>{catLabel(e)} · {e.status_pagamento}</div>
                 </div>
-                <div className="font-extrabold" style={{ color: "#C8351A" }}>-{brl(e.val)}</div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="font-extrabold" style={{ color: "#C8351A" }}>-{brl(Number(e.valor))}</div>
+                  <RowActions onEdit={() => openEdit("lancamento", e)} onDelete={() => openDelete("lancamento", e)} />
+                </div>
               </div>
             ))}
           </div>
@@ -1016,6 +1042,7 @@ function FinancasPage() {
     </>
   );
 }
+
 
 function SocialPage() {
   return (
