@@ -82,3 +82,119 @@ export const disconnectWhatsapp = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true as const };
   });
+
+function normalizePhone(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const digits = raw.replace(/\D+/g, "");
+  if (!digits) return null;
+  // Se o número vier sem código do país, assume Brasil (+55).
+  return digits.length <= 11 ? `55${digits}` : digits;
+}
+
+function formatBRL(value: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
+}
+
+export const sendWhatsappCobrancaTemplate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: {
+      clienteId: string;
+      templateName: string;
+      languageCode?: string;
+    }) => {
+      const clienteId = input.clienteId?.trim();
+      const templateName = input.templateName?.trim();
+      if (!clienteId) throw new Error("clienteId é obrigatório");
+      if (!templateName) throw new Error("templateName é obrigatório");
+      return {
+        clienteId,
+        templateName,
+        languageCode: input.languageCode?.trim() || "pt_BR",
+      };
+    },
+  )
+  .handler(async ({ data, context }) => {
+    // 1. Credenciais do WhatsApp do usuário
+    const { data: conn, error: connErr } = await context.supabase
+      .from("whatsapp_connections")
+      .select("phone_number_id, access_token")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (connErr) throw connErr;
+    if (!conn) throw new Error("WhatsApp não conectado. Conecte em Configurações → Integrações.");
+
+    // 2. Cliente
+    const { data: cliente, error: cliErr } = await context.supabase
+      .from("clientes")
+      .select("id, nome, telefone, valor_mensal")
+      .eq("id", data.clienteId)
+      .maybeSingle();
+    if (cliErr) throw cliErr;
+    if (!cliente) throw new Error("Cliente não encontrado");
+
+    const to = normalizePhone(cliente.telefone);
+    if (!to) throw new Error(`Cliente "${cliente.nome}" não tem telefone cadastrado`);
+
+    // 3. Valor pendente = soma de entradas_financeiras não pagas
+    const { data: pendentes, error: entErr } = await context.supabase
+      .from("entradas_financeiras")
+      .select("valor, status_pagamento")
+      .eq("cliente_id", data.clienteId)
+      .neq("status_pagamento", "pago");
+    if (entErr) throw entErr;
+    const somaPendente = (pendentes ?? []).reduce(
+      (acc, row) => acc + Number(row.valor ?? 0),
+      0,
+    );
+    const valorPendente =
+      somaPendente > 0 ? somaPendente : Number(cliente.valor_mensal ?? 0);
+
+    // 4. Envia template pela Meta Cloud API
+    const url = `https://graph.facebook.com/v20.0/${conn.phone_number_id}/messages`;
+    const payload = {
+      messaging_product: "whatsapp",
+      to,
+      type: "template",
+      template: {
+        name: data.templateName,
+        language: { code: data.languageCode },
+        components: [
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: cliente.nome ?? "cliente" },
+              { type: "text", text: formatBRL(valorPendente) },
+            ],
+          },
+        ],
+      },
+    };
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${conn.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const json = (await res.json()) as {
+      error?: { message?: string; error_data?: { details?: string } };
+      messages?: { id: string }[];
+    };
+    if (!res.ok) {
+      const detail = json.error?.error_data?.details || json.error?.message;
+      throw new Error(detail || `Falha ao enviar mensagem (HTTP ${res.status})`);
+    }
+    return {
+      ok: true as const,
+      messageId: json.messages?.[0]?.id ?? null,
+      to,
+      nome: cliente.nome,
+      valorPendente,
+      valorFormatado: formatBRL(valorPendente),
+    };
+  });
