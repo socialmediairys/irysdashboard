@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Calendar, Users, TrendingUp, CreditCard, Instagram,
   Bookmark, Wrench, Plus, Zap, ArrowRight, Library, FileText, Settings, Menu,
   UserSquare2, Play, Pause, ChevronDown, ChevronRight, ArrowLeft, FolderOpen, Video, CheckCircle2, Circle,
-  RefreshCw, LinkIcon, LogOut, ExternalLink,
+  RefreshCw, LinkIcon, LogOut, ExternalLink, Copy,
 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -12,6 +12,11 @@ import {
   disconnectGoogleCalendar,
   listGoogleCalendarEvents,
 } from "@/lib/google-calendar.functions";
+import { CrudProvider, useCrud } from "@/components/crud/CrudProvider";
+import { RowActions } from "@/components/crud/RowActions";
+import { useSupabaseList } from "@/hooks/useSupabaseList";
+import { toast } from "sonner";
+
 
 
 /* ---------- DB ---------- */
@@ -426,6 +431,7 @@ function StatusLabel(s: string) {
 
 /* ---------- PAGES ---------- */
 function DashboardPage({ go }: { go: (p: PageKey) => void }) {
+  const { openCreate } = useCrud();
   const faturamento = useMemo(() => DB.clientes.filter(c => c.status === "ativo").reduce((s, c) => s + c.val, 0), []);
   const clientesAtivos = useMemo(() => DB.clientes.filter(c => c.status === "ativo").length, []);
   const postsEntregues = useMemo(() => DB.clientes.reduce((s, c) => s + c.feitos, 0), []);
@@ -440,9 +446,10 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
         badges={<LiveBadge label="Integrações ativas" />}
         actions={<>
           <PillBtn variant="ghost" onClick={() => go("agenda")}><Zap size={14} className="inline mr-1" /> Hoje</PillBtn>
-          <PillBtn><Plus size={14} className="inline mr-1" /> Nova tarefa</PillBtn>
+          <PillBtn onClick={() => openCreate("tarefa")}><Plus size={14} className="inline mr-1" /> Nova tarefa</PillBtn>
         </>}
       />
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6">
 
         <MetricCard variant="hero"    value={brl(faturamento)}   label="Faturamento" delta="↑ 12% vs maio" />
@@ -748,12 +755,14 @@ function AgendaPage() {
 
 
 function ClientesPage() {
+  const { openCreate } = useCrud();
   const ativos = DB.clientes.filter(c => c.status === "ativo").length;
   const maxVal = Math.max(...DB.clientes.map(c => c.val));
   return (
     <>
       <PageHeader eyebrow="Clientes" title={`${ativos} clientes`} accent="ativos"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Novo cliente</PillBtn>} />
+        actions={<PillBtn onClick={() => openCreate("cliente")}><Plus size={14} className="inline mr-1" /> Novo cliente</PillBtn>} />
+
       <div className="grid grid-cols-3 gap-5 mb-6">
         {DB.clientes.map((c) => (
           <Card key={c.id}>
@@ -789,6 +798,7 @@ function ClientesPage() {
 }
 
 function CRMPage() {
+  const { openCreate } = useCrud();
   const potencial = DB.leads.reduce((s, l) => s + l.val, 0);
   const quentes = DB.leads.filter(l => l.status === "quente").length;
   const propostas = DB.leads.filter(l => l.status === "proposta").length;
@@ -803,7 +813,8 @@ function CRMPage() {
   return (
     <>
       <PageHeader eyebrow="CRM" title="Pipeline de" accent="vendas"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Novo lead</PillBtn>} />
+        actions={<PillBtn onClick={() => openCreate("lead")}><Plus size={14} className="inline mr-1" /> Novo lead</PillBtn>} />
+
       <div className="grid grid-cols-4 gap-5 mb-6">
         <MetricCard variant="hero" value={brl(potencial)} label="Potencial no pipeline" />
         <MetricCard value={quentes} label="Leads quentes" />
@@ -852,6 +863,7 @@ function CRMPage() {
 }
 
 function FinancasPage() {
+  const { openCreate } = useCrud();
   const totalE = DB.entradas.reduce((s, e) => s + e.val, 0);
   const totalS = DB.saidas.reduce((s, e) => s + e.val, 0);
   const lucro = totalE - totalS;
@@ -859,7 +871,8 @@ function FinancasPage() {
   return (
     <>
       <PageHeader eyebrow="Finanças" title="Junho" accent="2026"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Lançamento</PillBtn>} />
+        actions={<PillBtn onClick={() => openCreate("lancamento")}><Plus size={14} className="inline mr-1" /> Lançamento</PillBtn>} />
+
       <div className="grid grid-cols-3 gap-5 mb-6">
         <MetricCard variant="hero" value={brl(totalE)} label="Entradas" delta="↑ vs maio" />
         <MetricCard value={brl(totalS)} label="Saídas" delta="↑ 8% vs maio" deltaType="down" />
@@ -986,10 +999,12 @@ function SocialPage() {
 }
 
 function EstrategiaPage() {
+  const { openCreate } = useCrud();
   return (
     <>
       <PageHeader eyebrow="Estratégia de Conteúdo" title="Clientes" accent="ativos"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Nova estratégia</PillBtn>} />
+        actions={<PillBtn onClick={() => openCreate("estrategia")}><Plus size={14} className="inline mr-1" /> Nova estratégia</PillBtn>} />
+
       <div className="grid grid-cols-3 gap-5 mb-6">
         {DB.clientes.filter(c => c.status === "ativo").map(c => (
           <Card key={c.id}>
@@ -1080,6 +1095,7 @@ function OficinaPage() {
 }
 
 function SwipePage() {
+  const { openCreate } = useCrud();
   const links = [
     { e:"🎯", n:"Hooks virais", s:"Coleção 2026" },
     { e:"💎", n:"CTAs convertentes", s:"50 modelos" },
@@ -1092,7 +1108,8 @@ function SwipePage() {
   return (
     <>
       <PageHeader eyebrow="Swipe File" title="Links &" accent="referências"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Adicionar</PillBtn>} />
+        actions={<PillBtn onClick={() => openCreate("referencia")}><Plus size={14} className="inline mr-1" /> Adicionar referência</PillBtn>} />
+
       <SectionLabel>Links úteis</SectionLabel>
       <div className="grid grid-cols-4 gap-5 mb-6">
         {links.map((l, i) => (
@@ -1136,19 +1153,39 @@ function SwipePage() {
 }
 
 function PromptsPage() {
+  const { openCreate } = useCrud();
   const frameworks = DB.prompts.slice(0, 4);
   const ia = DB.prompts.slice(4, 8);
   const mj = [
     { label:"MidJourney · v6", title:"Prompt MJ Lifestyle", preview:"Editorial lifestyle photo, brand colors, soft golden light, marble surface --ar 4:5 --v 6", dark:true },
     { label:"MidJourney · v6", title:"Prompt MJ Produto", preview:"Hero product shot, premium minimal, studio lighting, beige backdrop --ar 1:1 --v 6", dark:false },
   ];
+  const copyPrompt = (text: string) => {
+    navigator.clipboard.writeText(text).then(
+      () => toast.success("Prompt copiado!"),
+      () => toast.error("Não foi possível copiar")
+    );
+  };
   const render = (list: typeof DB.prompts) => (
-    <div className="grid grid-cols-2 gap-5 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 mb-6">
       {list.map((p, i) => (
         <Card key={i} dark={p.dark}>
-          <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: p.dark ? C.gold : C.mid }}>{p.label}</div>
-          <div className="mt-2 font-extrabold text-lg">{p.title}</div>
-          <div className="mt-2 text-sm opacity-80 overflow-hidden" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{p.preview}</div>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: p.dark ? C.gold : C.mid }}>{p.label}</div>
+              <div className="mt-2 font-extrabold text-lg">{p.title}</div>
+              <div className="mt-2 text-sm opacity-80 overflow-hidden" style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{p.preview}</div>
+            </div>
+            <button
+              onClick={() => copyPrompt(p.preview)}
+              className="shrink-0 rounded-lg p-2 hover:bg-black/10 transition-colors"
+              aria-label="Copiar prompt"
+              title="Copiar"
+              style={{ color: p.dark ? "#fff" : C.mid }}
+            >
+              <Copy size={16} />
+            </button>
+          </div>
         </Card>
       ))}
     </div>
@@ -1156,7 +1193,8 @@ function PromptsPage() {
   return (
     <>
       <PageHeader eyebrow="Biblioteca de Prompts IA" title="Prompts &" accent="frameworks"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Novo prompt</PillBtn>} />
+        actions={<PillBtn onClick={() => openCreate("prompt")}><Plus size={14} className="inline mr-1" /> Novo prompt</PillBtn>} />
+
       <SectionLabel>Frameworks de copy</SectionLabel>
       {render(frameworks)}
       <SectionLabel>Prompts Mestre IA</SectionLabel>
@@ -1168,28 +1206,38 @@ function PromptsPage() {
 }
 
 
+type FerramentaRow = {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  url: string;
+  custo_mensal: number;
+  categoria: string;
+};
+
 function FerramentasPage() {
-  const custo = DB.ferramentas.reduce((s, f) => {
-    const m = /R\$(\d+)/.exec(f.cat); return s + (m ? Number(m[1]) : 0);
-  }, 0);
+  const { openCreate, openEdit, openDelete } = useCrud();
+  const { rows: ferramentasDb } = useSupabaseList<FerramentaRow>("ferramentas", { order: { column: "nome" } });
+  const custo = ferramentasDb.reduce((s, f) => s + Number(f.custo_mensal || 0), 0);
   return (
     <>
       <PageHeader eyebrow="Ferramentas" title="Links &" accent="recursos"
-        badges={<LiveBadge label="Conectar nova" />} />
-      <div className="grid grid-cols-3 gap-5 mb-6">
+        badges={<LiveBadge label="Conectar nova" />}
+        actions={<PillBtn onClick={() => openCreate("ferramenta")}><Plus size={14} className="inline mr-1" /> Adicionar ferramenta</PillBtn>} />
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5 mb-6">
         <MetricCard variant="hero" value={DB.integracoes.length} label="Integrações ativas" />
-        <MetricCard value={DB.ferramentas.length} label="Ferramentas" />
+        <MetricCard value={ferramentasDb.length} label="Ferramentas" />
         <MetricCard variant="accent" value={brl(custo)} label="Custo mensal" deltaType="neutral" />
       </div>
-      <div className="grid grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
         <Card>
           <h3 className="font-extrabold text-lg mb-4">Integrações ativas</h3>
           <div className="space-y-3">
             {DB.integracoes.map((it, i) => (
               <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 min-w-0">
                   <span className="text-xl">{it.ico}</span>
-                  <div><div className="font-semibold">{it.name}</div><div className="text-xs" style={{ color: C.textMid }}>{it.desc}</div></div>
+                  <div className="min-w-0"><div className="font-semibold truncate">{it.name}</div><div className="text-xs" style={{ color: C.textMid }}>{it.desc}</div></div>
                 </div>
                 {it.live && <LiveBadge label="Live" />}
               </div>
@@ -1199,13 +1247,23 @@ function FerramentasPage() {
         <Card>
           <h3 className="font-extrabold text-lg mb-4">Ferramentas do workflow</h3>
           <div className="space-y-3">
-            {DB.ferramentas.map((f, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{f.ico}</span>
-                  <div><div className="font-semibold">{f.name}</div><div className="text-xs" style={{ color: C.textMid }}>{f.cat}</div></div>
-                </div>
-                <ArrowRight size={16} style={{ color: C.textMid }} />
+            {ferramentasDb.length === 0 && (
+              <div className="text-sm italic" style={{ color: C.textMuted }}>
+                Nenhuma ferramenta ainda. Clique em "Adicionar ferramenta".
+              </div>
+            )}
+            {ferramentasDb.map((f) => (
+              <div key={f.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                <a href={f.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 min-w-0 flex-1 hover:opacity-80">
+                  <span className="text-xl">🔧</span>
+                  <div className="min-w-0">
+                    <div className="font-semibold truncate">{f.nome}</div>
+                    <div className="text-xs" style={{ color: C.textMid }}>
+                      {f.categoria}{Number(f.custo_mensal) > 0 ? ` · ${brl(Number(f.custo_mensal))}/mês` : " · grátis"}
+                    </div>
+                  </div>
+                </a>
+                <RowActions onEdit={() => openEdit("ferramenta", f)} onDelete={() => openDelete("ferramenta", f)} />
               </div>
             ))}
           </div>
@@ -1214,6 +1272,7 @@ function FerramentasPage() {
     </>
   );
 }
+
 
 /* ---------- Central do Cliente (gestão) ---------- */
 type Cliente = (typeof DB.clientes)[number];
@@ -1707,7 +1766,7 @@ function ConfigPage() {
 }
 
 /* ---------- Shell ---------- */
-export default function Painel360() {
+function Painel360Inner() {
   const [active, setActive] = useState<PageKey>("dash");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -1786,3 +1845,12 @@ export default function Painel360() {
     </div>
   );
 }
+
+export default function Painel360() {
+  return (
+    <CrudProvider>
+      <Painel360Inner />
+    </CrudProvider>
+  );
+}
+
