@@ -18,6 +18,7 @@ import { useSupabaseList } from "@/hooks/useSupabaseList";
 import { toast } from "sonner";
 import { ListState } from "@/components/ListState";
 import { ProfileTab } from "@/components/ProfileTab";
+import { AccountTab } from "@/components/AccountTab";
 
 
 
