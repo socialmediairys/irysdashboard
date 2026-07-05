@@ -443,7 +443,8 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
           <PillBtn><Plus size={14} className="inline mr-1" /> Nova tarefa</PillBtn>
         </>}
       />
-      <div className="grid grid-cols-4 gap-5 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6">
+
         <MetricCard variant="hero"    value={brl(faturamento)}   label="Faturamento" delta="↑ 12% vs maio" />
         <MetricCard                    value={clientesAtivos}     label="Clientes ativos" delta="↑ 1 novo" />
         <MetricCard variant="accent"   value={postsEntregues}     label="Posts entregues" delta="de 42 previstos" deltaType="neutral" />
