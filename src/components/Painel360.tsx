@@ -1095,6 +1095,7 @@ function OficinaPage() {
 }
 
 function SwipePage() {
+  const { openCreate } = useCrud();
   const links = [
     { e:"🎯", n:"Hooks virais", s:"Coleção 2026" },
     { e:"💎", n:"CTAs convertentes", s:"50 modelos" },
@@ -1107,7 +1108,8 @@ function SwipePage() {
   return (
     <>
       <PageHeader eyebrow="Swipe File" title="Links &" accent="referências"
-        actions={<PillBtn><Plus size={14} className="inline mr-1" /> Adicionar</PillBtn>} />
+        actions={<PillBtn onClick={() => openCreate("referencia")}><Plus size={14} className="inline mr-1" /> Adicionar referência</PillBtn>} />
+
       <SectionLabel>Links úteis</SectionLabel>
       <div className="grid grid-cols-4 gap-5 mb-6">
         {links.map((l, i) => (
