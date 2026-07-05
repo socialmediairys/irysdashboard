@@ -1446,39 +1446,51 @@ type ReferenciaRow = {
 
 function SwipePage() {
   const { openCreate, openEdit, openDelete } = useCrud();
-  const { rows: referencias } = useSupabaseList<ReferenciaRow>("referencias", { order: { column: "created_at", ascending: false } });
+  const { rows: referencias, loading, error, refetch } = useSupabaseList<ReferenciaRow>("referencias", { order: { column: "created_at", ascending: false } });
   return (
     <>
       <PageHeader eyebrow="Swipe File" title="Links &" accent="referências"
         actions={<PillBtn onClick={() => openCreate("referencia")}><Plus size={14} className="inline mr-1" /> Adicionar referência</PillBtn>} />
 
       <SectionLabel>Suas referências salvas</SectionLabel>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
-        {referencias.map((r) => (
-          <Card key={r.id}>
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: C.mid }}>{r.categoria}</div>
-                <a href={r.url} target="_blank" rel="noopener noreferrer" className="mt-2 font-extrabold text-lg block truncate hover:underline">
-                  {r.titulo}
-                </a>
-                {r.descricao && <div className="mt-1 text-xs" style={{ color: C.textMid }}>{r.descricao}</div>}
-                <a href={r.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs" style={{ color: C.mid }}>
-                  Abrir <ExternalLink size={12} />
-                </a>
+      <ListState
+        loading={loading}
+        error={error}
+        rows={referencias}
+        onRetry={refetch}
+        skeletonCount={3}
+        emptyTitle="Nenhuma referência salva"
+        emptyDescription="Adicione links, posts inspiradores e materiais de apoio para consultar depois."
+        actionLabel="Adicionar referência"
+        onAction={() => openCreate("referencia")}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
+          {referencias.map((r) => (
+            <Card key={r.id}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: C.mid }}>{r.categoria}</div>
+                  <a href={r.url} target="_blank" rel="noopener noreferrer" className="mt-2 font-extrabold text-lg block truncate hover:underline">
+                    {r.titulo}
+                  </a>
+                  {r.descricao && <div className="mt-1 text-xs" style={{ color: C.textMid }}>{r.descricao}</div>}
+                  <a href={r.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs" style={{ color: C.mid }}>
+                    Abrir <ExternalLink size={12} />
+                  </a>
+                </div>
+                <RowActions onEdit={() => openEdit("referencia", r)} onDelete={() => openDelete("referencia", r)} />
               </div>
-              <RowActions onEdit={() => openEdit("referencia", r)} onDelete={() => openDelete("referencia", r)} />
-            </div>
-          </Card>
-        ))}
-        <button
-          onClick={() => openCreate("referencia")}
-          className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center min-h-[160px]"
-          style={{ borderColor: C.beige, color: C.textMid }}
-        >
-          <Plus size={28} /><div className="mt-2 font-semibold">Adicionar referência</div>
-        </button>
-      </div>
+            </Card>
+          ))}
+          <button
+            onClick={() => openCreate("referencia")}
+            className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center min-h-[160px]"
+            style={{ borderColor: C.beige, color: C.textMid }}
+          >
+            <Plus size={28} /><div className="mt-2 font-semibold">Adicionar referência</div>
+          </button>
+        </div>
+      </ListState>
     </>
   );
 }
