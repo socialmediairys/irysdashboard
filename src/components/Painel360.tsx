@@ -1004,11 +1004,11 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
                 </Button>
               </>
             ) : status === "success" ? (
-
               <Button variant="outline" onClick={() => setOpen(false)}>
                 Fechar
               </Button>
             ) : (
+
               <>
                 <Button variant="outline" onClick={() => setOpen(false)} disabled={status === "loading"}>
                   Cancelar
