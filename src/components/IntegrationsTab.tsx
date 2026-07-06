@@ -314,6 +314,19 @@ export function IntegrationsTab() {
                 Obtido em Meta for Developers → seu App → WhatsApp → API Setup.
               </p>
             </div>
+            <div className="space-y-1">
+              <Label htmlFor="wa-waba-id">WABA ID</Label>
+              <Input
+                id="wa-waba-id"
+                value={wWabaId}
+                onChange={(e) => setWWabaId(e.target.value)}
+                placeholder="Ex.: 1234567890123456"
+                disabled={wBusy}
+              />
+              <p className="text-xs text-muted-foreground">
+                Obtido em Meta for Developers → seu App → WhatsApp → API Setup → WhatsApp Business Account ID.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setWOpen(false)} disabled={wBusy}>
