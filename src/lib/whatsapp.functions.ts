@@ -5,12 +5,11 @@ type MetaPhoneInfo = {
   id: string;
   display_phone_number?: string;
   verified_name?: string;
-  whatsapp_business_account_id?: string;
 };
 
 async function fetchPhoneInfo(phoneNumberId: string, accessToken: string): Promise<MetaPhoneInfo> {
   const url = new URL(`https://graph.facebook.com/v20.0/${phoneNumberId}`);
-  url.searchParams.set("fields", "id,display_phone_number,verified_name,whatsapp_business_account_id");
+  url.searchParams.set("fields", "id,display_phone_number,verified_name");
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
@@ -42,12 +41,14 @@ export const getWhatsappStatus = createServerFn({ method: "GET" })
 
 export const connectWhatsapp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { phoneNumberId: string; accessToken: string }) => {
+  .inputValidator((input: { phoneNumberId: string; accessToken: string; wabaId: string }) => {
     const phoneNumberId = input.phoneNumberId?.trim();
     const accessToken = input.accessToken?.trim();
+    const wabaId = input.wabaId?.trim();
     if (!phoneNumberId) throw new Error("Phone Number ID é obrigatório");
     if (!accessToken) throw new Error("Access Token é obrigatório");
-    return { phoneNumberId, accessToken };
+    if (!wabaId) throw new Error("WABA ID é obrigatório");
+    return { phoneNumberId, accessToken, wabaId };
   })
   .handler(async ({ data, context }) => {
     const info = await fetchPhoneInfo(data.phoneNumberId, data.accessToken);
@@ -58,7 +59,7 @@ export const connectWhatsapp = createServerFn({ method: "POST" })
           user_id: context.userId,
           phone_number_id: info.id,
           access_token: data.accessToken,
-          waba_id: info.whatsapp_business_account_id ?? null,
+          waba_id: data.wabaId,
           display_phone_number: info.display_phone_number ?? null,
           verified_name: info.verified_name ?? null,
         },

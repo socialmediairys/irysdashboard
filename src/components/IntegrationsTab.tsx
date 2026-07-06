@@ -59,6 +59,7 @@ export function IntegrationsTab() {
   const [wOpen, setWOpen] = useState(false);
   const [wPhoneId, setWPhoneId] = useState("");
   const [wToken, setWToken] = useState("");
+  const [wWabaId, setWWabaId] = useState("");
 
   const refresh = async () => {
     setLoading(true);
@@ -118,20 +119,29 @@ export function IntegrationsTab() {
   };
 
   const handleWConnect = async () => {
-    console.log("handleWConnect disparado", { phoneIdLen: wPhoneId.trim().length, tokenLen: wToken.trim().length });
-    if (!wPhoneId.trim() || !wToken.trim()) {
-      toast.error("Preencha Phone Number ID e Access Token");
+    console.log("handleWConnect disparado", {
+      phoneIdLen: wPhoneId.trim().length,
+      tokenLen: wToken.trim().length,
+      wabaIdLen: wWabaId.trim().length,
+    });
+    if (!wPhoneId.trim() || !wToken.trim() || !wWabaId.trim()) {
+      toast.error("Preencha Phone Number ID, Access Token e WABA ID");
       return;
     }
     setWBusy(true);
     try {
       const r = await connectW({
-        data: { phoneNumberId: wPhoneId.trim(), accessToken: wToken.trim() },
+        data: {
+          phoneNumberId: wPhoneId.trim(),
+          accessToken: wToken.trim(),
+          wabaId: wWabaId.trim(),
+        },
       });
       toast.success(`WhatsApp conectado${r.phoneNumber ? `: ${r.phoneNumber}` : ""}`);
       setWOpen(false);
       setWPhoneId("");
       setWToken("");
+      setWWabaId("");
       await refreshW();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao conectar WhatsApp");
@@ -302,6 +312,19 @@ export function IntegrationsTab() {
               />
               <p className="text-xs text-muted-foreground">
                 Obtido em Meta for Developers → seu App → WhatsApp → API Setup.
+              </p>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="wa-waba-id">WABA ID</Label>
+              <Input
+                id="wa-waba-id"
+                value={wWabaId}
+                onChange={(e) => setWWabaId(e.target.value)}
+                placeholder="Ex.: 1234567890123456"
+                disabled={wBusy}
+              />
+              <p className="text-xs text-muted-foreground">
+                Obtido em Meta for Developers → seu App → WhatsApp → API Setup → WhatsApp Business Account ID.
               </p>
             </div>
           </div>
