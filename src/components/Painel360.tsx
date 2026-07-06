@@ -1021,7 +1021,6 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
                 placeholder="cobranca_mensal"
-                disabled={status === "loading"}
               />
               <p className="text-xs text-muted-foreground">
                 O template deve estar aprovado na Meta e ter 2 variáveis no corpo: nome e valor.
