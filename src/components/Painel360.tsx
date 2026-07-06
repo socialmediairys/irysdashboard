@@ -1332,7 +1332,12 @@ function ClientesPage() {
   return (
     <>
       <PageHeader eyebrow="Clientes" title={`${ativos} clientes`} accent="ativos"
-        actions={<PillBtn onClick={() => openCreate("cliente")}><Plus size={14} className="inline mr-1" /> Novo cliente</PillBtn>} />
+        actions={
+          <div className="flex items-center gap-2">
+            <CobrancaLoteButton clientes={rows.map(r => ({ id: r.id, nome: r.nome }))} />
+            <PillBtn onClick={() => openCreate("cliente")}><Plus size={14} className="inline mr-1" /> Novo cliente</PillBtn>
+          </div>
+        } />
 
       <ListState
         loading={loading}
