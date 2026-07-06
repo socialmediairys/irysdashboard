@@ -118,6 +118,7 @@ export function IntegrationsTab() {
   };
 
   const handleWConnect = async () => {
+    console.log("handleWConnect disparado", { phoneIdLen: wPhoneId.trim().length, tokenLen: wToken.trim().length });
     if (!wPhoneId.trim() || !wToken.trim()) {
       toast.error("Preencha Phone Number ID e Access Token");
       return;
