@@ -13,7 +13,7 @@ import {
   disconnectGoogleCalendar,
   listGoogleCalendarEvents,
 } from "@/lib/google-calendar.functions";
-import { sendWhatsappCobrancaTemplate } from "@/lib/whatsapp.functions";
+import { sendWhatsappCobrancaTemplate, getWhatsappStatus } from "@/lib/whatsapp.functions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
