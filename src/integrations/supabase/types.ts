@@ -862,10 +862,15 @@ export type Database = {
           cliente_id: string | null
           cliente_nome: string | null
           created_at: string
+          delivered_at: string | null
+          delivery_status: string | null
           error_message: string | null
+          failed_at: string | null
+          failure_reason: string | null
           id: string
           language_code: string
           meta_message_id: string | null
+          read_at: string | null
           status: string
           template_name: string
           to_phone: string
@@ -876,10 +881,15 @@ export type Database = {
           cliente_id?: string | null
           cliente_nome?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string | null
           error_message?: string | null
+          failed_at?: string | null
+          failure_reason?: string | null
           id?: string
           language_code?: string
           meta_message_id?: string | null
+          read_at?: string | null
           status: string
           template_name: string
           to_phone: string
@@ -890,10 +900,15 @@ export type Database = {
           cliente_id?: string | null
           cliente_nome?: string | null
           created_at?: string
+          delivered_at?: string | null
+          delivery_status?: string | null
           error_message?: string | null
+          failed_at?: string | null
+          failure_reason?: string | null
           id?: string
           language_code?: string
           meta_message_id?: string | null
+          read_at?: string | null
           status?: string
           template_name?: string
           to_phone?: string
