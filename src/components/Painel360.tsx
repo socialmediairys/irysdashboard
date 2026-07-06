@@ -894,7 +894,7 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
   const [open, setOpen] = useState(false);
   const [templateName, setTemplateName] = useState("cobranca_mensal");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-  const [result, setResult] = useState<{ nome: string; valorFormatado: string; to: string } | null>(null);
+  const [result, setResult] = useState<{ nome: string | null; valorFormatado: string; to: string } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<"idle" | "loading" | "connected" | "disconnected">("idle");
 
