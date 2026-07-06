@@ -83,12 +83,34 @@ export const disconnectWhatsapp = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
-function normalizePhone(raw: string | null | undefined): string | null {
-  if (!raw) return null;
+type PhoneValidation =
+  | { ok: true; phone: string }
+  | { ok: false; reason: string };
+
+function validatePhone(raw: string | null | undefined): PhoneValidation {
+  if (!raw || !raw.trim()) {
+    return { ok: false, reason: "Cliente não tem telefone cadastrado." };
+  }
   const digits = raw.replace(/\D+/g, "");
-  if (!digits) return null;
-  // Se o número vier sem código do país, assume Brasil (+55).
-  return digits.length <= 11 ? `55${digits}` : digits;
+  if (!digits) {
+    return { ok: false, reason: "Telefone do cliente não contém números válidos." };
+  }
+  // Assume Brasil se vier sem código do país (10 ou 11 dígitos).
+  const withCountry = digits.length <= 11 ? `55${digits}` : digits;
+  // E.164 aceita 8 a 15 dígitos; para BR esperamos 12 ou 13.
+  if (withCountry.length < 10 || withCountry.length > 15) {
+    return {
+      ok: false,
+      reason: `Telefone do cliente inválido (${raw}). Use DDD + número, ex.: 11 99999-9999.`,
+    };
+  }
+  if (withCountry.startsWith("55") && withCountry.length !== 12 && withCountry.length !== 13) {
+    return {
+      ok: false,
+      reason: `Telefone brasileiro inválido (${raw}). Precisa ter DDD + 8 ou 9 dígitos.`,
+    };
+  }
+  return { ok: true, phone: withCountry };
 }
 
 function formatBRL(value: number): string {
@@ -118,6 +140,29 @@ export const sendWhatsappCobrancaTemplate = createServerFn({ method: "POST" })
     },
   )
   .handler(async ({ data, context }) => {
+    const logEnvio = async (row: {
+      cliente_id: string | null;
+      cliente_nome: string | null;
+      to_phone: string;
+      valor_cobrado: number | null;
+      meta_message_id: string | null;
+      status: "enviado" | "erro";
+      error_message: string | null;
+    }) => {
+      await context.supabase.from("whatsapp_envios").insert({
+        user_id: context.userId,
+        cliente_id: row.cliente_id,
+        cliente_nome: row.cliente_nome,
+        to_phone: row.to_phone,
+        template_name: data.templateName,
+        language_code: data.languageCode,
+        valor_cobrado: row.valor_cobrado,
+        meta_message_id: row.meta_message_id,
+        status: row.status,
+        error_message: row.error_message,
+      });
+    };
+
     // 1. Credenciais do WhatsApp do usuário
     const { data: conn, error: connErr } = await context.supabase
       .from("whatsapp_connections")
@@ -136,10 +181,23 @@ export const sendWhatsappCobrancaTemplate = createServerFn({ method: "POST" })
     if (cliErr) throw cliErr;
     if (!cliente) throw new Error("Cliente não encontrado");
 
-    const to = normalizePhone(cliente.telefone);
-    if (!to) throw new Error(`Cliente "${cliente.nome}" não tem telefone cadastrado`);
+    // 3. Validação de telefone (antes de qualquer chamada externa)
+    const phone = validatePhone(cliente.telefone);
+    if (!phone.ok) {
+      await logEnvio({
+        cliente_id: cliente.id,
+        cliente_nome: cliente.nome,
+        to_phone: cliente.telefone ?? "",
+        valor_cobrado: null,
+        meta_message_id: null,
+        status: "erro",
+        error_message: phone.reason,
+      });
+      throw new Error(phone.reason);
+    }
+    const to = phone.phone;
 
-    // 3. Valor pendente = soma de entradas_financeiras não pagas
+    // 4. Valor pendente = soma de entradas_financeiras não pagas
     const { data: pendentes, error: entErr } = await context.supabase
       .from("entradas_financeiras")
       .select("valor, status_pagamento")
@@ -153,7 +211,7 @@ export const sendWhatsappCobrancaTemplate = createServerFn({ method: "POST" })
     const valorPendente =
       somaPendente > 0 ? somaPendente : Number(cliente.valor_mensal ?? 0);
 
-    // 4. Envia template pela Meta Cloud API
+    // 5. Envia template pela Meta Cloud API
     const url = `https://graph.facebook.com/v20.0/${conn.phone_number_id}/messages`;
     const payload = {
       messaging_product: "whatsapp",
@@ -186,15 +244,50 @@ export const sendWhatsappCobrancaTemplate = createServerFn({ method: "POST" })
       messages?: { id: string }[];
     };
     if (!res.ok) {
-      const detail = json.error?.error_data?.details || json.error?.message;
-      throw new Error(detail || `Falha ao enviar mensagem (HTTP ${res.status})`);
+      const detail = json.error?.error_data?.details || json.error?.message ||
+        `Falha ao enviar mensagem (HTTP ${res.status})`;
+      await logEnvio({
+        cliente_id: cliente.id,
+        cliente_nome: cliente.nome,
+        to_phone: to,
+        valor_cobrado: valorPendente,
+        meta_message_id: null,
+        status: "erro",
+        error_message: detail,
+      });
+      throw new Error(detail);
     }
+
+    const messageId = json.messages?.[0]?.id ?? null;
+    await logEnvio({
+      cliente_id: cliente.id,
+      cliente_nome: cliente.nome,
+      to_phone: to,
+      valor_cobrado: valorPendente,
+      meta_message_id: messageId,
+      status: "enviado",
+      error_message: null,
+    });
+
     return {
       ok: true as const,
-      messageId: json.messages?.[0]?.id ?? null,
+      messageId,
       to,
       nome: cliente.nome,
       valorPendente,
       valorFormatado: formatBRL(valorPendente),
     };
+  });
+
+export const listWhatsappEnvios = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("whatsapp_envios")
+      .select("id, cliente_id, cliente_nome, to_phone, template_name, valor_cobrado, meta_message_id, status, error_message, created_at")
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    return data ?? [];
   });
