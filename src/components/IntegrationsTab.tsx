@@ -119,20 +119,29 @@ export function IntegrationsTab() {
   };
 
   const handleWConnect = async () => {
-    console.log("handleWConnect disparado", { phoneIdLen: wPhoneId.trim().length, tokenLen: wToken.trim().length });
-    if (!wPhoneId.trim() || !wToken.trim()) {
-      toast.error("Preencha Phone Number ID e Access Token");
+    console.log("handleWConnect disparado", {
+      phoneIdLen: wPhoneId.trim().length,
+      tokenLen: wToken.trim().length,
+      wabaIdLen: wWabaId.trim().length,
+    });
+    if (!wPhoneId.trim() || !wToken.trim() || !wWabaId.trim()) {
+      toast.error("Preencha Phone Number ID, Access Token e WABA ID");
       return;
     }
     setWBusy(true);
     try {
       const r = await connectW({
-        data: { phoneNumberId: wPhoneId.trim(), accessToken: wToken.trim() },
+        data: {
+          phoneNumberId: wPhoneId.trim(),
+          accessToken: wToken.trim(),
+          wabaId: wWabaId.trim(),
+        },
       });
       toast.success(`WhatsApp conectado${r.phoneNumber ? `: ${r.phoneNumber}` : ""}`);
       setWOpen(false);
       setWPhoneId("");
       setWToken("");
+      setWWabaId("");
       await refreshW();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao conectar WhatsApp");
