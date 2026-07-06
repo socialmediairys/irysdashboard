@@ -59,8 +59,14 @@ export const Route = createFileRoute("/api/public/whatsapp/webhook")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         let processed = 0;
         for (const s of statuses) {
-          const patch: Record<string, unknown> = { delivery_status: s.status };
           const ts = s.timestamp ? new Date(Number(s.timestamp) * 1000).toISOString() : new Date().toISOString();
+          const patch: {
+            delivery_status: "sent" | "delivered" | "read" | "failed";
+            delivered_at?: string;
+            read_at?: string;
+            failed_at?: string;
+            failure_reason?: string;
+          } = { delivery_status: s.status };
           if (s.status === "delivered") patch.delivered_at = ts;
           if (s.status === "read") patch.read_at = ts;
           if (s.status === "failed") {

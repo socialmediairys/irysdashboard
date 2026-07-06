@@ -21,6 +21,7 @@ import { Route as AuthenticatedAdminFinanceiroRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminEquipeRouteImport } from './routes/_authenticated/admin.equipe'
 import { Route as AuthenticatedAdminCrmRouteImport } from './routes/_authenticated/admin.crm'
 import { Route as AuthenticatedAdminBibliotecaMidiaRouteImport } from './routes/_authenticated/admin.biblioteca-midia'
+import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp.webhook'
 import { Route as ApiPublicGoogleCalendarCallbackRouteImport } from './routes/api/public/google-calendar.callback'
 
 const AuthRoute = AuthRouteImport.update({
@@ -87,6 +88,12 @@ const AuthenticatedAdminBibliotecaMidiaRoute =
     path: '/biblioteca-midia',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const ApiPublicWhatsappWebhookRoute =
+  ApiPublicWhatsappWebhookRouteImport.update({
+    id: '/api/public/whatsapp/webhook',
+    path: '/api/public/whatsapp/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicGoogleCalendarCallbackRoute =
   ApiPublicGoogleCalendarCallbackRouteImport.update({
     id: '/api/public/google-calendar/callback',
@@ -107,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
+  '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -121,6 +129,7 @@ export interface FileRoutesByTo {
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
+  '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -137,6 +146,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/_authenticated/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
+  '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/admin/juridico'
     | '/admin/visao-geral'
     | '/api/public/google-calendar/callback'
+    | '/api/public/whatsapp/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/admin/juridico'
     | '/admin/visao-geral'
     | '/api/public/google-calendar/callback'
+    | '/api/public/whatsapp/webhook'
   id:
     | '__root__'
     | '/'
@@ -182,6 +194,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/juridico'
     | '/_authenticated/admin/visao-geral'
     | '/api/public/google-calendar/callback'
+    | '/api/public/whatsapp/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -189,6 +202,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ApiPublicGoogleCalendarCallbackRoute: typeof ApiPublicGoogleCalendarCallbackRoute
+  ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -277,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBibliotecaMidiaRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/api/public/whatsapp/webhook': {
+      id: '/api/public/whatsapp/webhook'
+      path: '/api/public/whatsapp/webhook'
+      fullPath: '/api/public/whatsapp/webhook'
+      preLoaderRoute: typeof ApiPublicWhatsappWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/google-calendar/callback': {
       id: '/api/public/google-calendar/callback'
       path: '/api/public/google-calendar/callback'
@@ -329,6 +350,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ApiPublicGoogleCalendarCallbackRoute: ApiPublicGoogleCalendarCallbackRoute,
+  ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
