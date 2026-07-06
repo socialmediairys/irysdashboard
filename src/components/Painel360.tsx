@@ -13,7 +13,7 @@ import {
   disconnectGoogleCalendar,
   listGoogleCalendarEvents,
 } from "@/lib/google-calendar.functions";
-import { sendWhatsappCobrancaTemplate } from "@/lib/whatsapp.functions";
+import { sendWhatsappCobrancaTemplate, getWhatsappStatus } from "@/lib/whatsapp.functions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
@@ -890,16 +890,19 @@ function initialsOf(nome: string) {
 
 function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: string }) {
   const send = useServerFn(sendWhatsappCobrancaTemplate);
+  const check = useServerFn(getWhatsappStatus);
   const [open, setOpen] = useState(false);
   const [templateName, setTemplateName] = useState("cobranca_mensal");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [result, setResult] = useState<{ nome: string; valorFormatado: string; to: string } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<"idle" | "loading" | "connected" | "disconnected">("idle");
 
   function reset() {
     setStatus("idle");
     setResult(null);
     setErrorMsg(null);
+    setConnectionStatus("idle");
   }
 
   function handleOpenChange(next: boolean) {
@@ -908,7 +911,16 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
     setOpen(next);
   }
 
+  useEffect(() => {
+    if (!open) return;
+    setConnectionStatus("loading");
+    check()
+      .then(s => setConnectionStatus(s.connected ? "connected" : "disconnected"))
+      .catch(() => setConnectionStatus("disconnected"));
+  }, [open, check]);
+
   async function submit() {
+    if (connectionStatus !== "connected") return;
     setStatus("loading");
     setErrorMsg(null);
     try {
@@ -927,6 +939,8 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
       toast.error(msg);
     }
   }
+
+  const isBusy = status === "loading" || connectionStatus === "loading";
 
   return (
     <>
@@ -977,7 +991,29 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
             </Alert>
           )}
 
-          {status !== "success" && (
+          {status === "idle" && (connectionStatus === "idle" || connectionStatus === "loading") && (
+            <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Verificando conexão com WhatsApp...
+            </div>
+          )}
+
+          {status === "idle" && connectionStatus === "disconnected" && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <div>
+                  <div className="font-semibold">WhatsApp não conectado</div>
+                  <div className="mt-1">
+                    Para enviar cobranças, conecte o WhatsApp Business em{" "}
+                    <strong>Configurações › Integrações</strong> primeiro.
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {status === "idle" && connectionStatus === "connected" && (
             <div className="grid gap-2">
               <Label htmlFor="template">Nome do template (Meta)</Label>
               <Input
@@ -985,7 +1021,6 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
                 placeholder="cobranca_mensal"
-                disabled={status === "loading"}
               />
               <p className="text-xs text-muted-foreground">
                 O template deve estar aprovado na Meta e ter 2 variáveis no corpo: nome e valor.
@@ -999,7 +1034,7 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
                 <Button variant="outline" onClick={() => setOpen(false)}>
                   Fechar
                 </Button>
-                <Button onClick={submit} disabled={!templateName.trim()}>
+                <Button onClick={submit} disabled={!templateName.trim() || connectionStatus !== "connected"}>
                   Tentar novamente
                 </Button>
               </>
@@ -1007,13 +1042,16 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
               <Button variant="outline" onClick={() => setOpen(false)}>
                 Fechar
               </Button>
+            ) : connectionStatus === "disconnected" ? (
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Fechar
+              </Button>
             ) : (
-
               <>
-                <Button variant="outline" onClick={() => setOpen(false)} disabled={status === "loading"}>
+                <Button variant="outline" onClick={() => setOpen(false)} disabled={isBusy}>
                   Cancelar
                 </Button>
-                <Button onClick={submit} disabled={status === "loading" || !templateName.trim()}>
+                <Button onClick={submit} disabled={isBusy || !templateName.trim()}>
                   {status === "loading" && <Loader2 className="h-4 w-4 animate-spin" />}
                   Enviar
                 </Button>
