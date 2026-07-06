@@ -13,7 +13,12 @@ import {
   disconnectGoogleCalendar,
   listGoogleCalendarEvents,
 } from "@/lib/google-calendar.functions";
-import { sendWhatsappCobrancaTemplate, getWhatsappStatus } from "@/lib/whatsapp.functions";
+import {
+  sendWhatsappCobrancaTemplate,
+  sendWhatsappCobrancaLote,
+  getWhatsappStatus,
+  listWhatsappTemplates,
+} from "@/lib/whatsapp.functions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
@@ -21,6 +26,10 @@ import {
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from "@/components/ui/select";
 
 import { CrudProvider, useCrud } from "@/components/crud/CrudProvider";
 import { RowActions } from "@/components/crud/RowActions";
