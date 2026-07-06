@@ -59,6 +59,7 @@ export function IntegrationsTab() {
   const [wOpen, setWOpen] = useState(false);
   const [wPhoneId, setWPhoneId] = useState("");
   const [wToken, setWToken] = useState("");
+  const [wWabaId, setWWabaId] = useState("");
 
   const refresh = async () => {
     setLoading(true);
