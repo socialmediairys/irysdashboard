@@ -5,12 +5,11 @@ type MetaPhoneInfo = {
   id: string;
   display_phone_number?: string;
   verified_name?: string;
-  whatsapp_business_account_id?: string;
 };
 
 async function fetchPhoneInfo(phoneNumberId: string, accessToken: string): Promise<MetaPhoneInfo> {
   const url = new URL(`https://graph.facebook.com/v20.0/${phoneNumberId}`);
-  url.searchParams.set("fields", "id,display_phone_number,verified_name,whatsapp_business_account_id");
+  url.searchParams.set("fields", "id,display_phone_number,verified_name");
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
