@@ -857,6 +857,59 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_envios: {
+        Row: {
+          cliente_id: string | null
+          cliente_nome: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          language_code: string
+          meta_message_id: string | null
+          status: string
+          template_name: string
+          to_phone: string
+          user_id: string
+          valor_cobrado: number | null
+        }
+        Insert: {
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          language_code?: string
+          meta_message_id?: string | null
+          status: string
+          template_name: string
+          to_phone: string
+          user_id: string
+          valor_cobrado?: number | null
+        }
+        Update: {
+          cliente_id?: string | null
+          cliente_nome?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          language_code?: string
+          meta_message_id?: string | null
+          status?: string
+          template_name?: string
+          to_phone?: string
+          user_id?: string
+          valor_cobrado?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_envios_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
