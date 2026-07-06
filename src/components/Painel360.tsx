@@ -897,15 +897,104 @@ function initialsOf(nome: string) {
     .map(w => w[0]?.toUpperCase() ?? "").join("") || "?";
 }
 
+type TemplateMeta = {
+  name: string;
+  language: string;
+  status: string;
+  category: string;
+  variables: number;
+  bodyPreview: string | null;
+};
+
+function useWhatsappTemplates(open: boolean, connected: boolean) {
+  const list = useServerFn(listWhatsappTemplates);
+  const [templates, setTemplates] = useState<TemplateMeta[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!open || !connected) return;
+    setLoading(true);
+    setError(null);
+    list()
+      .then(t => setTemplates(t as TemplateMeta[]))
+      .catch(e => setError(e instanceof Error ? e.message : "Falha ao listar templates"))
+      .finally(() => setLoading(false));
+  }, [open, connected, list]);
+  return { templates, loading, error };
+}
+
+function TemplateSelect({
+  templates, loading, error, value, onChange,
+}: {
+  templates: TemplateMeta[] | null;
+  loading: boolean;
+  error: string | null;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const aprovados = (templates ?? []).filter(t => t.status === "APPROVED");
+  const selected = aprovados.find(t => t.name === value);
+  return (
+    <div className="grid gap-2">
+      <Label>Template aprovado (Meta)</Label>
+      {loading ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> Carregando templates da Meta...
+        </div>
+      ) : error ? (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="break-words">{error}</AlertDescription>
+        </Alert>
+      ) : aprovados.length === 0 ? (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Nenhum template aprovado na sua conta Meta. Crie e aprove um template com 2 variáveis no corpo (nome e valor).
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <>
+          <Select value={value} onValueChange={onChange}>
+            <SelectTrigger><SelectValue placeholder="Selecione um template" /></SelectTrigger>
+            <SelectContent>
+              {aprovados.map(t => (
+                <SelectItem key={`${t.name}:${t.language}`} value={t.name}>
+                  {t.name} · {t.language} · {t.variables} var
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selected && (
+            <div className="text-xs text-muted-foreground space-y-1">
+              {selected.variables !== 2 && (
+                <div className="text-amber-700">
+                  ⚠ Este template tem {selected.variables} variáveis; o envio usa 2 (nome e valor).
+                </div>
+              )}
+              {selected.bodyPreview && (
+                <div className="rounded border bg-muted/40 p-2 whitespace-pre-wrap">
+                  {selected.bodyPreview}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: string }) {
   const send = useServerFn(sendWhatsappCobrancaTemplate);
   const check = useServerFn(getWhatsappStatus);
   const [open, setOpen] = useState(false);
-  const [templateName, setTemplateName] = useState("cobranca_mensal");
+  const [templateName, setTemplateName] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [result, setResult] = useState<{ nome: string | null; valorFormatado: string; to: string } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<"idle" | "loading" | "connected" | "disconnected">("idle");
+  const { templates, loading: tplLoading, error: tplError } = useWhatsappTemplates(open, connectionStatus === "connected");
 
   function reset() {
     setStatus("idle");
@@ -929,14 +1018,14 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
   }, [open, check]);
 
   async function submit() {
-    if (connectionStatus !== "connected") return;
+    if (connectionStatus !== "connected" || !templateName) return;
     setStatus("loading");
     setErrorMsg(null);
     try {
       const res = await send({ data: { clienteId, templateName } });
       setResult(res);
       setStatus("success");
-      toast.success(`Cobrança enviada para ${res.nome} (${res.valorFormatado})`);
+      toast.success(`Cobrança enviada para ${res.nome ?? "cliente"} (${res.valorFormatado})`);
       setTimeout(() => {
         setOpen(false);
         setTimeout(reset, 200);
@@ -994,9 +1083,7 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Erro ao enviar pela Meta</AlertTitle>
-              <AlertDescription className="break-words">
-                {errorMsg}
-              </AlertDescription>
+              <AlertDescription className="break-words">{errorMsg}</AlertDescription>
             </Alert>
           )}
 
@@ -1023,44 +1110,31 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
           )}
 
           {status === "idle" && connectionStatus === "connected" && (
-            <div className="grid gap-2">
-              <Label htmlFor="template">Nome do template (Meta)</Label>
-              <Input
-                id="template"
-                value={templateName}
-                onChange={(e) => setTemplateName(e.target.value)}
-                placeholder="cobranca_mensal"
-              />
-              <p className="text-xs text-muted-foreground">
-                O template deve estar aprovado na Meta e ter 2 variáveis no corpo: nome e valor.
-              </p>
-            </div>
+            <TemplateSelect
+              templates={templates}
+              loading={tplLoading}
+              error={tplError}
+              value={templateName}
+              onChange={setTemplateName}
+            />
           )}
 
           <DialogFooter>
             {status === "error" ? (
               <>
-                <Button variant="outline" onClick={() => setOpen(false)}>
-                  Fechar
-                </Button>
-                <Button onClick={submit} disabled={!templateName.trim() || connectionStatus !== "connected"}>
+                <Button variant="outline" onClick={() => setOpen(false)}>Fechar</Button>
+                <Button onClick={submit} disabled={!templateName || connectionStatus !== "connected"}>
                   Tentar novamente
                 </Button>
               </>
             ) : status === "success" ? (
-              <Button variant="outline" onClick={() => setOpen(false)}>
-                Fechar
-              </Button>
+              <Button variant="outline" onClick={() => setOpen(false)}>Fechar</Button>
             ) : connectionStatus === "disconnected" ? (
-              <Button variant="outline" onClick={() => setOpen(false)}>
-                Fechar
-              </Button>
+              <Button variant="outline" onClick={() => setOpen(false)}>Fechar</Button>
             ) : (
               <>
-                <Button variant="outline" onClick={() => setOpen(false)} disabled={isBusy}>
-                  Cancelar
-                </Button>
-                <Button onClick={submit} disabled={isBusy || !templateName.trim()}>
+                <Button variant="outline" onClick={() => setOpen(false)} disabled={isBusy}>Cancelar</Button>
+                <Button onClick={submit} disabled={isBusy || !templateName}>
                   {status === "loading" && <Loader2 className="h-4 w-4 animate-spin" />}
                   Enviar
                 </Button>
@@ -1072,6 +1146,182 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
     </>
   );
 }
+
+function CobrancaLoteButton({ clientes }: { clientes: Array<{ id: string; nome: string }> }) {
+  const send = useServerFn(sendWhatsappCobrancaLote);
+  const check = useServerFn(getWhatsappStatus);
+  const [open, setOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [summary, setSummary] = useState<{ total: number; enviados: number; falhas: number; results: Array<{ ok: boolean; nome: string | null; error?: string }> } | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<"idle" | "loading" | "connected" | "disconnected">("idle");
+  const { templates, loading: tplLoading, error: tplError } = useWhatsappTemplates(open, connectionStatus === "connected");
+
+  useEffect(() => {
+    if (!open) return;
+    setConnectionStatus("loading");
+    check()
+      .then(s => setConnectionStatus(s.connected ? "connected" : "disconnected"))
+      .catch(() => setConnectionStatus("disconnected"));
+  }, [open, check]);
+
+  function toggle(id: string) {
+    setSelected(prev => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id); else n.add(id);
+      return n;
+    });
+  }
+  function toggleAll() {
+    setSelected(prev => prev.size === clientes.length ? new Set() : new Set(clientes.map(c => c.id)));
+  }
+  function handleOpenChange(next: boolean) {
+    if (status === "loading") return;
+    if (!next) {
+      setSelected(new Set());
+      setStatus("idle");
+      setSummary(null);
+      setErrorMsg(null);
+      setConnectionStatus("idle");
+    }
+    setOpen(next);
+  }
+  async function submit() {
+    if (!templateName || selected.size === 0) return;
+    setStatus("loading");
+    setErrorMsg(null);
+    try {
+      const res = await send({ data: { clienteIds: Array.from(selected), templateName } });
+      setSummary(res);
+      setStatus("done");
+      if (res.falhas === 0) toast.success(`${res.enviados} cobranças enviadas`);
+      else toast.warning(`${res.enviados} enviadas, ${res.falhas} falharam`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Falha no envio em lote";
+      setErrorMsg(msg);
+      setStatus("error");
+      toast.error(msg);
+    }
+  }
+
+  return (
+    <>
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)} className="gap-1.5">
+        <MessageCircle className="h-4 w-4" /> Cobrança em lote
+      </Button>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-lg" onPointerDownOutside={(e) => { if (status === "loading") e.preventDefault(); }}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {status === "loading" && <Loader2 className="h-5 w-5 animate-spin" />}
+              <MessageCircle className="h-5 w-5" />
+              Cobrança em lote (WhatsApp)
+            </DialogTitle>
+            <DialogDescription>
+              Selecione os clientes e o template. Cada envio grava um registro no histórico com o status retornado pela Meta.
+            </DialogDescription>
+          </DialogHeader>
+
+          {status === "idle" && connectionStatus === "loading" && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+              <Loader2 className="h-4 w-4 animate-spin" /> Verificando conexão...
+            </div>
+          )}
+
+          {status === "idle" && connectionStatus === "disconnected" && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Conecte o WhatsApp em <strong>Configurações › Integrações</strong> antes de disparar cobranças.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {(status === "idle" || status === "error") && connectionStatus === "connected" && (
+            <div className="space-y-3">
+              <TemplateSelect
+                templates={templates}
+                loading={tplLoading}
+                error={tplError}
+                value={templateName}
+                onChange={setTemplateName}
+              />
+
+              <div className="border rounded-lg">
+                <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/40">
+                  <div className="text-sm font-medium">Clientes ({selected.size}/{clientes.length})</div>
+                  <button type="button" className="text-xs underline" onClick={toggleAll}>
+                    {selected.size === clientes.length ? "Desmarcar todos" : "Selecionar todos"}
+                  </button>
+                </div>
+                <div className="max-h-56 overflow-auto p-2 space-y-1">
+                  {clientes.map(c => (
+                    <label key={c.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted cursor-pointer text-sm">
+                      <Checkbox checked={selected.has(c.id)} onCheckedChange={() => toggle(c.id)} />
+                      <span className="truncate">{c.nome}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {status === "error" && errorMsg && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="break-words">{errorMsg}</AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
+
+          {status === "loading" && (
+            <div className="flex flex-col items-center gap-2 py-8 text-sm text-muted-foreground">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              Enviando {selected.size} mensagens...
+            </div>
+          )}
+
+          {status === "done" && summary && (
+            <div className="space-y-3">
+              <div className="rounded-lg border p-3 text-sm">
+                <div><strong>{summary.enviados}</strong> enviadas · <strong>{summary.falhas}</strong> falharam · {summary.total} no total</div>
+              </div>
+              {summary.falhas > 0 && (
+                <div className="border rounded-lg max-h-48 overflow-auto">
+                  {summary.results.filter(r => !r.ok).map((r, i) => (
+                    <div key={i} className="px-3 py-2 border-b last:border-0 text-xs">
+                      <div className="font-medium">{r.nome ?? "(sem nome)"}</div>
+                      <div className="text-destructive break-words">{r.error}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            {status === "done" ? (
+              <Button variant="outline" onClick={() => handleOpenChange(false)}>Fechar</Button>
+            ) : (
+              <>
+                <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={status === "loading"}>Cancelar</Button>
+                <Button
+                  onClick={submit}
+                  disabled={status === "loading" || connectionStatus !== "connected" || !templateName || selected.size === 0}
+                >
+                  {status === "loading" && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Enviar {selected.size > 0 ? `(${selected.size})` : ""}
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 
 
 function ClientesPage() {
