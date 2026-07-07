@@ -1400,6 +1400,7 @@ function ClientesPage() {
                   <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}/mês</div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  <CobrancaWaMeButton cliente={c} />
                   <CobrancaWhatsappButton clienteId={c.id} nome={c.nome} />
                   <RowActions onEdit={() => openEdit("cliente", c)} onDelete={() => openDelete("cliente", c)} />
                 </div>
