@@ -169,6 +169,24 @@ export function IntegrationsTab() {
     }
   };
 
+  const handleSendTest = async () => {
+    if (!testPhone.trim()) {
+      toast.error("Informe um telefone de destino");
+      return;
+    }
+    setTestBusy(true);
+    try {
+      const r = await sendTest({ data: { toPhone: testPhone.trim() } });
+      toast.success(`Mensagem de teste enviada para ${r.to}`);
+      setTestOpen(false);
+      setTestPhone("");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao enviar mensagem de teste");
+    } finally {
+      setTestBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div>
