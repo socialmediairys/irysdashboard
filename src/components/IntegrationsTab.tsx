@@ -366,6 +366,42 @@ export function IntegrationsTab() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={testOpen} onOpenChange={setTestOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Enviar mensagem de teste</DialogTitle>
+            <DialogDescription>
+              Envia o template padrão <span className="font-medium">hello_world</span> (en_US) para
+              o número informado, usando as credenciais salvas. O destino precisa estar cadastrado
+              como recipient de teste no seu app da Meta, se ainda não estiver em produção.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-1">
+            <Label htmlFor="wa-test-phone">Telefone de destino</Label>
+            <Input
+              id="wa-test-phone"
+              value={testPhone}
+              onChange={(e) => setTestPhone(e.target.value)}
+              placeholder="Ex.: 11 99999-9999"
+              disabled={testBusy}
+            />
+            <p className="text-xs text-muted-foreground">
+              Com DDD. Se não incluir código do país, assumimos +55 (Brasil).
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTestOpen(false)} disabled={testBusy}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSendTest} disabled={testBusy}>
+              {testBusy ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Send size={14} className="mr-1" />}
+              Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
       {/* Placeholders */}
       <div className="space-y-2">
         <div className="text-xs uppercase tracking-wide text-muted-foreground">Em breve</div>
