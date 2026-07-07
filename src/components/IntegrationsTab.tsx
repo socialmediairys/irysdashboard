@@ -22,7 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2, Link as LinkIcon, LogOut, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Loader2, Link as LinkIcon, LogOut, RefreshCw, CheckCircle2, Send } from "lucide-react";
 import { toast } from "sonner";
 
 type GStatus = { connected: boolean; email: string | null };
