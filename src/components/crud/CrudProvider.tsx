@@ -67,7 +67,7 @@ function rowToValues(entity: Entity, row: any): unknown {
     case "cliente": return {
       nome: row.nome ?? "", plano_label: row.plano_label ?? "Social Media Básico",
       valor_mensal: row.valor_mensal, status_contrato: row.status_contrato ?? "pendente_assinatura",
-      email: row.email,
+      email: row.email, telefone: row.telefone,
     } satisfies ClienteFormValues;
     case "estrategia": return {
       cliente_id: row.cliente_id ?? "", pilares: row.pilares ?? [], formatos: row.formatos ?? [],
