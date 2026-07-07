@@ -320,7 +320,7 @@ function TopicoBlock({
         </ul>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-[120px_1fr_1fr_auto] gap-2 items-end">
+      <div className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-2 items-end">
         <div>
           <Label className="text-xs">Tipo</Label>
           <Select value={tipo} onValueChange={(v) => setTipo(v as ConteudoTipo)}>
@@ -336,31 +336,14 @@ function TopicoBlock({
           <Label className="text-xs">Título (opcional)</Label>
           <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex.: Vídeo de onboarding" />
         </div>
-        <div>
-          <Label className="text-xs">Origem</Label>
-          <Select value={mode} onValueChange={(v) => setMode(v as "link" | "upload")}>
-            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="link">Colar link (Loom/YouTube/Drive)</SelectItem>
-              <SelectItem value="upload">Fazer upload de arquivo</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {mode === "link" && (
-          <Button onClick={submit} disabled={saving}>
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Adicionar"}
-          </Button>
-        )}
       </div>
 
-      {mode === "link" && (
-        <div className="mt-2">
-          <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" />
-        </div>
-      )}
-
-      {mode === "upload" && (
-        <div className="mt-3">
+      <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="rounded-md border bg-background p-3">
+          <div className="text-xs font-semibold mb-1">Enviar arquivo do seu computador</div>
+          <p className="text-[11px] text-muted-foreground mb-2">
+            Vídeo, áudio ou documento — vai direto para o portal do cliente.
+          </p>
           <FileUploader
             bucket={BUCKET_BY_TIPO[tipo]}
             contexto="central_cliente"
@@ -370,7 +353,15 @@ function TopicoBlock({
             onUploaded={handleUploaded}
           />
         </div>
-      )}
+        <div className="rounded-md border bg-background p-3">
+          <div className="text-xs font-semibold mb-1">Ou colar um link (Loom / YouTube / Drive)</div>
+          <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" className="mb-2" />
+          <Button onClick={submit} disabled={saving || !url.trim()} size="sm" className="w-full">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Adicionar link"}
+          </Button>
+        </div>
+      </div>
+
     </div>
   );
 }
