@@ -398,6 +398,79 @@ export const listWhatsappTemplates = createServerFn({ method: "GET" })
     return templates;
   });
 
+export const sendWhatsappTestMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { toPhone: string; templateName?: string; languageCode?: string }) => {
+    const toPhone = input.toPhone?.trim();
+    if (!toPhone) throw new Error("Telefone de destino é obrigatório");
+    return {
+      toPhone,
+      templateName: input.templateName?.trim() || "hello_world",
+      languageCode: input.languageCode?.trim() || "en_US",
+    };
+  })
+  .handler(async ({ data, context }) => {
+    const conn = await requireConnection(context.supabase, context.userId);
+    const phone = validatePhone(data.toPhone);
+    if (!phone.ok) throw new Error(phone.reason);
+
+    const url = `https://graph.facebook.com/v20.0/${conn.phone_number_id}/messages`;
+    const payload = {
+      messaging_product: "whatsapp",
+      to: phone.phone,
+      type: "template",
+      template: {
+        name: data.templateName,
+        language: { code: data.languageCode },
+      },
+    };
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${conn.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const json = (await res.json()) as {
+      error?: { message?: string; error_data?: { details?: string } };
+      messages?: { id: string }[];
+    };
+    if (!res.ok) {
+      const detail = json.error?.error_data?.details || json.error?.message ||
+        `Falha ao enviar mensagem (HTTP ${res.status})`;
+      await context.supabase.from("whatsapp_envios").insert({
+        user_id: context.userId,
+        cliente_id: null,
+        cliente_nome: "Teste de envio",
+        to_phone: phone.phone,
+        template_name: data.templateName,
+        language_code: data.languageCode,
+        valor_cobrado: null,
+        meta_message_id: null,
+        status: "erro",
+        delivery_status: null,
+        error_message: detail,
+      });
+      throw new Error(detail);
+    }
+    const messageId = json.messages?.[0]?.id ?? null;
+    await context.supabase.from("whatsapp_envios").insert({
+      user_id: context.userId,
+      cliente_id: null,
+      cliente_nome: "Teste de envio",
+      to_phone: phone.phone,
+      template_name: data.templateName,
+      language_code: data.languageCode,
+      valor_cobrado: null,
+      meta_message_id: messageId,
+      status: "enviado",
+      delivery_status: "sent",
+      error_message: null,
+    });
+    return { ok: true as const, messageId, to: phone.phone };
+  });
+
 export const listWhatsappEnvios = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
