@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Calendar, Users, TrendingUp, CreditCard, Instagram,
   Bookmark, Wrench, Plus, Zap, ArrowRight, Library, FileText, Settings, Menu,
   UserSquare2, Play, Pause, ChevronDown, ChevronRight, ArrowLeft, FolderOpen, Video, CheckCircle2, Circle,
-  RefreshCw, LinkIcon, LogOut, ExternalLink, Copy, MessageCircle, Loader2, AlertCircle,
+  RefreshCw, LinkIcon, LogOut, ExternalLink, Copy, MessageCircle, Loader2, AlertCircle, Send,
 } from "lucide-react";
 
 import { useServerFn } from "@tanstack/react-start";
