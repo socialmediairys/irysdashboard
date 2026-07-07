@@ -228,7 +228,7 @@ function TopicoBlock({
   const [titulo, setTitulo] = useState("");
   const [url, setUrl] = useState("");
   const [saving, setSaving] = useState(false);
-  const [mode, setMode] = useState<"link" | "upload">("link");
+  
 
   const create = useServerFn(createConteudoCliente);
   const remove = useServerFn(deleteConteudoCliente);
