@@ -291,7 +291,7 @@ async function requireConnection(
 export const sendWhatsappCobrancaTemplate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { clienteId: string; templateName: string; languageCode?: string }) => {
+    (input: { clienteId: string; templateName: string; languageCode?: string; variables?: number }) => {
       const clienteId = input.clienteId?.trim();
       const templateName = input.templateName?.trim();
       if (!clienteId) throw new Error("clienteId é obrigatório");
@@ -300,6 +300,7 @@ export const sendWhatsappCobrancaTemplate = createServerFn({ method: "POST" })
         clienteId,
         templateName,
         languageCode: input.languageCode?.trim() || "pt_BR",
+        variables: Math.max(0, Math.min(10, Number.isFinite(input.variables) ? Number(input.variables) : 2)),
       };
     },
   )
@@ -312,6 +313,7 @@ export const sendWhatsappCobrancaTemplate = createServerFn({ method: "POST" })
       data.templateName,
       data.languageCode,
       conn,
+      data.variables,
     );
     if (!res.ok) throw new Error(res.error || "Falha ao enviar cobrança");
     return {
@@ -327,7 +329,7 @@ export const sendWhatsappCobrancaTemplate = createServerFn({ method: "POST" })
 export const sendWhatsappCobrancaLote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { clienteIds: string[]; templateName: string; languageCode?: string }) => {
+    (input: { clienteIds: string[]; templateName: string; languageCode?: string; variables?: number }) => {
       const templateName = input.templateName?.trim();
       const clienteIds = (input.clienteIds ?? []).map(s => s?.trim()).filter(Boolean);
       if (!templateName) throw new Error("templateName é obrigatório");
@@ -337,6 +339,7 @@ export const sendWhatsappCobrancaLote = createServerFn({ method: "POST" })
         clienteIds,
         templateName,
         languageCode: input.languageCode?.trim() || "pt_BR",
+        variables: Math.max(0, Math.min(10, Number.isFinite(input.variables) ? Number(input.variables) : 2)),
       };
     },
   )
@@ -351,11 +354,13 @@ export const sendWhatsappCobrancaLote = createServerFn({ method: "POST" })
         data.templateName,
         data.languageCode,
         conn,
+        data.variables,
       );
       results.push(r);
       // pequeno respiro entre chamadas para evitar rate-limit da Meta
       await new Promise(res => setTimeout(res, 120));
     }
+
     const enviados = results.filter(r => r.ok).length;
     const falhas = results.length - enviados;
     return { total: results.length, enviados, falhas, results };
