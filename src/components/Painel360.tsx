@@ -875,8 +875,46 @@ type ClienteRow = {
   valor_mensal: number | null;
   status_contrato: string;
   email: string | null;
+  telefone: string | null;
+  slug: string | null;
   init: string | null;
 };
+
+function waMeLink(telefone: string | null, nome: string, valor: number | null, statusLabel: string): string | null {
+  if (!telefone) return null;
+  const digits = telefone.replace(/\D+/g, "");
+  if (!digits) return null;
+  const withCountry = digits.length <= 11 ? `55${digits}` : digits;
+  const valorTxt = valor
+    ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor))
+    : "a combinar";
+  const msg = `Olá ${nome}! Passando aqui para lembrar da sua mensalidade (${valorTxt}). Status do contrato: ${statusLabel}. Qualquer dúvida estou à disposição 💛`;
+  return `https://wa.me/${withCountry}?text=${encodeURIComponent(msg)}`;
+}
+
+function CobrancaWaMeButton({ cliente }: { cliente: ClienteRow }) {
+  const statusLabel = CLIENTE_STATUS_LABEL[cliente.status_contrato] ?? cliente.status_contrato;
+  const link = waMeLink(cliente.telefone, cliente.nome, cliente.valor_mensal, statusLabel);
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="h-9 w-9 text-emerald-600 hover:text-emerald-700"
+      aria-label="Abrir WhatsApp com cobrança pré-preenchida"
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!link) {
+          toast.error(`${cliente.nome} não tem telefone cadastrado. Edite o cliente para incluir o número.`);
+          return;
+        }
+        window.open(link, "_blank", "noopener,noreferrer");
+      }}
+    >
+      <Send className="h-4 w-4" />
+    </Button>
+  );
+}
 
 const CLIENTE_STATUS_VARIANT: Record<string, string> = {
   ativo: "ativo",
