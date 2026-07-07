@@ -137,7 +137,9 @@ async function enviarCobrancaParaCliente(
   templateName: string,
   languageCode: string,
   conn: { phone_number_id: string; access_token: string },
+  variables: number,
 ): Promise<EnvioResult> {
+
   const base = {
     ok: false,
     clienteId,
@@ -212,24 +214,26 @@ async function enviarCobrancaParaCliente(
   base.valorFormatado = formatBRL(valorPendente);
 
   const url = `https://graph.facebook.com/v20.0/${conn.phone_number_id}/messages`;
+  const params: Array<{ type: "text"; text: string }> = [];
+  if (variables >= 1) params.push({ type: "text", text: cliente.nome ?? "cliente" });
+  if (variables >= 2) params.push({ type: "text", text: formatBRL(valorPendente) });
+  for (let i = params.length; i < variables; i++) {
+    params.push({ type: "text", text: "-" });
+  }
+  const template: Record<string, unknown> = {
+    name: templateName,
+    language: { code: languageCode },
+  };
+  if (params.length > 0) {
+    template.components = [{ type: "body", parameters: params }];
+  }
   const payload = {
     messaging_product: "whatsapp",
     to: phone.phone,
     type: "template",
-    template: {
-      name: templateName,
-      language: { code: languageCode },
-      components: [
-        {
-          type: "body",
-          parameters: [
-            { type: "text", text: cliente.nome ?? "cliente" },
-            { type: "text", text: formatBRL(valorPendente) },
-          ],
-        },
-      ],
-    },
+    template,
   };
+
   const res = await fetch(url, {
     method: "POST",
     headers: {
@@ -287,7 +291,7 @@ async function requireConnection(
 export const sendWhatsappCobrancaTemplate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { clienteId: string; templateName: string; languageCode?: string }) => {
+    (input: { clienteId: string; templateName: string; languageCode?: string; variables?: number }) => {
       const clienteId = input.clienteId?.trim();
       const templateName = input.templateName?.trim();
       if (!clienteId) throw new Error("clienteId é obrigatório");
@@ -296,6 +300,7 @@ export const sendWhatsappCobrancaTemplate = createServerFn({ method: "POST" })
         clienteId,
         templateName,
         languageCode: input.languageCode?.trim() || "pt_BR",
+        variables: Math.max(0, Math.min(10, Number.isFinite(input.variables) ? Number(input.variables) : 2)),
       };
     },
   )
@@ -308,6 +313,7 @@ export const sendWhatsappCobrancaTemplate = createServerFn({ method: "POST" })
       data.templateName,
       data.languageCode,
       conn,
+      data.variables,
     );
     if (!res.ok) throw new Error(res.error || "Falha ao enviar cobrança");
     return {
@@ -323,7 +329,7 @@ export const sendWhatsappCobrancaTemplate = createServerFn({ method: "POST" })
 export const sendWhatsappCobrancaLote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { clienteIds: string[]; templateName: string; languageCode?: string }) => {
+    (input: { clienteIds: string[]; templateName: string; languageCode?: string; variables?: number }) => {
       const templateName = input.templateName?.trim();
       const clienteIds = (input.clienteIds ?? []).map(s => s?.trim()).filter(Boolean);
       if (!templateName) throw new Error("templateName é obrigatório");
@@ -333,6 +339,7 @@ export const sendWhatsappCobrancaLote = createServerFn({ method: "POST" })
         clienteIds,
         templateName,
         languageCode: input.languageCode?.trim() || "pt_BR",
+        variables: Math.max(0, Math.min(10, Number.isFinite(input.variables) ? Number(input.variables) : 2)),
       };
     },
   )
@@ -347,11 +354,13 @@ export const sendWhatsappCobrancaLote = createServerFn({ method: "POST" })
         data.templateName,
         data.languageCode,
         conn,
+        data.variables,
       );
       results.push(r);
       // pequeno respiro entre chamadas para evitar rate-limit da Meta
       await new Promise(res => setTimeout(res, 120));
     }
+
     const enviados = results.filter(r => r.ok).length;
     const falhas = results.length - enviados;
     return { total: results.length, enviados, falhas, results };
