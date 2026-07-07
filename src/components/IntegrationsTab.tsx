@@ -49,6 +49,7 @@ export function IntegrationsTab() {
   const getWStatusFn = useServerFn(getWhatsappStatus);
   const connectW = useServerFn(connectWhatsapp);
   const disconnectW = useServerFn(disconnectWhatsapp);
+  const sendTest = useServerFn(sendWhatsappTestMessage);
 
   const [status, setStatus] = useState<GStatus | null>(null);
   const [loading, setLoading] = useState(true);
