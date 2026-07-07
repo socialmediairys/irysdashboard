@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PortalSlugRouteImport } from './routes/portal.$slug'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -37,6 +38,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalSlugRoute = PortalSlugRouteImport.update({
+  id: '/portal/$slug',
+  path: '/portal/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
   '/portal': typeof AuthenticatedPortalRoute
+  '/portal/$slug': typeof PortalSlugRoute
   '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
   '/portal': typeof AuthenticatedPortalRoute
+  '/portal/$slug': typeof PortalSlugRoute
   '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
+  '/portal/$slug': typeof PortalSlugRoute
   '/_authenticated/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
   '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/_authenticated/admin/equipe': typeof AuthenticatedAdminEquipeRoute
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/portal'
+    | '/portal/$slug'
     | '/admin/biblioteca-midia'
     | '/admin/crm'
     | '/admin/equipe'
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/portal'
+    | '/portal/$slug'
     | '/admin/biblioteca-midia'
     | '/admin/crm'
     | '/admin/equipe'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/app'
     | '/_authenticated/portal'
+    | '/portal/$slug'
     | '/_authenticated/admin/biblioteca-midia'
     | '/_authenticated/admin/crm'
     | '/_authenticated/admin/equipe'
@@ -214,6 +226,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  PortalSlugRoute: typeof PortalSlugRoute
   ApiPublicGoogleCalendarCallbackRoute: typeof ApiPublicGoogleCalendarCallbackRoute
   ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
 }
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/$slug': {
+      id: '/portal/$slug'
+      path: '/portal/$slug'
+      fullPath: '/portal/$slug'
+      preLoaderRoute: typeof PortalSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/portal': {
@@ -372,6 +392,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  PortalSlugRoute: PortalSlugRoute,
   ApiPublicGoogleCalendarCallbackRoute: ApiPublicGoogleCalendarCallbackRoute,
   ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
 }
