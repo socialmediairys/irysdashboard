@@ -16,6 +16,7 @@ import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminVisaoGeralRouteImport } from './routes/_authenticated/admin.visao-geral'
+import { Route as AuthenticatedAdminPortalConteudosRouteImport } from './routes/_authenticated/admin.portal-conteudos'
 import { Route as AuthenticatedAdminJuridicoRouteImport } from './routes/_authenticated/admin.juridico'
 import { Route as AuthenticatedAdminFinanceiroRouteImport } from './routes/_authenticated/admin.financeiro'
 import { Route as AuthenticatedAdminEquipeRouteImport } from './routes/_authenticated/admin.equipe'
@@ -57,6 +58,12 @@ const AuthenticatedAdminVisaoGeralRoute =
   AuthenticatedAdminVisaoGeralRouteImport.update({
     id: '/visao-geral',
     path: '/visao-geral',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminPortalConteudosRoute =
+  AuthenticatedAdminPortalConteudosRouteImport.update({
+    id: '/portal-conteudos',
+    path: '/portal-conteudos',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminJuridicoRoute =
@@ -112,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
+  '/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
@@ -127,6 +135,7 @@ export interface FileRoutesByTo {
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
+  '/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
@@ -144,6 +153,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/_authenticated/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/_authenticated/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
+  '/_authenticated/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
   '/_authenticated/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/admin/equipe'
     | '/admin/financeiro'
     | '/admin/juridico'
+    | '/admin/portal-conteudos'
     | '/admin/visao-geral'
     | '/api/public/google-calendar/callback'
     | '/api/public/whatsapp/webhook'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/admin/equipe'
     | '/admin/financeiro'
     | '/admin/juridico'
+    | '/admin/portal-conteudos'
     | '/admin/visao-geral'
     | '/api/public/google-calendar/callback'
     | '/api/public/whatsapp/webhook'
@@ -192,6 +204,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/equipe'
     | '/_authenticated/admin/financeiro'
     | '/_authenticated/admin/juridico'
+    | '/_authenticated/admin/portal-conteudos'
     | '/_authenticated/admin/visao-geral'
     | '/api/public/google-calendar/callback'
     | '/api/public/whatsapp/webhook'
@@ -256,6 +269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminVisaoGeralRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/portal-conteudos': {
+      id: '/_authenticated/admin/portal-conteudos'
+      path: '/portal-conteudos'
+      fullPath: '/admin/portal-conteudos'
+      preLoaderRoute: typeof AuthenticatedAdminPortalConteudosRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/juridico': {
       id: '/_authenticated/admin/juridico'
       path: '/juridico'
@@ -314,6 +334,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminEquipeRoute: typeof AuthenticatedAdminEquipeRoute
   AuthenticatedAdminFinanceiroRoute: typeof AuthenticatedAdminFinanceiroRoute
   AuthenticatedAdminJuridicoRoute: typeof AuthenticatedAdminJuridicoRoute
+  AuthenticatedAdminPortalConteudosRoute: typeof AuthenticatedAdminPortalConteudosRoute
   AuthenticatedAdminVisaoGeralRoute: typeof AuthenticatedAdminVisaoGeralRoute
 }
 
@@ -324,6 +345,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminEquipeRoute: AuthenticatedAdminEquipeRoute,
   AuthenticatedAdminFinanceiroRoute: AuthenticatedAdminFinanceiroRoute,
   AuthenticatedAdminJuridicoRoute: AuthenticatedAdminJuridicoRoute,
+  AuthenticatedAdminPortalConteudosRoute:
+    AuthenticatedAdminPortalConteudosRoute,
   AuthenticatedAdminVisaoGeralRoute: AuthenticatedAdminVisaoGeralRoute,
 }
 
