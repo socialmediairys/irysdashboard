@@ -1096,7 +1096,11 @@ function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: 
     setStatus("loading");
     setErrorMsg(null);
     try {
-      const res = await send({ data: { clienteId, templateName } });
+      const tpl = (templates ?? []).find(t => t.name === templateName);
+      const variables = tpl?.variables ?? 2;
+      const languageCode = tpl?.language;
+      const res = await send({ data: { clienteId, templateName, variables, languageCode } });
+
       setResult(res);
       setStatus("success");
       toast.success(`Cobrança enviada para ${res.nome ?? "cliente"} (${res.valorFormatado})`);
