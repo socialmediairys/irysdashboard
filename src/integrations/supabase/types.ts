@@ -148,6 +148,7 @@ export type Database = {
           nome: string
           plano_atual: Database["public"]["Enums"]["plano_atual"] | null
           plano_label: string | null
+          slug: string
           status_contrato: Database["public"]["Enums"]["status_contrato"]
           telefone: string | null
           updated_at: string
@@ -168,6 +169,7 @@ export type Database = {
           nome: string
           plano_atual?: Database["public"]["Enums"]["plano_atual"] | null
           plano_label?: string | null
+          slug?: string
           status_contrato?: Database["public"]["Enums"]["status_contrato"]
           telefone?: string | null
           updated_at?: string
@@ -188,6 +190,7 @@ export type Database = {
           nome?: string
           plano_atual?: Database["public"]["Enums"]["plano_atual"] | null
           plano_label?: string | null
+          slug?: string
           status_contrato?: Database["public"]["Enums"]["status_contrato"]
           telefone?: string | null
           updated_at?: string
@@ -195,6 +198,60 @@ export type Database = {
           versao_contrato?: string | null
         }
         Relationships: []
+      }
+      conteudos_cliente: {
+        Row: {
+          cliente_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          storage_bucket: string | null
+          storage_path: string | null
+          tipo: string
+          titulo: string | null
+          topico_id: string
+          url: string | null
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          storage_bucket?: string | null
+          storage_path?: string | null
+          tipo: string
+          titulo?: string | null
+          topico_id: string
+          url?: string | null
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          storage_bucket?: string | null
+          storage_path?: string | null
+          tipo?: string
+          titulo?: string | null
+          topico_id?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conteudos_cliente_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudos_cliente_topico_id_fkey"
+            columns: ["topico_id"]
+            isOneToOne: false
+            referencedRelation: "topicos_fase"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       documentos_juridicos: {
         Row: {
@@ -318,6 +375,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fases: {
+        Row: {
+          descricao: string | null
+          id: number
+          nome: string
+        }
+        Insert: {
+          descricao?: string | null
+          id: number
+          nome: string
+        }
+        Update: {
+          descricao?: string | null
+          id?: number
+          nome?: string
+        }
+        Relationships: []
       }
       ferramentas: {
         Row: {
@@ -799,6 +874,38 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      topicos_fase: {
+        Row: {
+          created_at: string | null
+          fase_id: number
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          created_at?: string | null
+          fase_id: number
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          created_at?: string | null
+          fase_id?: number
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topicos_fase_fase_id_fkey"
+            columns: ["fase_id"]
+            isOneToOne: false
+            referencedRelation: "fases"
             referencedColumns: ["id"]
           },
         ]

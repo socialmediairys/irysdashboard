@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Calendar, Users, TrendingUp, CreditCard, Instagram,
   Bookmark, Wrench, Plus, Zap, ArrowRight, Library, FileText, Settings, Menu,
   UserSquare2, Play, Pause, ChevronDown, ChevronRight, ArrowLeft, FolderOpen, Video, CheckCircle2, Circle,
-  RefreshCw, LinkIcon, LogOut, ExternalLink, Copy, MessageCircle, Loader2, AlertCircle,
+  RefreshCw, LinkIcon, LogOut, ExternalLink, Copy, MessageCircle, Loader2, AlertCircle, Send,
 } from "lucide-react";
 
 import { useServerFn } from "@tanstack/react-start";
@@ -489,6 +489,30 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
   const agendaQ = useSupabaseList<AgendaRow>("agenda_itens", { order: { column: "data_hora" } });
   const tarefasQ = useSupabaseList<TarefaRow>("tarefas", { order: { column: "created_at", ascending: false } });
 
+  const listGCal = useServerFn(listGoogleCalendarEvents);
+  const [gcalHoje, setGcalHoje] = useState<GCalEvent[]>([]);
+  const [gcalLoading, setGcalLoading] = useState(true);
+
+  useEffect(() => {
+    let cancel = false;
+    const load = async () => {
+      setGcalLoading(true);
+      try {
+        const now = new Date();
+        const start = new Date(now); start.setHours(0, 0, 0, 0);
+        const end = new Date(now); end.setHours(23, 59, 59, 999);
+        const res = await listGCal({ data: { timeMin: start.toISOString(), timeMax: end.toISOString() } });
+        if (!cancel) setGcalHoje((res.events ?? []) as GCalEvent[]);
+      } catch {
+        if (!cancel) setGcalHoje([]);
+      } finally {
+        if (!cancel) setGcalLoading(false);
+      }
+    };
+    void load();
+    return () => { cancel = true; };
+  }, [listGCal]);
+
   const clientes = clientesQ.rows;
   const leads = leadsQ.rows;
   const agenda = agendaQ.rows;
@@ -504,7 +528,17 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
     [tarefas],
   );
   const postsPrevistos = tarefas.length;
-  const hoje = useMemo(() => agenda.filter(a => isToday(a.data_hora)), [agenda]);
+
+  type AgendaItem = { id: string; titulo: string; iso: string; prioridade: string | null; source: "local" | "gcal" };
+  const hoje = useMemo<AgendaItem[]>(() => {
+    const local: AgendaItem[] = agenda
+      .filter(a => isToday(a.data_hora))
+      .map(a => ({ id: `l-${a.id}`, titulo: a.titulo, iso: a.data_hora, prioridade: a.prioridade, source: "local" }));
+    const gcal: AgendaItem[] = gcalHoje
+      .filter(e => e.start)
+      .map(e => ({ id: `g-${e.id}`, titulo: e.title, iso: e.start!, prioridade: null, source: "gcal" }));
+    return [...local, ...gcal].sort((a, b) => a.iso.localeCompare(b.iso));
+  }, [agenda, gcalHoje]);
   const leadsTop = leads.slice(0, 5);
 
   const entregasPorCliente = useMemo(() => {
@@ -582,7 +616,7 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
               <h3 className="font-extrabold text-lg">📅 Agenda — Hoje</h3>
               <button onClick={() => go("agenda")} className="text-xs font-bold uppercase tracking-wider" style={{ color: C.gold }}>agenda →</button>
             </div>
-            {agendaQ.loading && hoje.length === 0 ? (
+            {(agendaQ.loading || gcalLoading) && hoje.length === 0 ? (
               <div className="space-y-2">
                 {[0,1,2].map(i => (
                   <div key={i} className="h-14 rounded-[10px] animate-pulse" style={{ background: "rgba(255,255,255,0.08)" }} />
@@ -598,7 +632,9 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
                   <div key={e.id} className="flex items-center justify-between rounded-[10px] p-3" style={{ background: "rgba(255,255,255,0.06)" }}>
                     <div className="min-w-0">
                       <div className="font-semibold truncate">{e.titulo}</div>
-                      <div className="text-xs opacity-70">{fmtHour(e.data_hora)}{e.duracao_min ? ` · ${e.duracao_min}min` : ""}</div>
+                      <div className="text-xs opacity-70">
+                        {fmtHour(e.iso)} · {e.source === "gcal" ? "Google Agenda" : "Painel"}
+                      </div>
                     </div>
                     <span className="rounded-full px-2.5 py-1 text-[11px] font-bold uppercase"
                       style={{ background: e.prioridade === "alta" ? "#C8351A" : "rgba(255,255,255,0.15)", color: "#fff" }}>
@@ -875,8 +911,46 @@ type ClienteRow = {
   valor_mensal: number | null;
   status_contrato: string;
   email: string | null;
+  telefone: string | null;
+  slug: string | null;
   init: string | null;
 };
+
+function waMeLink(telefone: string | null, nome: string, valor: number | null, statusLabel: string): string | null {
+  if (!telefone) return null;
+  const digits = telefone.replace(/\D+/g, "");
+  if (!digits) return null;
+  const withCountry = digits.length <= 11 ? `55${digits}` : digits;
+  const valorTxt = valor
+    ? new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor))
+    : "a combinar";
+  const msg = `Olá ${nome}! Passando aqui para lembrar da sua mensalidade (${valorTxt}). Status do contrato: ${statusLabel}. Qualquer dúvida estou à disposição 💛`;
+  return `https://wa.me/${withCountry}?text=${encodeURIComponent(msg)}`;
+}
+
+function CobrancaWaMeButton({ cliente }: { cliente: ClienteRow }) {
+  const statusLabel = CLIENTE_STATUS_LABEL[cliente.status_contrato] ?? cliente.status_contrato;
+  const link = waMeLink(cliente.telefone, cliente.nome, cliente.valor_mensal, statusLabel);
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="h-9 w-9 text-emerald-600 hover:text-emerald-700"
+      aria-label="Abrir WhatsApp com cobrança pré-preenchida"
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!link) {
+          toast.error(`${cliente.nome} não tem telefone cadastrado. Edite o cliente para incluir o número.`);
+          return;
+        }
+        window.open(link, "_blank", "noopener,noreferrer");
+      }}
+    >
+      <Send className="h-4 w-4" />
+    </Button>
+  );
+}
 
 const CLIENTE_STATUS_VARIANT: Record<string, string> = {
   ativo: "ativo",
@@ -1334,6 +1408,13 @@ function ClientesPage() {
       <PageHeader eyebrow="Clientes" title={`${ativos} clientes`} accent="ativos"
         actions={
           <div className="flex items-center gap-2">
+            <a
+              href="/admin/portal-conteudos"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border"
+              style={{ borderColor: C.mid, color: C.mid }}
+            >
+              <FolderOpen size={14} /> Gerenciar portais
+            </a>
             <CobrancaLoteButton clientes={rows.map(r => ({ id: r.id, nome: r.nome }))} />
             <PillBtn onClick={() => openCreate("cliente")}><Plus size={14} className="inline mr-1" /> Novo cliente</PillBtn>
           </div>
@@ -1362,6 +1443,7 @@ function ClientesPage() {
                   <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}/mês</div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
+                  <CobrancaWaMeButton cliente={c} />
                   <CobrancaWhatsappButton clienteId={c.id} nome={c.nome} />
                   <RowActions onEdit={() => openEdit("cliente", c)} onDelete={() => openDelete("cliente", c)} />
                 </div>

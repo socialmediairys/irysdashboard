@@ -19,6 +19,15 @@ export function useClientes() {
   return clientes;
 }
 
+export function maskBrPhone(raw: string): string {
+  const d = raw.replace(/\D+/g, "").slice(0, 11);
+  if (d.length === 0) return "";
+  if (d.length <= 2) return `(${d}`;
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+}
+
 function Field({ label, error, children, required }: { label: string; error?: string; children: React.ReactNode; required?: boolean }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -157,11 +166,13 @@ export function ClienteForm({ value, onChange, errors }: {
       <Field label="E-mail" error={errors.email}>
         <Input type="email" value={value.email ?? ""} onChange={(e) => set("email", e.target.value)} />
       </Field>
-      <Field label="Telefone">
+      <Field label="Telefone / WhatsApp do cliente">
         <Input
           value={value.telefone ?? ""}
-          onChange={(e) => set("telefone", e.target.value.replace(/[^0-9\s\-()]/g, ""))}
-          placeholder="Ex.: 11 99999-9999"
+          onChange={(e) => set("telefone", maskBrPhone(e.target.value))}
+          placeholder="(11) 99999-9999"
+          inputMode="tel"
+          maxLength={16}
         />
         <p className="text-xs text-muted-foreground">Necessário para receber cobranças via WhatsApp</p>
       </Field>
