@@ -489,6 +489,30 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
   const agendaQ = useSupabaseList<AgendaRow>("agenda_itens", { order: { column: "data_hora" } });
   const tarefasQ = useSupabaseList<TarefaRow>("tarefas", { order: { column: "created_at", ascending: false } });
 
+  const listGCal = useServerFn(listGoogleCalendarEvents);
+  const [gcalHoje, setGcalHoje] = useState<GCalEvent[]>([]);
+  const [gcalLoading, setGcalLoading] = useState(true);
+
+  useEffect(() => {
+    let cancel = false;
+    const load = async () => {
+      setGcalLoading(true);
+      try {
+        const now = new Date();
+        const start = new Date(now); start.setHours(0, 0, 0, 0);
+        const end = new Date(now); end.setHours(23, 59, 59, 999);
+        const res = await listGCal({ data: { timeMin: start.toISOString(), timeMax: end.toISOString() } });
+        if (!cancel) setGcalHoje((res.events ?? []) as GCalEvent[]);
+      } catch {
+        if (!cancel) setGcalHoje([]);
+      } finally {
+        if (!cancel) setGcalLoading(false);
+      }
+    };
+    void load();
+    return () => { cancel = true; };
+  }, [listGCal]);
+
   const clientes = clientesQ.rows;
   const leads = leadsQ.rows;
   const agenda = agendaQ.rows;
@@ -504,7 +528,17 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
     [tarefas],
   );
   const postsPrevistos = tarefas.length;
-  const hoje = useMemo(() => agenda.filter(a => isToday(a.data_hora)), [agenda]);
+
+  type AgendaItem = { id: string; titulo: string; iso: string; prioridade: string | null; source: "local" | "gcal" };
+  const hoje = useMemo<AgendaItem[]>(() => {
+    const local: AgendaItem[] = agenda
+      .filter(a => isToday(a.data_hora))
+      .map(a => ({ id: `l-${a.id}`, titulo: a.titulo, iso: a.data_hora, prioridade: a.prioridade, source: "local" }));
+    const gcal: AgendaItem[] = gcalHoje
+      .filter(e => e.start)
+      .map(e => ({ id: `g-${e.id}`, titulo: e.title, iso: e.start!, prioridade: null, source: "gcal" }));
+    return [...local, ...gcal].sort((a, b) => a.iso.localeCompare(b.iso));
+  }, [agenda, gcalHoje]);
   const leadsTop = leads.slice(0, 5);
 
   const entregasPorCliente = useMemo(() => {
