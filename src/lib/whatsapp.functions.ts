@@ -137,7 +137,9 @@ async function enviarCobrancaParaCliente(
   templateName: string,
   languageCode: string,
   conn: { phone_number_id: string; access_token: string },
+  variables: number,
 ): Promise<EnvioResult> {
+
   const base = {
     ok: false,
     clienteId,
