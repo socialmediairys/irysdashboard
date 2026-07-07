@@ -288,6 +288,9 @@ export function IntegrationsTab() {
                 <Button size="sm" variant="outline" onClick={refreshW} disabled={wBusy}>
                   <RefreshCw size={14} className="mr-1" /> Atualizar
                 </Button>
+                <Button size="sm" variant="outline" onClick={() => setTestOpen(true)} disabled={wBusy}>
+                  <Send size={14} className="mr-1" /> Enviar teste
+                </Button>
                 <Button size="sm" variant="outline" onClick={handleWDisconnect} disabled={wBusy}>
                   {wBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut size={14} className="mr-1" />}
                   Desconectar
