@@ -116,6 +116,7 @@ export type ClienteFormValues = {
   valor_mensal: number | null;
   status_contrato: string;
   email: string | null;
+  telefone: string | null;
 };
 const CLIENTE_PLANOS = ["Social Media Básico", "Social Media Intermediário", "Social Media Avançado", "Parceria SM", "Material Impresso", "Outro"];
 const CLIENTE_STATUS: { v: string; label: string }[] = [
@@ -156,11 +157,19 @@ export function ClienteForm({ value, onChange, errors }: {
       <Field label="E-mail" error={errors.email}>
         <Input type="email" value={value.email ?? ""} onChange={(e) => set("email", e.target.value)} />
       </Field>
+      <Field label="Telefone">
+        <Input
+          value={value.telefone ?? ""}
+          onChange={(e) => set("telefone", e.target.value.replace(/[^0-9\s\-()]/g, ""))}
+          placeholder="Ex.: 11 99999-9999"
+        />
+        <p className="text-xs text-muted-foreground">Necessário para receber cobranças via WhatsApp</p>
+      </Field>
     </>
   );
 }
 export const CLIENTE_DEFAULTS: ClienteFormValues = {
-  nome: "", plano_label: "Social Media Básico", valor_mensal: null, status_contrato: "pendente_assinatura", email: null,
+  nome: "", plano_label: "Social Media Básico", valor_mensal: null, status_contrato: "pendente_assinatura", email: null, telefone: null,
 };
 export function validateCliente(v: ClienteFormValues) {
   const e: Partial<Record<keyof ClienteFormValues, string>> = {};
