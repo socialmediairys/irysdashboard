@@ -9,6 +9,7 @@ import {
   getWhatsappStatus,
   connectWhatsapp,
   disconnectWhatsapp,
+  sendWhatsappTestMessage,
 } from "@/lib/whatsapp.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
