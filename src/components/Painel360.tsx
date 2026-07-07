@@ -616,7 +616,7 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
               <h3 className="font-extrabold text-lg">📅 Agenda — Hoje</h3>
               <button onClick={() => go("agenda")} className="text-xs font-bold uppercase tracking-wider" style={{ color: C.gold }}>agenda →</button>
             </div>
-            {agendaQ.loading && hoje.length === 0 ? (
+            {(agendaQ.loading || gcalLoading) && hoje.length === 0 ? (
               <div className="space-y-2">
                 {[0,1,2].map(i => (
                   <div key={i} className="h-14 rounded-[10px] animate-pulse" style={{ background: "rgba(255,255,255,0.08)" }} />
@@ -632,7 +632,9 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
                   <div key={e.id} className="flex items-center justify-between rounded-[10px] p-3" style={{ background: "rgba(255,255,255,0.06)" }}>
                     <div className="min-w-0">
                       <div className="font-semibold truncate">{e.titulo}</div>
-                      <div className="text-xs opacity-70">{fmtHour(e.data_hora)}{e.duracao_min ? ` · ${e.duracao_min}min` : ""}</div>
+                      <div className="text-xs opacity-70">
+                        {fmtHour(e.iso)} · {e.source === "gcal" ? "Google Agenda" : "Painel"}
+                      </div>
                     </div>
                     <span className="rounded-full px-2.5 py-1 text-[11px] font-bold uppercase"
                       style={{ background: e.prioridade === "alta" ? "#C8351A" : "rgba(255,255,255,0.15)", color: "#fff" }}>
