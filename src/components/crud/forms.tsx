@@ -116,6 +116,7 @@ export type ClienteFormValues = {
   valor_mensal: number | null;
   status_contrato: string;
   email: string | null;
+  telefone: string | null;
 };
 const CLIENTE_PLANOS = ["Social Media Básico", "Social Media Intermediário", "Social Media Avançado", "Parceria SM", "Material Impresso", "Outro"];
 const CLIENTE_STATUS: { v: string; label: string }[] = [
