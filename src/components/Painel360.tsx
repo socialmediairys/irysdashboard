@@ -1452,13 +1452,20 @@ function ClientesPage() {
           {rows.map((c) => (
             <Card key={c.id}>
               <div className="flex items-start gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg flex-shrink-0"
-                  style={{ background: C.beige, color: C.dark }}>{c.init || initialsOf(c.nome)}</div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-extrabold truncate">{c.nome}</div>
-                  <div className="text-xs" style={{ color: C.textMid }}>{c.plano_label || c.plano_atual || "—"}</div>
-                  <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}/mês</div>
-                </div>
+                <Link
+                  to="/admin/clientes/$clienteId"
+                  params={{ clienteId: c.id }}
+                  className="flex items-start gap-4 flex-1 min-w-0 group"
+                  aria-label={`Abrir perfil de ${c.nome}`}
+                >
+                  <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg flex-shrink-0"
+                    style={{ background: C.beige, color: C.dark }}>{c.init || initialsOf(c.nome)}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-extrabold truncate group-hover:underline">{c.nome}</div>
+                    <div className="text-xs" style={{ color: C.textMid }}>{c.plano_label || c.plano_atual || "—"}</div>
+                    <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}/mês</div>
+                  </div>
+                </Link>
                 <div className="flex items-center gap-1 shrink-0">
                   <CobrancaWaMeButton cliente={c} />
                   <CobrancaWhatsappButton clienteId={c.id} nome={c.nome} />
