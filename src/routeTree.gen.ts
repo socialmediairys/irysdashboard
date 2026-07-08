@@ -28,6 +28,7 @@ import { Route as AuthenticatedAdminCadastrosRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminBibliotecaMidiaRouteImport } from './routes/_authenticated/admin.biblioteca-midia'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp.webhook'
 import { Route as ApiPublicGoogleCalendarCallbackRouteImport } from './routes/api/public/google-calendar.callback'
+import { Route as AuthenticatedAdminClientesClienteIdRouteImport } from './routes/_authenticated/admin.clientes.$clienteId'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
@@ -132,6 +133,12 @@ const ApiPublicGoogleCalendarCallbackRoute =
     path: '/api/public/google-calendar/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAdminClientesClienteIdRoute =
+  AuthenticatedAdminClientesClienteIdRouteImport.update({
+    id: '/clientes/$clienteId',
+    path: '/clientes/$clienteId',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
+  '/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
 }
@@ -170,6 +178,7 @@ export interface FileRoutesByTo {
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
+  '/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
 }
@@ -192,6 +201,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/_authenticated/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
   '/_authenticated/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
+  '/_authenticated/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
 }
@@ -214,6 +224,7 @@ export interface FileRouteTypes {
     | '/admin/juridico'
     | '/admin/portal-conteudos'
     | '/admin/visao-geral'
+    | '/admin/clientes/$clienteId'
     | '/api/public/google-calendar/callback'
     | '/api/public/whatsapp/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -234,6 +245,7 @@ export interface FileRouteTypes {
     | '/admin/juridico'
     | '/admin/portal-conteudos'
     | '/admin/visao-geral'
+    | '/admin/clientes/$clienteId'
     | '/api/public/google-calendar/callback'
     | '/api/public/whatsapp/webhook'
   id:
@@ -255,6 +267,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/juridico'
     | '/_authenticated/admin/portal-conteudos'
     | '/_authenticated/admin/visao-geral'
+    | '/_authenticated/admin/clientes/$clienteId'
     | '/api/public/google-calendar/callback'
     | '/api/public/whatsapp/webhook'
   fileRoutesById: FileRoutesById
@@ -404,6 +417,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGoogleCalendarCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/clientes/$clienteId': {
+      id: '/_authenticated/admin/clientes/$clienteId'
+      path: '/clientes/$clienteId'
+      fullPath: '/admin/clientes/$clienteId'
+      preLoaderRoute: typeof AuthenticatedAdminClientesClienteIdRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
@@ -416,6 +436,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminJuridicoRoute: typeof AuthenticatedAdminJuridicoRoute
   AuthenticatedAdminPortalConteudosRoute: typeof AuthenticatedAdminPortalConteudosRoute
   AuthenticatedAdminVisaoGeralRoute: typeof AuthenticatedAdminVisaoGeralRoute
+  AuthenticatedAdminClientesClienteIdRoute: typeof AuthenticatedAdminClientesClienteIdRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
@@ -429,6 +450,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminPortalConteudosRoute:
     AuthenticatedAdminPortalConteudosRoute,
   AuthenticatedAdminVisaoGeralRoute: AuthenticatedAdminVisaoGeralRoute,
+  AuthenticatedAdminClientesClienteIdRoute:
+    AuthenticatedAdminClientesClienteIdRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =

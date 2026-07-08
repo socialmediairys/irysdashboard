@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import {
   startGoogleCalendarAuth,
   getGoogleCalendarStatus,
@@ -311,7 +312,7 @@ function PageHeader({ eyebrow, title, accent, actions, badges }: {
 /* ---------- Sidebar ---------- */
 type PageKey =
   | "dash" | "agenda" | "clientes" | "conteudo" | "social"
-  | "crm" | "financas" | "biblioteca" | "central" | "config";
+  | "crm" | "financas" | "biblioteca" | "config";
 
 type NavItem = { key: PageKey; label: string; icon: typeof LayoutDashboard };
 type NavGroup = { label: string; items: NavItem[] };
@@ -321,7 +322,6 @@ const NAV_GROUPS: NavGroup[] = [
     { key: "dash",     label: "Dashboard",  icon: LayoutDashboard },
     { key: "agenda",   label: "Agenda",     icon: Calendar },
     { key: "clientes", label: "Clientes",   icon: Users },
-    { key: "central",  label: "Portal do Cliente", icon: UserSquare2 },
   ]},
   { label: "Conteúdo", items: [
     { key: "conteudo", label: "Calendário & Entregas", icon: FileText },
@@ -904,7 +904,7 @@ function AgendaPage() {
 }
 
 
-type ClienteRow = {
+export type ClienteRow = {
   id: string;
   nome: string;
   plano_label: string | null;
@@ -929,7 +929,7 @@ function waMeLink(telefone: string | null, nome: string, valor: number | null, s
   return `https://wa.me/${withCountry}?text=${encodeURIComponent(msg)}`;
 }
 
-function CobrancaWaMeButton({ cliente }: { cliente: ClienteRow }) {
+export function CobrancaWaMeButton({ cliente }: { cliente: ClienteRow }) {
   const statusLabel = CLIENTE_STATUS_LABEL[cliente.status_contrato] ?? cliente.status_contrato;
   const link = waMeLink(cliente.telefone, cliente.nome, cliente.valor_mensal, statusLabel);
   return (
@@ -1060,7 +1060,7 @@ function TemplateSelect({
   );
 }
 
-function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: string }) {
+export function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: string }) {
   const send = useServerFn(sendWhatsappCobrancaTemplate);
   const check = useServerFn(getWhatsappStatus);
   const [open, setOpen] = useState(false);
@@ -1429,7 +1429,7 @@ function ClientesPage() {
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border"
               style={{ borderColor: C.mid, color: C.mid }}
             >
-              <FolderOpen size={14} /> Gerenciar portais
+              <FolderOpen size={14} /> Gerenciar portais (todos)
             </a>
 
             <CobrancaLoteButton clientes={rows.map(r => ({ id: r.id, nome: r.nome }))} />
@@ -1453,13 +1453,20 @@ function ClientesPage() {
           {rows.map((c) => (
             <Card key={c.id}>
               <div className="flex items-start gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg flex-shrink-0"
-                  style={{ background: C.beige, color: C.dark }}>{c.init || initialsOf(c.nome)}</div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-extrabold truncate">{c.nome}</div>
-                  <div className="text-xs" style={{ color: C.textMid }}>{c.plano_label || c.plano_atual || "—"}</div>
-                  <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}/mês</div>
-                </div>
+                <Link
+                  to="/admin/clientes/$clienteId"
+                  params={{ clienteId: c.id }}
+                  className="flex items-start gap-4 flex-1 min-w-0 group"
+                  aria-label={`Abrir perfil de ${c.nome}`}
+                >
+                  <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg flex-shrink-0"
+                    style={{ background: C.beige, color: C.dark }}>{c.init || initialsOf(c.nome)}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-extrabold truncate group-hover:underline">{c.nome}</div>
+                    <div className="text-xs" style={{ color: C.textMid }}>{c.plano_label || c.plano_atual || "—"}</div>
+                    <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}/mês</div>
+                  </div>
+                </Link>
                 <div className="flex items-center gap-1 shrink-0">
                   <CobrancaWaMeButton cliente={c} />
                   <CobrancaWhatsappButton clienteId={c.id} nome={c.nome} />
@@ -2682,22 +2689,12 @@ function Painel360Inner() {
   const [active, setActive] = useState<PageKey>("dash");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [clienteId, setClienteId] = useState<number>(DB.clientes[0].id);
-  const [viewMode, setViewMode] = useState<"gestao" | "cliente">("gestao");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
-  }, [active, viewMode]);
+  }, [active]);
 
-  if (viewMode === "cliente") {
-    const cliente = DB.clientes.find(c => c.id === clienteId) ?? DB.clientes[0];
-    return (
-      <div className="h-screen overflow-y-auto" style={{ background: C.bg }}>
-        <PortalCliente cliente={cliente} onExit={() => setViewMode("gestao")} />
-      </div>
-    );
-  }
 
   return (
     <div className="h-screen overflow-hidden flex flex-col md:flex-row" style={{ background: C.bg, color: C.text }}>
@@ -2745,13 +2742,6 @@ function Painel360Inner() {
           {active === "financas"   && <FinancasPage />}
           {active === "biblioteca" && <BibliotecaPage />}
           {active === "config"     && <ConfigPage />}
-          {active === "central" && (
-            <CentralClientePage
-              selectedId={clienteId}
-              setSelectedId={setClienteId}
-              enterPortal={() => setViewMode("cliente")}
-            />
-          )}
         </div>
       </main>
     </div>
