@@ -1060,7 +1060,7 @@ function TemplateSelect({
   );
 }
 
-function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: string }) {
+export function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string; nome: string }) {
   const send = useServerFn(sendWhatsappCobrancaTemplate);
   const check = useServerFn(getWhatsappStatus);
   const [open, setOpen] = useState(false);
