@@ -45,7 +45,8 @@ function PortalConteudosPage() {
     const load = async () => {
       setLoading(true);
       const [{ data: cliData }, meta] = await Promise.all([
-        supabase.from("clientes").select("id, nome, slug").order("nome"),
+        supabase.from("clientes").select("id, nome").order("nome"),
+
         listFases(),
       ]);
       setClientes((cliData ?? []) as ClienteRef[]);
