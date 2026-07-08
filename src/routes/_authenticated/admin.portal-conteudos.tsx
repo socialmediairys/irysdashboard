@@ -7,7 +7,6 @@ import {
   listConteudosCliente,
   createConteudoCliente,
   deleteConteudoCliente,
-  regenerarSlugCliente,
   type Fase,
   type Topico,
   type Conteudo,
@@ -20,13 +19,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import { FileUploader } from "@/components/FileUploader";
 import { toast } from "sonner";
-import { Copy, ExternalLink, Loader2, RefreshCw, Trash2, Video, FileText, Headphones } from "lucide-react";
+import { Loader2, Trash2, Video, FileText, Headphones } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/portal-conteudos")({
   component: PortalConteudosPage,
 });
 
-type ClienteRef = { id: string; nome: string; slug: string | null };
+type ClienteRef = { id: string; nome: string };
 
 function PortalConteudosPage() {
   const [clientes, setClientes] = useState<ClienteRef[]>([]);
@@ -39,9 +38,8 @@ function PortalConteudosPage() {
 
   const listFases = useServerFn(listFasesComTopicos);
   const listConteudos = useServerFn(listConteudosCliente);
-  const regenerarSlug = useServerFn(regenerarSlugCliente);
 
-  const selected = clientes.find((c) => c.id === selectedId) ?? null;
+
 
   useEffect(() => {
     const load = async () => {
