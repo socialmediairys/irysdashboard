@@ -278,14 +278,15 @@ function MetricCard({ variant = "default", value, label, delta, deltaType = "up"
   const labelColor = dark ? "rgba(255,255,255,0.7)" : accent ? C.dark : C.textMid;
   const deltaColor = deltaType === "down" ? "#C8351A" : deltaType === "up" ? "#2E7D32" : labelColor;
   return (
-    <div className="rounded-[18px] p-6 transition-all duration-150 hover:-translate-y-0.5"
+    <div className="rounded-[18px] p-4 sm:p-6 transition-all duration-150 hover:-translate-y-0.5 min-w-0"
       style={{ background: bg, color: fg, boxShadow: SHADOW }}>
-      <div className="text-xs font-bold uppercase tracking-[0.18em]" style={{ color: labelColor }}>{label}</div>
-      <div className="mt-3 text-4xl font-extrabold" style={{ letterSpacing: "-0.03em" }}>{value}</div>
-      {delta && <div className="mt-2 text-xs font-semibold" style={{ color: deltaColor }}>{delta}</div>}
+      <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.14em] sm:tracking-[0.18em] break-words" style={{ color: labelColor }}>{label}</div>
+      <div className="mt-2 sm:mt-3 text-2xl sm:text-4xl font-extrabold break-words" style={{ letterSpacing: "-0.03em" }}>{value}</div>
+      {delta && <div className="mt-2 text-xs font-semibold break-words" style={{ color: deltaColor }}>{delta}</div>}
     </div>
   );
 }
+
 
 /* ---------- Header ---------- */
 function PageHeader({ eyebrow, title, accent, actions, badges }: {
@@ -1415,7 +1416,7 @@ function ClientesPage() {
     <>
       <PageHeader eyebrow="Clientes" title={`${ativos} clientes`} accent="ativos"
         actions={
-          <div className="flex items-center gap-2">
+          <>
             <a
               href="/admin/portal-conteudos"
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border"
@@ -1425,8 +1426,9 @@ function ClientesPage() {
             </a>
             <CobrancaLoteButton clientes={rows.map(r => ({ id: r.id, nome: r.nome }))} />
             <PillBtn onClick={() => openCreate("cliente")}><Plus size={14} className="inline mr-1" /> Novo cliente</PillBtn>
-          </div>
+          </>
         } />
+
 
       <ListState
         loading={loading}
