@@ -2744,13 +2744,6 @@ function Painel360Inner() {
           {active === "financas"   && <FinancasPage />}
           {active === "biblioteca" && <BibliotecaPage />}
           {active === "config"     && <ConfigPage />}
-          {active === "central" && (
-            <CentralClientePage
-              selectedId={clienteId}
-              setSelectedId={setClienteId}
-              enterPortal={() => setViewMode("cliente")}
-            />
-          )}
         </div>
       </main>
     </div>
