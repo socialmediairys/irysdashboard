@@ -1429,7 +1429,7 @@ function ClientesPage() {
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border"
               style={{ borderColor: C.mid, color: C.mid }}
             >
-              <FolderOpen size={14} /> Gerenciar portais
+              <FolderOpen size={14} /> Gerenciar portais (todos)
             </a>
 
             <CobrancaLoteButton clientes={rows.map(r => ({ id: r.id, nome: r.nome }))} />
