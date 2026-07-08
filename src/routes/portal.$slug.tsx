@@ -99,17 +99,17 @@ function PublicPortalPage() {
 
   return (
     <div className="min-h-screen bg-[#EDEAE5]">
-      <header className="bg-[#2C1505] text-white px-6 py-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-xs uppercase tracking-widest text-[#C9A46E]">Portal exclusivo</div>
-          <h1 className="text-2xl font-extrabold">{data.cliente.nome}</h1>
+      <header className="bg-[#2C1505] text-white px-4 sm:px-6 py-5 sm:py-6">
+        <div className="max-w-4xl mx-auto min-w-0">
+          <div className="text-[11px] sm:text-xs uppercase tracking-widest text-[#C9A46E]">Portal exclusivo</div>
+          <h1 className="text-xl sm:text-2xl font-extrabold break-words">{data.cliente.nome}</h1>
           {data.cliente.plano && (
-            <div className="text-sm text-[#C9A46E] mt-1">Plano: {data.cliente.plano}</div>
+            <div className="text-sm text-[#C9A46E] mt-1 break-words">Plano: {data.cliente.plano}</div>
           )}
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto p-6 space-y-4">
+      <main className="max-w-4xl mx-auto p-4 sm:p-6 space-y-4">
         <p className="text-sm text-[#7A6050]">
           Acompanhe as <strong>6 fases da nossa parceria</strong>. Cada tópico reúne os vídeos, áudios e documentos preparados especialmente para você.
         </p>
@@ -123,27 +123,32 @@ function PublicPortalPage() {
               <button
                 type="button"
                 onClick={() => setOpenFase(isOpen ? null : fase.id)}
-                className="w-full text-left p-5 flex items-center gap-4 hover:bg-[#F5EEE5] transition"
+                className="w-full text-left p-4 sm:p-5 flex items-center gap-3 sm:gap-4 hover:bg-[#F5EEE5] transition"
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2C1505] text-[#C9A46E] font-extrabold">
+                <div className="shrink-0 flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-[#2C1505] text-[#C9A46E] font-extrabold">
                   {fase.id}
                 </div>
-                <div className="flex-1">
-                  <div className="text-xs uppercase tracking-wider text-[#7A6050]">Fase {fase.id}</div>
-                  <div className="font-bold text-[#2C1505]">{fase.nome}</div>
-                  {fase.descricao && <div className="text-xs text-[#7A6050] mt-0.5">{fase.descricao}</div>}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] sm:text-xs uppercase tracking-wider text-[#7A6050]">Fase {fase.id}</div>
+                  <div className="font-bold text-[#2C1505] break-words">{fase.nome}</div>
+                  {fase.descricao && <div className="text-xs text-[#7A6050] mt-0.5 break-words">{fase.descricao}</div>}
                 </div>
-                <Badge variant="outline" className="border-[#C9A46E] text-[#7A4A18]">{totalConteudos} conteúdos</Badge>
-                {isOpen ? <ChevronDown className="h-5 w-5 text-[#7A6050]" /> : <ChevronRight className="h-5 w-5 text-[#7A6050]" />}
+                <Badge variant="outline" className="shrink-0 border-[#C9A46E] text-[#7A4A18] whitespace-nowrap px-1.5 text-[10px] sm:text-xs">
+                  {totalConteudos}
+                  <span className="hidden sm:inline">&nbsp;conteúdos</span>
+                </Badge>
+                {isOpen
+                  ? <ChevronDown className="shrink-0 h-5 w-5 text-[#7A6050]" />
+                  : <ChevronRight className="shrink-0 h-5 w-5 text-[#7A6050]" />}
               </button>
               {isOpen && (
-                <div className="border-t border-[#E8D8C0] p-5 space-y-4">
+                <div className="border-t border-[#E8D8C0] p-4 sm:p-5 space-y-4">
                   {topicos.length === 0 && (
                     <div className="text-sm text-[#7A6050]">Nenhum tópico configurado nesta fase.</div>
                   )}
                   {topicos.map((t) => (
-                    <div key={t.id}>
-                      <div className="text-sm font-semibold text-[#2C1505] mb-2">{t.nome}</div>
+                    <div key={t.id} className="min-w-0">
+                      <div className="text-sm font-semibold text-[#2C1505] mb-2 break-words">{t.nome}</div>
                       {(conteudosPorTopico[t.id] ?? []).length === 0 ? (
                         <div className="text-xs text-[#7A6050] italic">Ainda não há conteúdos liberados aqui.</div>
                       ) : (
@@ -168,6 +173,7 @@ function PublicPortalPage() {
     </div>
   );
 }
+
 
 function ConteudoItem({ tipo, titulo, url }: { tipo: ConteudoTipo; titulo: string | null; url: string | null }) {
   const Icon = tipo === "video" ? Video : tipo === "audio" ? Headphones : FileText;
