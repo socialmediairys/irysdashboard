@@ -77,6 +77,23 @@ function PortalConteudosPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
 
+  // Realtime: qualquer INSERT/UPDATE/DELETE em conteudos_cliente do cliente selecionado
+  // atualiza a lista automaticamente, sem precisar de refresh manual.
+  useEffect(() => {
+    if (!selectedId) return;
+    const channel = supabase
+      .channel(`conteudos-cliente-${selectedId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "conteudos_cliente", filter: `cliente_id=eq.${selectedId}` },
+        () => { void refreshConteudos(selectedId); },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
+
+
   const topicosPorFase = useMemo(() => {
     const m: Record<number, Topico[]> = {};
     for (const t of topicos) {
