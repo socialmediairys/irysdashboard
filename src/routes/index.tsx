@@ -17,8 +17,9 @@ function IndexRedirect() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/app" });
-      else navigate({ to: "/auth" });
+      else navigate({ to: "/login" });
     });
+
   }, [navigate]);
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#EDEAE5] text-[#7A4A18]">
