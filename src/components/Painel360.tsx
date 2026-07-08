@@ -904,7 +904,7 @@ function AgendaPage() {
 }
 
 
-type ClienteRow = {
+export type ClienteRow = {
   id: string;
   nome: string;
   plano_label: string | null;
