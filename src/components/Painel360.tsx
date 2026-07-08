@@ -2681,22 +2681,12 @@ function Painel360Inner() {
   const [active, setActive] = useState<PageKey>("dash");
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [clienteId, setClienteId] = useState<number>(DB.clientes[0].id);
-  const [viewMode, setViewMode] = useState<"gestao" | "cliente">("gestao");
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
-  }, [active, viewMode]);
+  }, [active]);
 
-  if (viewMode === "cliente") {
-    const cliente = DB.clientes.find(c => c.id === clienteId) ?? DB.clientes[0];
-    return (
-      <div className="h-screen overflow-y-auto" style={{ background: C.bg }}>
-        <PortalCliente cliente={cliente} onExit={() => setViewMode("gestao")} />
-      </div>
-    );
-  }
 
   return (
     <div className="h-screen overflow-hidden flex flex-col md:flex-row" style={{ background: C.bg, color: C.text }}>
