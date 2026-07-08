@@ -311,7 +311,7 @@ function PageHeader({ eyebrow, title, accent, actions, badges }: {
 /* ---------- Sidebar ---------- */
 type PageKey =
   | "dash" | "agenda" | "clientes" | "conteudo" | "social"
-  | "crm" | "financas" | "biblioteca" | "central" | "config";
+  | "crm" | "financas" | "biblioteca" | "config";
 
 type NavItem = { key: PageKey; label: string; icon: typeof LayoutDashboard };
 type NavGroup = { label: string; items: NavItem[] };
@@ -321,7 +321,6 @@ const NAV_GROUPS: NavGroup[] = [
     { key: "dash",     label: "Dashboard",  icon: LayoutDashboard },
     { key: "agenda",   label: "Agenda",     icon: Calendar },
     { key: "clientes", label: "Clientes",   icon: Users },
-    { key: "central",  label: "Portal do Cliente", icon: UserSquare2 },
   ]},
   { label: "Conteúdo", items: [
     { key: "conteudo", label: "Calendário & Entregas", icon: FileText },
