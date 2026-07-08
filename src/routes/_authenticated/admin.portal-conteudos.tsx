@@ -194,7 +194,7 @@ function PortalConteudosPage() {
       {selectedId && (
         <div className="space-y-6">
           {fases.map((fase) => (
-            <Card key={fase.id} className="p-5">
+            <Card key={fase.id} className="p-4 sm:p-5">
               <div className="mb-3">
                 <div className="text-xs uppercase tracking-wider text-muted-foreground">Fase {fase.id}</div>
                 <h2 className="text-lg font-bold">{fase.nome}</h2>
