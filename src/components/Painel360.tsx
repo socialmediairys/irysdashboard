@@ -1418,12 +1418,20 @@ function ClientesPage() {
         actions={
           <>
             <a
+              href="/admin/cadastros"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border"
+              style={{ borderColor: C.mid, color: C.mid }}
+            >
+              <Users size={14} /> Cadastros pendentes
+            </a>
+            <a
               href="/admin/portal-conteudos"
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border"
               style={{ borderColor: C.mid, color: C.mid }}
             >
               <FolderOpen size={14} /> Gerenciar portais
             </a>
+
             <CobrancaLoteButton clientes={rows.map(r => ({ id: r.id, nome: r.nome }))} />
             <PillBtn onClick={() => openCreate("cliente")}><Plus size={14} className="inline mr-1" /> Novo cliente</PillBtn>
           </>

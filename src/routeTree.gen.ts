@@ -9,11 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PortalSlugRouteImport } from './routes/portal.$slug'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
+import { Route as AuthenticatedMeuPortalRouteImport } from './routes/_authenticated/meu-portal'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminVisaoGeralRouteImport } from './routes/_authenticated/admin.visao-geral'
@@ -22,10 +24,21 @@ import { Route as AuthenticatedAdminJuridicoRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminFinanceiroRouteImport } from './routes/_authenticated/admin.financeiro'
 import { Route as AuthenticatedAdminEquipeRouteImport } from './routes/_authenticated/admin.equipe'
 import { Route as AuthenticatedAdminCrmRouteImport } from './routes/_authenticated/admin.crm'
+import { Route as AuthenticatedAdminCadastrosRouteImport } from './routes/_authenticated/admin.cadastros'
 import { Route as AuthenticatedAdminBibliotecaMidiaRouteImport } from './routes/_authenticated/admin.biblioteca-midia'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp.webhook'
 import { Route as ApiPublicGoogleCalendarCallbackRouteImport } from './routes/api/public/google-calendar.callback'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -40,14 +53,14 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PortalSlugRoute = PortalSlugRouteImport.update({
-  id: '/portal/$slug',
-  path: '/portal/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMeuPortalRoute = AuthenticatedMeuPortalRouteImport.update({
+  id: '/meu-portal',
+  path: '/meu-portal',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
@@ -95,6 +108,12 @@ const AuthenticatedAdminCrmRoute = AuthenticatedAdminCrmRouteImport.update({
   path: '/crm',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminCadastrosRoute =
+  AuthenticatedAdminCadastrosRouteImport.update({
+    id: '/cadastros',
+    path: '/cadastros',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminBibliotecaMidiaRoute =
   AuthenticatedAdminBibliotecaMidiaRouteImport.update({
     id: '/biblioteca-midia',
@@ -117,11 +136,14 @@ const ApiPublicGoogleCalendarCallbackRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cadastro': typeof CadastroRoute
+  '/login': typeof LoginRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
+  '/meu-portal': typeof AuthenticatedMeuPortalRoute
   '/portal': typeof AuthenticatedPortalRoute
-  '/portal/$slug': typeof PortalSlugRoute
   '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
+  '/admin/cadastros': typeof AuthenticatedAdminCadastrosRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
@@ -134,11 +156,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/cadastro': typeof CadastroRoute
+  '/login': typeof LoginRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
+  '/meu-portal': typeof AuthenticatedMeuPortalRoute
   '/portal': typeof AuthenticatedPortalRoute
-  '/portal/$slug': typeof PortalSlugRoute
   '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
+  '/admin/cadastros': typeof AuthenticatedAdminCadastrosRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
@@ -153,11 +178,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/cadastro': typeof CadastroRoute
+  '/login': typeof LoginRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRoute
+  '/_authenticated/meu-portal': typeof AuthenticatedMeuPortalRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
-  '/portal/$slug': typeof PortalSlugRoute
   '/_authenticated/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
+  '/_authenticated/admin/cadastros': typeof AuthenticatedAdminCadastrosRoute
   '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/_authenticated/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/_authenticated/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
@@ -172,11 +200,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/cadastro'
+    | '/login'
     | '/admin'
     | '/app'
+    | '/meu-portal'
     | '/portal'
-    | '/portal/$slug'
     | '/admin/biblioteca-midia'
+    | '/admin/cadastros'
     | '/admin/crm'
     | '/admin/equipe'
     | '/admin/financeiro'
@@ -189,11 +220,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/cadastro'
+    | '/login'
     | '/admin'
     | '/app'
+    | '/meu-portal'
     | '/portal'
-    | '/portal/$slug'
     | '/admin/biblioteca-midia'
+    | '/admin/cadastros'
     | '/admin/crm'
     | '/admin/equipe'
     | '/admin/financeiro'
@@ -207,11 +241,14 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/cadastro'
+    | '/login'
     | '/_authenticated/admin'
     | '/_authenticated/app'
+    | '/_authenticated/meu-portal'
     | '/_authenticated/portal'
-    | '/portal/$slug'
     | '/_authenticated/admin/biblioteca-midia'
+    | '/_authenticated/admin/cadastros'
     | '/_authenticated/admin/crm'
     | '/_authenticated/admin/equipe'
     | '/_authenticated/admin/financeiro'
@@ -226,13 +263,28 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  PortalSlugRoute: typeof PortalSlugRoute
+  CadastroRoute: typeof CadastroRoute
+  LoginRoute: typeof LoginRoute
   ApiPublicGoogleCalendarCallbackRoute: typeof ApiPublicGoogleCalendarCallbackRoute
   ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -254,18 +306,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/portal/$slug': {
-      id: '/portal/$slug'
-      path: '/portal/$slug'
-      fullPath: '/portal/$slug'
-      preLoaderRoute: typeof PortalSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/portal': {
       id: '/_authenticated/portal'
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof AuthenticatedPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/meu-portal': {
+      id: '/_authenticated/meu-portal'
+      path: '/meu-portal'
+      fullPath: '/meu-portal'
+      preLoaderRoute: typeof AuthenticatedMeuPortalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/app': {
@@ -324,6 +376,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCrmRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/cadastros': {
+      id: '/_authenticated/admin/cadastros'
+      path: '/cadastros'
+      fullPath: '/admin/cadastros'
+      preLoaderRoute: typeof AuthenticatedAdminCadastrosRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/biblioteca-midia': {
       id: '/_authenticated/admin/biblioteca-midia'
       path: '/biblioteca-midia'
@@ -350,6 +409,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminBibliotecaMidiaRoute: typeof AuthenticatedAdminBibliotecaMidiaRoute
+  AuthenticatedAdminCadastrosRoute: typeof AuthenticatedAdminCadastrosRoute
   AuthenticatedAdminCrmRoute: typeof AuthenticatedAdminCrmRoute
   AuthenticatedAdminEquipeRoute: typeof AuthenticatedAdminEquipeRoute
   AuthenticatedAdminFinanceiroRoute: typeof AuthenticatedAdminFinanceiroRoute
@@ -361,6 +421,7 @@ interface AuthenticatedAdminRouteChildren {
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminBibliotecaMidiaRoute:
     AuthenticatedAdminBibliotecaMidiaRoute,
+  AuthenticatedAdminCadastrosRoute: AuthenticatedAdminCadastrosRoute,
   AuthenticatedAdminCrmRoute: AuthenticatedAdminCrmRoute,
   AuthenticatedAdminEquipeRoute: AuthenticatedAdminEquipeRoute,
   AuthenticatedAdminFinanceiroRoute: AuthenticatedAdminFinanceiroRoute,
@@ -376,12 +437,14 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
+  AuthenticatedMeuPortalRoute: typeof AuthenticatedMeuPortalRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAppRoute: AuthenticatedAppRoute,
+  AuthenticatedMeuPortalRoute: AuthenticatedMeuPortalRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
 }
 
@@ -392,7 +455,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  PortalSlugRoute: PortalSlugRoute,
+  CadastroRoute: CadastroRoute,
+  LoginRoute: LoginRoute,
   ApiPublicGoogleCalendarCallbackRoute: ApiPublicGoogleCalendarCallbackRoute,
   ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
 }

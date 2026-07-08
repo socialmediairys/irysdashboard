@@ -7,7 +7,6 @@ import {
   listConteudosCliente,
   createConteudoCliente,
   deleteConteudoCliente,
-  regenerarSlugCliente,
   type Fase,
   type Topico,
   type Conteudo,
@@ -20,13 +19,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import { FileUploader } from "@/components/FileUploader";
 import { toast } from "sonner";
-import { Copy, ExternalLink, Loader2, RefreshCw, Trash2, Video, FileText, Headphones } from "lucide-react";
+import { Loader2, Trash2, Video, FileText, Headphones } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/portal-conteudos")({
   component: PortalConteudosPage,
 });
 
-type ClienteRef = { id: string; nome: string; slug: string | null };
+type ClienteRef = { id: string; nome: string };
 
 function PortalConteudosPage() {
   const [clientes, setClientes] = useState<ClienteRef[]>([]);
@@ -39,15 +38,15 @@ function PortalConteudosPage() {
 
   const listFases = useServerFn(listFasesComTopicos);
   const listConteudos = useServerFn(listConteudosCliente);
-  const regenerarSlug = useServerFn(regenerarSlugCliente);
 
-  const selected = clientes.find((c) => c.id === selectedId) ?? null;
+
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       const [{ data: cliData }, meta] = await Promise.all([
-        supabase.from("clientes").select("id, nome, slug").order("nome"),
+        supabase.from("clientes").select("id, nome").order("nome"),
+
         listFases(),
       ]);
       setClientes((cliData ?? []) as ClienteRef[]);
@@ -112,31 +111,6 @@ function PortalConteudosPage() {
     return m;
   }, [conteudos]);
 
-  const portalUrl = selected?.slug ? `${typeof window !== "undefined" ? window.location.origin : ""}/portal/${selected.slug}` : null;
-
-  const copyPortalUrl = async () => {
-    if (!portalUrl) return;
-    try {
-      await navigator.clipboard.writeText(portalUrl);
-      toast.success("Link do portal copiado!");
-    } catch {
-      toast.error("Não consegui copiar. Copie manualmente o link.");
-    }
-  };
-
-  const handleRegenSlug = async () => {
-    if (!selectedId) return;
-    const custom = prompt("Novo slug (deixe em branco para gerar aleatório):", selected?.slug ?? "");
-    if (custom === null) return;
-    try {
-      const r = await regenerarSlug({ data: { clienteId: selectedId, slug: custom || null } });
-      toast.success(`Slug atualizado: ${r.slug}`);
-      setClientes((prev) => prev.map((c) => (c.id === selectedId ? { ...c, slug: r.slug } : c)));
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Falha ao atualizar slug");
-    }
-  };
-
   if (loading) {
     return <div className="p-8 text-sm text-muted-foreground">Carregando…</div>;
   }
@@ -146,10 +120,9 @@ function PortalConteudosPage() {
       <div>
         <h1 className="text-xl sm:text-2xl font-extrabold break-words">Portal do cliente — Conteúdos por fase</h1>
         <p className="text-sm text-muted-foreground">
-          Gerencie vídeos, áudios e documentos vinculados a cada cliente. Cada cliente vê apenas o próprio portal via link exclusivo.
+          Gerencie vídeos, áudios e documentos vinculados a cada cliente. O acesso é feito por login — cada cliente vê apenas o próprio portal.
         </p>
       </div>
-
 
       <Card className="p-4 space-y-3">
         <div className="flex flex-wrap items-end gap-3">
@@ -164,27 +137,9 @@ function PortalConteudosPage() {
               </SelectContent>
             </Select>
           </div>
-          {portalUrl && (
-            <div className="w-full md:flex-1 md:min-w-[280px] min-w-0">
-              <Label className="text-xs">Link personalizado do portal</Label>
-              <div className="flex flex-wrap gap-2">
-                <Input readOnly value={portalUrl} className="font-mono text-xs w-full sm:flex-1 min-w-0" />
-                <div className="flex gap-2 shrink-0">
-                  <Button variant="outline" size="icon" onClick={copyPortalUrl} title="Copiar link">
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="icon" onClick={() => window.open(portalUrl!, "_blank", "noopener,noreferrer")} title="Abrir portal">
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="icon" onClick={handleRegenSlug} title="Alterar slug">
-                    <RefreshCw className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </Card>
+
 
 
       {!selectedId && (
