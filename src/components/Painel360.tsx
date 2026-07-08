@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import {
   startGoogleCalendarAuth,
   getGoogleCalendarStatus,
