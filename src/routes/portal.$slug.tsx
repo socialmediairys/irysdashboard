@@ -179,19 +179,20 @@ function ConteudoItem({ tipo, titulo, url }: { tipo: ConteudoTipo; titulo: strin
   const Icon = tipo === "video" ? Video : tipo === "audio" ? Headphones : FileText;
   const label = titulo || (tipo === "video" ? "Vídeo" : tipo === "audio" ? "Áudio" : "Documento");
   return (
-    <li className="flex items-center gap-3 rounded-lg border border-[#E8D8C0] bg-white p-3">
-      <Icon className="h-4 w-4 text-[#7A4A18]" />
-      <span className="flex-1 text-sm text-[#2C1505] truncate">{label}</span>
+    <li className="flex items-center gap-3 rounded-lg border border-[#E8D8C0] bg-white p-3 min-w-0">
+      <Icon className="shrink-0 h-4 w-4 text-[#7A4A18]" />
+      <span className="flex-1 text-sm text-[#2C1505] truncate min-w-0">{label}</span>
       {url && (
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs font-semibold text-[#7A4A18] underline"
+          className="shrink-0 text-xs font-semibold text-[#7A4A18] underline"
         >
           Abrir
         </a>
       )}
     </li>
+
   );
 }
