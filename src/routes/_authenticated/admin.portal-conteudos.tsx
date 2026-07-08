@@ -142,13 +142,14 @@ function PortalConteudosPage() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold">Portal do cliente — Conteúdos por fase</h1>
+        <h1 className="text-xl sm:text-2xl font-extrabold break-words">Portal do cliente — Conteúdos por fase</h1>
         <p className="text-sm text-muted-foreground">
           Gerencie vídeos, áudios e documentos vinculados a cada cliente. Cada cliente vê apenas o próprio portal via link exclusivo.
         </p>
       </div>
+
 
       <Card className="p-4 space-y-3">
         <div className="flex flex-wrap items-end gap-3">
