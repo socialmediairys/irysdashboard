@@ -929,7 +929,7 @@ function waMeLink(telefone: string | null, nome: string, valor: number | null, s
   return `https://wa.me/${withCountry}?text=${encodeURIComponent(msg)}`;
 }
 
-function CobrancaWaMeButton({ cliente }: { cliente: ClienteRow }) {
+export function CobrancaWaMeButton({ cliente }: { cliente: ClienteRow }) {
   const statusLabel = CLIENTE_STATUS_LABEL[cliente.status_contrato] ?? cliente.status_contrato;
   const link = waMeLink(cliente.telefone, cliente.nome, cliente.valor_mensal, statusLabel);
   return (
