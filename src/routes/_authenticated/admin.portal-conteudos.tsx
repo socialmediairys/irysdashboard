@@ -330,13 +330,14 @@ function TopicoBlock({
               <span className="flex-1 truncate min-w-0">{c.titulo || c.url || c.storage_path}</span>
 
               {c.url && (
-                <a href={c.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">
+                <a href={c.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs text-primary underline">
                   Abrir
                 </a>
               )}
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(c.id)}>
+              <Button variant="ghost" size="icon" className="shrink-0 h-7 w-7 text-destructive" onClick={() => handleDelete(c.id)}>
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
+
             </li>
           ))}
         </ul>
