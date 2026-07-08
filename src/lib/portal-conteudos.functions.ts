@@ -223,3 +223,69 @@ export const getPortalBySlug = createServerFn({ method: "GET" })
       conteudos,
     };
   });
+
+// Admin: preview do portal de um cliente específico (mesmos dados que o cliente vê).
+export const getPortalPreviewByClienteId = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { clienteId: string }) => {
+    const clienteId = input.clienteId?.trim();
+    if (!clienteId) throw new Error("clienteId é obrigatório");
+    return { clienteId };
+  })
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: cliente, error: cErr } = await supabaseAdmin
+      .from("clientes")
+      .select("id, nome, plano_label, plano_atual, status_contrato, status_cadastro")
+      .eq("id", data.clienteId)
+      .maybeSingle();
+    if (cErr) throw cErr;
+    if (!cliente) throw new Error("Cliente não encontrado.");
+
+    const [fasesRes, topicosRes, conteudosRes] = await Promise.all([
+      supabaseAdmin.from("fases").select("id, nome, descricao").order("id"),
+      supabaseAdmin.from("topicos_fase").select("id, fase_id, nome, ordem").order("fase_id").order("ordem"),
+      supabaseAdmin
+        .from("conteudos_cliente")
+        .select("id, topico_id, tipo, titulo, url, storage_path, storage_bucket, created_at")
+        .eq("cliente_id", data.clienteId)
+        .order("created_at"),
+    ]);
+    if (fasesRes.error) throw fasesRes.error;
+    if (topicosRes.error) throw topicosRes.error;
+    if (conteudosRes.error) throw conteudosRes.error;
+
+    const conteudos = await Promise.all(
+      (conteudosRes.data ?? []).map(async (c) => {
+        let signedUrl = (c.url as string | null) ?? null;
+        if (!signedUrl && c.storage_bucket && c.storage_path) {
+          const { data: signed } = await supabaseAdmin.storage
+            .from(c.storage_bucket as string)
+            .createSignedUrl(c.storage_path as string, 60 * 60 * 6);
+          signedUrl = signed?.signedUrl ?? null;
+        }
+        return {
+          id: c.id as string,
+          topico_id: c.topico_id as string,
+          tipo: c.tipo as ConteudoTipo,
+          titulo: (c.titulo as string) ?? null,
+          url: signedUrl,
+        };
+      }),
+    );
+
+    return {
+      cliente: {
+        id: cliente.id as string,
+        nome: cliente.nome as string,
+        plano: (cliente.plano_label as string) ?? (cliente.plano_atual as string) ?? null,
+        status: cliente.status_contrato as string,
+        status_cadastro: (cliente.status_cadastro as string) ?? null,
+      },
+      fases: (fasesRes.data ?? []) as Fase[],
+      topicos: (topicosRes.data ?? []) as Topico[],
+      conteudos,
+    };
+  });
