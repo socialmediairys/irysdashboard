@@ -137,6 +137,7 @@ export type Database = {
       }
       clientes: {
         Row: {
+          auth_user_id: string | null
           created_at: string
           data_inicio_contrato: string | null
           data_vencimento_contrato: string | null
@@ -149,6 +150,7 @@ export type Database = {
           plano_atual: Database["public"]["Enums"]["plano_atual"] | null
           plano_label: string | null
           slug: string
+          status_cadastro: string
           status_contrato: Database["public"]["Enums"]["status_contrato"]
           telefone: string | null
           updated_at: string
@@ -156,6 +158,7 @@ export type Database = {
           versao_contrato: string | null
         }
         Insert: {
+          auth_user_id?: string | null
           created_at?: string
           data_inicio_contrato?: string | null
           data_vencimento_contrato?: string | null
@@ -170,6 +173,7 @@ export type Database = {
           plano_atual?: Database["public"]["Enums"]["plano_atual"] | null
           plano_label?: string | null
           slug?: string
+          status_cadastro?: string
           status_contrato?: Database["public"]["Enums"]["status_contrato"]
           telefone?: string | null
           updated_at?: string
@@ -177,6 +181,7 @@ export type Database = {
           versao_contrato?: string | null
         }
         Update: {
+          auth_user_id?: string | null
           created_at?: string
           data_inicio_contrato?: string | null
           data_vencimento_contrato?: string | null
@@ -191,6 +196,7 @@ export type Database = {
           plano_atual?: Database["public"]["Enums"]["plano_atual"] | null
           plano_label?: string | null
           slug?: string
+          status_cadastro?: string
           status_contrato?: Database["public"]["Enums"]["status_contrato"]
           telefone?: string | null
           updated_at?: string
@@ -780,6 +786,50 @@ export type Database = {
           valor?: number
         }
         Relationships: []
+      }
+      solicitacoes_cadastro: {
+        Row: {
+          auth_user_id: string
+          cliente_id: string | null
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          observacao: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id: string
+          cliente_id?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          nome: string
+          observacao?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string
+          cliente_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          observacao?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_cadastro_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suporte_tickets: {
         Row: {
