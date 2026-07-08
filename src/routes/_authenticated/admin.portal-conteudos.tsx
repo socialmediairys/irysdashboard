@@ -316,8 +316,8 @@ function TopicoBlock({
   };
 
   return (
-    <div className="rounded-lg border p-4 bg-muted/20">
-      <div className="font-semibold mb-2">{topico.nome}</div>
+    <div className="rounded-lg border p-3 sm:p-4 bg-muted/20 min-w-0">
+      <div className="font-semibold mb-2 break-words">{topico.nome}</div>
       {loading ? (
         <div className="text-xs text-muted-foreground">Carregando…</div>
       ) : conteudos.length === 0 ? (
@@ -325,9 +325,10 @@ function TopicoBlock({
       ) : (
         <ul className="space-y-1.5 mb-3">
           {conteudos.map((c) => (
-            <li key={c.id} className="flex items-center gap-2 text-sm">
-              <TipoIcon tipo={c.tipo} />
-              <span className="flex-1 truncate">{c.titulo || c.url || c.storage_path}</span>
+            <li key={c.id} className="flex items-center gap-2 text-sm min-w-0">
+              <span className="shrink-0"><TipoIcon tipo={c.tipo} /></span>
+              <span className="flex-1 truncate min-w-0">{c.titulo || c.url || c.storage_path}</span>
+
               {c.url && (
                 <a href={c.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline">
                   Abrir
