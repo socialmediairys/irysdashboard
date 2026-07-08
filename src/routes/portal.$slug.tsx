@@ -39,11 +39,28 @@ function PublicPortalPage() {
 
   useEffect(() => {
     let cancel = false;
-    getPortalBySlug({ data: { slug } })
-      .then((d) => { if (!cancel) setData(d); })
-      .catch((e) => { if (!cancel) setError(e instanceof Error ? e.message : "Erro ao carregar portal"); });
-    return () => { cancel = true; };
+    const fetchData = () => {
+      getPortalBySlug({ data: { slug } })
+        .then((d) => { if (!cancel) setData(d); })
+        .catch((e) => { if (!cancel) setError(e instanceof Error ? e.message : "Erro ao carregar portal"); });
+    };
+    fetchData();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") fetchData();
+    };
+    const onFocus = () => fetchData();
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onFocus);
+    // Refetch a cada 30s enquanto a aba estiver aberta, para pegar novos conteúdos publicados
+    const interval = window.setInterval(fetchData, 30000);
+    return () => {
+      cancel = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onFocus);
+      window.clearInterval(interval);
+    };
   }, [slug]);
+
 
   const conteudosPorTopico = useMemo(() => {
     const m: Record<string, PortalData["conteudos"]> = {};
