@@ -1415,7 +1415,7 @@ function ClientesPage() {
     <>
       <PageHeader eyebrow="Clientes" title={`${ativos} clientes`} accent="ativos"
         actions={
-          <div className="flex items-center gap-2">
+          <>
             <a
               href="/admin/portal-conteudos"
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border"
@@ -1425,8 +1425,9 @@ function ClientesPage() {
             </a>
             <CobrancaLoteButton clientes={rows.map(r => ({ id: r.id, nome: r.nome }))} />
             <PillBtn onClick={() => openCreate("cliente")}><Plus size={14} className="inline mr-1" /> Novo cliente</PillBtn>
-          </div>
+          </>
         } />
+
 
       <ListState
         loading={loading}
