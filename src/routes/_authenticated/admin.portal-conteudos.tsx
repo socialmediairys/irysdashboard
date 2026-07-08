@@ -152,7 +152,7 @@ function PortalConteudosPage() {
 
       <Card className="p-4 space-y-3">
         <div className="flex flex-wrap items-end gap-3">
-          <div className="flex-1 min-w-[240px]">
+          <div className="w-full md:flex-1 md:min-w-[240px]">
             <Label className="text-xs">Cliente</Label>
             <Select value={selectedId ?? ""} onValueChange={(v) => setSelectedId(v)}>
               <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
@@ -164,24 +164,27 @@ function PortalConteudosPage() {
             </Select>
           </div>
           {portalUrl && (
-            <div className="flex-1 min-w-[280px]">
+            <div className="w-full md:flex-1 md:min-w-[280px] min-w-0">
               <Label className="text-xs">Link personalizado do portal</Label>
-              <div className="flex gap-2">
-                <Input readOnly value={portalUrl} className="font-mono text-xs" />
-                <Button variant="outline" size="icon" onClick={copyPortalUrl} title="Copiar link">
-                  <Copy className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" onClick={() => window.open(portalUrl!, "_blank", "noopener,noreferrer")} title="Abrir portal">
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="icon" onClick={handleRegenSlug} title="Alterar slug">
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
+              <div className="flex flex-wrap gap-2">
+                <Input readOnly value={portalUrl} className="font-mono text-xs w-full sm:flex-1 min-w-0" />
+                <div className="flex gap-2 shrink-0">
+                  <Button variant="outline" size="icon" onClick={copyPortalUrl} title="Copiar link">
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="icon" onClick={() => window.open(portalUrl!, "_blank", "noopener,noreferrer")} title="Abrir portal">
+                    <ExternalLink className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="icon" onClick={handleRegenSlug} title="Alterar slug">
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           )}
         </div>
       </Card>
+
 
       {!selectedId && (
         <div className="text-sm text-muted-foreground">Selecione um cliente para gerenciar os conteúdos.</div>
