@@ -161,7 +161,7 @@ const DB = {
 
 
 /* ---------- tokens ---------- */
-const C = {
+export const C = {
   dark: "#2C1505", mid: "#7A4A18", gold: "#C9A46E",
   beige: "#E8D8C0", beigeLight: "#F5EEE5", bg: "#EDEAE5",
   text: "#1A0A02", textMid: "#7A6050", textMuted: "#BBA898",
@@ -169,7 +169,7 @@ const C = {
 const SHADOW = "0 2px 16px rgba(44,21,5,0.09)";
 const SHADOW_HOVER = "0 6px 28px rgba(44,21,5,0.16)";
 
-const brl = (n: number) => "R$ " + n.toLocaleString("pt-BR");
+export const brl = (n: number) => "R$ " + n.toLocaleString("pt-BR");
 
 /* ---------- shared atoms ---------- */
 function Eyebrow({ children }: { children: ReactNode }) {
@@ -178,7 +178,7 @@ function Eyebrow({ children }: { children: ReactNode }) {
 function H1({ children }: { children: ReactNode }) {
   return <h1 className="text-4xl font-extrabold leading-tight mt-2" style={{ color: C.text, letterSpacing: "-0.03em" }}>{children}</h1>;
 }
-function Card({ children, dark = false, className = "", style }: { children: ReactNode; dark?: boolean; className?: string; style?: CSSProperties }) {
+export function Card({ children, dark = false, className = "", style }: { children: ReactNode; dark?: boolean; className?: string; style?: CSSProperties }) {
   return (
     <div
       className={`rounded-[18px] p-6 transition-all duration-150 ${className}`}
@@ -195,7 +195,7 @@ function Card({ children, dark = false, className = "", style }: { children: Rea
     </div>
   );
 }
-function PillBtn({ children, variant = "dark", onClick }: { children: ReactNode; variant?: "dark" | "ghost" | "gold"; onClick?: () => void }) {
+export function PillBtn({ children, variant = "dark", onClick }: { children: ReactNode; variant?: "dark" | "ghost" | "gold"; onClick?: () => void }) {
   const styles: Record<string, CSSProperties> = {
     dark:  { background: C.dark, color: "#fff" },
     ghost: { background: "transparent", color: C.text, border: `1px solid ${C.beige}` },
@@ -221,7 +221,7 @@ function SectionLabel({ children }: { children: ReactNode }) {
   return <div className="mb-3 text-xs font-bold uppercase tracking-[0.18em]" style={{ color: C.textMid }}>{children}</div>;
 }
 
-const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
+export const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
   quente:     { bg: "#FFE5D9", fg: "#A8431E" },
   frio:       { bg: "#DDE9F2", fg: "#1E4F7A" },
   negociando: { bg: "#FFF3CD", fg: "#8A6914" },
@@ -233,7 +233,7 @@ const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
   buy:        { bg: "#FFE0B2", fg: "#A8431E" },
   pend:       { bg: C.beige, fg: C.dark },
 };
-function TagBadge({ label, variant }: { label: string; variant: string }) {
+export function TagBadge({ label, variant }: { label: string; variant: string }) {
   const c = STATUS_COLORS[variant] ?? STATUS_COLORS.pendente;
   return <span className="rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider" style={{ background: c.bg, color: c.fg }}>{label}</span>;
 }
@@ -953,13 +953,13 @@ export function CobrancaWaMeButton({ cliente }: { cliente: ClienteRow }) {
   );
 }
 
-const CLIENTE_STATUS_VARIANT: Record<string, string> = {
+export const CLIENTE_STATUS_VARIANT: Record<string, string> = {
   ativo: "ativo",
   pendente_assinatura: "atencao",
   vencido: "proposta",
   cancelado: "frio",
 };
-const CLIENTE_STATUS_LABEL: Record<string, string> = {
+export const CLIENTE_STATUS_LABEL: Record<string, string> = {
   ativo: "Ativo",
   pendente_assinatura: "Atenção",
   vencido: "Vencido",
@@ -1452,32 +1452,54 @@ function ClientesPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mb-6">
           {rows.map((c) => (
             <Card key={c.id}>
-              <div className="flex items-start gap-4">
+              <div className="flex items-start justify-between gap-3">
                 <Link
                   to="/admin/clientes/$clienteId"
                   params={{ clienteId: c.id }}
-                  className="flex items-start gap-4 flex-1 min-w-0 group"
+                  className="flex items-center gap-3 flex-1 min-w-0 group"
                   aria-label={`Abrir perfil de ${c.nome}`}
                 >
-                  <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg flex-shrink-0"
+                  <div className="flex h-12 w-12 items-center justify-center rounded-[10px] font-extrabold text-base flex-shrink-0"
                     style={{ background: C.beige, color: C.dark }}>{c.init || initialsOf(c.nome)}</div>
                   <div className="min-w-0 flex-1">
                     <div className="font-extrabold truncate group-hover:underline">{c.nome}</div>
-                    <div className="text-xs" style={{ color: C.textMid }}>{c.plano_label || c.plano_atual || "—"}</div>
-                    <div className="mt-2 font-extrabold" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}/mês</div>
+                    <div className="text-xs truncate" style={{ color: C.textMid }}>
+                      {c.plano_label || c.plano_atual || "Serviço não definido"}
+                    </div>
                   </div>
                 </Link>
+                <TagBadge
+                  label={CLIENTE_STATUS_LABEL[c.status_contrato] ?? c.status_contrato}
+                  variant={CLIENTE_STATUS_VARIANT[c.status_contrato] ?? "frio"}
+                />
+              </div>
+
+              <div className="mt-4 flex items-end justify-between gap-3 flex-wrap">
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: C.textMuted }}>
+                    Valor mensal
+                  </div>
+                  <div className="text-lg font-extrabold" style={{ color: C.mid }}>
+                    {brl(Number(c.valor_mensal) || 0)}<span className="text-xs font-semibold" style={{ color: C.textMuted }}>/mês</span>
+                  </div>
+                </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <CobrancaWaMeButton cliente={c} />
                   <CobrancaWhatsappButton clienteId={c.id} nome={c.nome} />
                   <RowActions onEdit={() => openEdit("cliente", c)} onDelete={() => openDelete("cliente", c)} />
                 </div>
               </div>
-              <div className="mt-4">
-                <TagBadge
-                  label={CLIENTE_STATUS_LABEL[c.status_contrato] ?? c.status_contrato}
-                  variant={CLIENTE_STATUS_VARIANT[c.status_contrato] ?? "frio"}
-                />
+
+              <div className="mt-4 pt-3 flex items-center justify-between gap-2" style={{ borderTop: `1px solid ${C.beigeLight}` }}>
+                <span className="text-[11px] font-semibold" style={{ color: C.textMuted }}>Portal do cliente</span>
+                <Link
+                  to="/admin/clientes/$clienteId"
+                  params={{ clienteId: c.id }}
+                  className="inline-flex items-center gap-1 text-xs font-bold hover:underline"
+                  style={{ color: C.mid }}
+                >
+                  Ver detalhes <ArrowRight size={12} />
+                </Link>
               </div>
             </Card>
           ))}
@@ -2755,4 +2777,3 @@ export default function Painel360() {
     </CrudProvider>
   );
 }
-
