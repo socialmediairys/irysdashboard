@@ -79,26 +79,33 @@ export function IntegrationsTab() {
   // Meta Business (Instagram/Facebook)
   const startMetaAuth = useServerFn(startMetaBusinessAuth);
   const getMStatusFn = useServerFn(getMetaBusinessStatus);
-  const selectMPage = useServerFn(selectMetaBusinessPage);
+  const getMPagesFn = useServerFn(getMetaBusinessPages);
+  const setMPageClientFn = useServerFn(setMetaBusinessPageClient);
   const disconnectM = useServerFn(disconnectMetaBusiness);
 
   const [mStatus, setMStatus] = useState<MetaBusinessStatus | null>(null);
+  const [mPages, setMPages] = useState<MetaBusinessPage[]>([]);
   const [mLoading, setMLoading] = useState(true);
   const [mBusy, setMBusy] = useState(false);
-  const [pageChoiceOpen, setPageChoiceOpen] = useState(false);
-  const [selectedPageId, setSelectedPageId] = useState("");
+  const [clientes, setClientes] = useState<Array<{ id: string; nome: string }>>([]);
+  const [rowBusyId, setRowBusyId] = useState<string | null>(null);
 
   const refreshM = async () => {
     setMLoading(true);
     try {
-      const s = await getMStatusFn();
+      const [s, pages] = await Promise.all([getMStatusFn(), getMPagesFn()]);
       setMStatus(s);
-      if (s.pendingPages && s.pendingPages.length > 0) setPageChoiceOpen(true);
+      setMPages(pages);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao carregar Meta Business");
     } finally {
       setMLoading(false);
     }
+  };
+
+  const loadClientes = async () => {
+    const { data, error } = await supabase.from("clientes").select("id, nome").order("nome");
+    if (!error) setClientes((data ?? []).map((c) => ({ id: c.id, nome: c.nome ?? "" })));
   };
 
   const handleMConnect = async () => {
@@ -117,27 +124,27 @@ export function IntegrationsTab() {
     }
   };
 
-  const handleMSelectPage = async () => {
-    if (!selectedPageId) {
-      toast.error("Escolha uma Página do Facebook");
-      return;
-    }
-    setMBusy(true);
+  const handleSetPageClient = async (pageRowId: string, clientId: string | null) => {
+    setRowBusyId(pageRowId);
     try {
-      const r = await selectMPage({ data: { pageId: selectedPageId } });
-      toast.success(`Conectado: ${r.pageName}${r.igUsername ? ` (@${r.igUsername})` : ""}`);
-      setPageChoiceOpen(false);
-      setSelectedPageId("");
-      await refreshM();
+      await setMPageClientFn({ data: { pageRowId, clientId } });
+      setMPages((prev) =>
+        prev.map((p) =>
+          p.id === pageRowId
+            ? { ...p, clientId, clientName: clientes.find((c) => c.id === clientId)?.nome ?? null }
+            : p,
+        ),
+      );
+      toast.success("Vínculo atualizado");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Falha ao selecionar página");
+      toast.error(e instanceof Error ? e.message : "Falha ao vincular");
     } finally {
-      setMBusy(false);
+      setRowBusyId(null);
     }
   };
 
   const handleMDisconnect = async () => {
-    if (!confirm("Desconectar o Meta Business?")) return;
+    if (!confirm("Desconectar o Meta Business? Todas as Páginas serão removidas.")) return;
     setMBusy(true);
     try {
       await disconnectM();
@@ -149,6 +156,7 @@ export function IntegrationsTab() {
       setMBusy(false);
     }
   };
+
 
   const refresh = async () => {
     setLoading(true);
