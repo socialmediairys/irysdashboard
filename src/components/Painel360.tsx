@@ -2653,7 +2653,10 @@ function BibliotecaPage() {
 }
 
 function ConfigPage() {
-  const [tab, setTab] = useState("perfil");
+  const [tab, setTab] = useState(() => {
+    if (typeof window === "undefined") return "perfil";
+    return new URLSearchParams(window.location.search).get("tab") === "integracoes" ? "integracoes" : "perfil";
+  });
   return (
     <>
       <PageHeader eyebrow="Sistema" title="Configurações &" accent="conta" />
@@ -2708,7 +2711,10 @@ function ConfigPage() {
 
 /* ---------- Shell ---------- */
 function Painel360Inner() {
-  const [active, setActive] = useState<PageKey>("dash");
+  const [active, setActive] = useState<PageKey>(() => {
+    if (typeof window === "undefined") return "dash";
+    return new URLSearchParams(window.location.search).get("tab") === "integracoes" ? "config" : "dash";
+  });
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
