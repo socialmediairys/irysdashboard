@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createHmac, timingSafeEqual } from "node:crypto";
+
 
 // Meta WhatsApp Cloud API webhook
 // - GET: verifica o webhook (hub.challenge)
