@@ -184,15 +184,15 @@ export function IntegrationsTab() {
     void refresh();
     void refreshW();
     void refreshM();
+    void loadClientes();
     const params = new URLSearchParams(window.location.search);
     if (params.get("meta") === "connected") {
       toast.success("Meta Business conectado!");
       window.history.replaceState(null, "", window.location.pathname);
-    } else if (params.get("meta") === "choose-page") {
-      window.history.replaceState(null, "", window.location.pathname);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const handleConnect = async () => {
     setBusy(true);
