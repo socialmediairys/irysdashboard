@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createHmac, timingSafeEqual } from "node:crypto";
+
 
 // Meta WhatsApp Cloud API webhook
 // - GET: verifica o webhook (hub.challenge)
@@ -37,12 +39,27 @@ export const Route = createFileRoute("/api/public/whatsapp/webhook")({
         return new Response("Forbidden", { status: 403 });
       },
       POST: async ({ request }) => {
+        const appSecret = process.env.WHATSAPP_APP_SECRET;
+        if (!appSecret) {
+          return new Response("Webhook not configured", { status: 503 });
+        }
+        const rawBody = await request.arrayBuffer();
+        const sigHeader = request.headers.get("x-hub-signature-256") ?? "";
+        const expected =
+          "sha256=" +
+          createHmac("sha256", appSecret).update(Buffer.from(rawBody)).digest("hex");
+        const a = Buffer.from(sigHeader);
+        const b = Buffer.from(expected);
+        if (a.length !== b.length || !timingSafeEqual(a, b)) {
+          return new Response("Forbidden", { status: 403 });
+        }
         let payload: WebhookPayload;
         try {
-          payload = (await request.json()) as WebhookPayload;
+          payload = JSON.parse(new TextDecoder().decode(rawBody)) as WebhookPayload;
         } catch {
           return new Response("Bad Request", { status: 400 });
         }
+
 
         const statuses: StatusEvent[] = [];
         for (const entry of payload.entry ?? []) {
