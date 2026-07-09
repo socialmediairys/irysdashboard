@@ -63,122 +63,116 @@ export const startMetaBusinessAuth = createServerFn({ method: "POST" })
     return { ok: true as const, url: url.toString() };
   });
 
-export type MetaBusinessStatus = {
-  connected: boolean;
+export type MetaBusinessPage = {
+  id: string;
+  pageId: string;
   pageName: string | null;
   igUsername: string | null;
+  hasInstagram: boolean;
+  clientId: string | null;
+  clientName: string | null;
   updatedAt: string | null;
-  pendingPages: Array<{ id: string; name: string; hasInstagram: boolean }> | null;
+};
+
+export type MetaBusinessStatus = {
+  connected: boolean;
+  pagesCount: number;
+  updatedAt: string | null;
 };
 
 export const getMetaBusinessStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<MetaBusinessStatus> => {
-    const { data: conn, error } = await context.supabase
-      .from("meta_business_connections")
-      .select("page_name, ig_username, updated_at")
+    const { data, error } = await context.supabase
+      .from("meta_business_pages")
+      .select("updated_at")
       .eq("user_id", context.userId)
-      .maybeSingle();
+      .order("updated_at", { ascending: false });
     if (error) throw error;
-
-    if (conn) {
-      return {
-        connected: true,
-        pageName: conn.page_name ?? null,
-        igUsername: conn.ig_username ?? null,
-        updatedAt: conn.updated_at ?? null,
-        pendingPages: null,
-      };
-    }
-
-    // Sem conexão final — verifica se há uma escolha de página pendente
-    // (usuário administra mais de uma Página do Facebook).
-    const { data: pending, error: pendErr } = await context.supabase
-      .from("meta_business_pending")
-      .select("pages")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (pendErr) throw pendErr;
-
+    const rows = data ?? [];
     return {
-      connected: false,
-      pageName: null,
-      igUsername: null,
-      updatedAt: null,
-      pendingPages: ((pending?.pages as unknown as Array<{ id: string; name: string; ig_user_id: string | null }>) ?? []).map(
-        (p) => ({ id: p.id, name: p.name, hasInstagram: !!p.ig_user_id }),
-      ),
+      connected: rows.length > 0,
+      pagesCount: rows.length,
+      updatedAt: rows[0]?.updated_at ?? null,
     };
   });
 
-export const selectMetaBusinessPage = createServerFn({ method: "POST" })
+export const getMetaBusinessPages = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { pageId: string }) => {
-    const pageId = input.pageId?.trim();
-    if (!pageId) throw new Error("pageId é obrigatório");
-    return { pageId };
+  .handler(async ({ context }): Promise<MetaBusinessPage[]> => {
+    const { data, error } = await context.supabase
+      .from("meta_business_pages")
+      .select("id, page_id, page_name, ig_user_id, ig_username, client_id, updated_at, clientes(nome)")
+      .eq("user_id", context.userId)
+      .order("page_name", { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map((r) => ({
+      id: r.id,
+      pageId: r.page_id,
+      pageName: r.page_name,
+      igUsername: r.ig_username,
+      hasInstagram: !!r.ig_user_id,
+      clientId: r.client_id,
+      clientName: (r.clientes as { nome: string | null } | null)?.nome ?? null,
+      updatedAt: r.updated_at,
+    }));
+  });
+
+export const setMetaBusinessPageClient = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { pageRowId: string; clientId: string | null }) => {
+    const pageRowId = input.pageRowId?.trim();
+    if (!pageRowId) throw new Error("pageRowId é obrigatório");
+    return { pageRowId, clientId: input.clientId?.trim() || null };
   })
   .handler(async ({ data, context }) => {
-    const { data: pending, error: pendErr } = await context.supabase
-      .from("meta_business_pending")
-      .select("pages")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (pendErr) throw pendErr;
-    if (!pending) throw new Error("Nenhuma seleção pendente encontrada. Conecte novamente.");
-
-    type FullPage = {
-      id: string;
-      name: string;
-      access_token: string;
-      ig_user_id: string | null;
-      ig_username: string | null;
-    };
-    const pages = (pending.pages as unknown as FullPage[]) ?? [];
-    const chosen = pages.find((p) => p.id === data.pageId);
-    if (!chosen) throw new Error("Página não encontrada na seleção. Conecte novamente.");
-
-    const { error: upsertErr } = await context.supabase.from("meta_business_connections").upsert({
-      user_id: context.userId,
-      page_id: chosen.id,
-      page_name: chosen.name,
-      page_access_token: chosen.access_token,
-      ig_user_id: chosen.ig_user_id,
-      ig_username: chosen.ig_username,
-    });
-    if (upsertErr) throw upsertErr;
-
-    await context.supabase.from("meta_business_pending").delete().eq("user_id", context.userId);
-
-    return { ok: true as const, pageName: chosen.name, igUsername: chosen.ig_username };
+    const { error } = await context.supabase
+      .from("meta_business_pages")
+      .update({ client_id: data.clientId })
+      .eq("id", data.pageRowId)
+      .eq("user_id", context.userId);
+    if (error) throw error;
+    return { ok: true as const };
   });
 
 export const disconnectMetaBusiness = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await context.supabase.from("meta_business_connections").delete().eq("user_id", context.userId);
-    await context.supabase.from("meta_business_pending").delete().eq("user_id", context.userId);
+    const { error } = await context.supabase
+      .from("meta_business_pages")
+      .delete()
+      .eq("user_id", context.userId);
+    if (error) throw error;
     return { ok: true as const };
   });
 
-// Métricas básicas da conta do Instagram conectada (seguidores, nº de mídias).
-// Base para a futura tela de "Métricas sociais" — publicar posts e insights
-// por publicação ficam para uma próxima etapa.
+// Métricas básicas da conta do Instagram vinculada à Página do cliente informado.
 export const getInstagramAccountInsights = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data: conn, error } = await context.supabase
-      .from("meta_business_connections")
+  .inputValidator((input: { clientId: string }) => {
+    const clientId = input.clientId?.trim();
+    if (!clientId) throw new Error("clientId é obrigatório");
+    return { clientId };
+  })
+  .handler(async ({ data, context }) => {
+    const { data: page, error } = await context.supabase
+      .from("meta_business_pages")
       .select("ig_user_id, page_access_token")
       .eq("user_id", context.userId)
+      .eq("client_id", data.clientId)
       .maybeSingle();
     if (error) throw error;
-    if (!conn || !conn.ig_user_id) {
-      throw new Error("Instagram não conectado. Conecte em Configurações → Integrações.");
+    if (!page) {
+      throw new Error(
+        "Nenhuma Página do Meta Business vinculada a este cliente ainda. Vincule em Configurações → Integrações.",
+      );
     }
-    const url = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${conn.ig_user_id}`);
+    if (!page.ig_user_id) {
+      throw new Error("A Página vinculada não tem uma Conta Business do Instagram.");
+    }
+    const url = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${page.ig_user_id}`);
     url.searchParams.set("fields", "username,followers_count,follows_count,media_count");
-    url.searchParams.set("access_token", conn.page_access_token);
+    url.searchParams.set("access_token", page.page_access_token);
     const res = await fetch(url.toString());
     const json = (await res.json()) as {
       error?: { message?: string };
