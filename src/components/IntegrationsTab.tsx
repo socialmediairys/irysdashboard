@@ -14,10 +14,14 @@ import {
 import {
   startMetaBusinessAuth,
   getMetaBusinessStatus,
-  selectMetaBusinessPage,
+  getMetaBusinessPages,
+  setMetaBusinessPageClient,
   disconnectMetaBusiness,
   type MetaBusinessStatus,
+  type MetaBusinessPage,
 } from "@/lib/meta-business.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -75,26 +79,33 @@ export function IntegrationsTab() {
   // Meta Business (Instagram/Facebook)
   const startMetaAuth = useServerFn(startMetaBusinessAuth);
   const getMStatusFn = useServerFn(getMetaBusinessStatus);
-  const selectMPage = useServerFn(selectMetaBusinessPage);
+  const getMPagesFn = useServerFn(getMetaBusinessPages);
+  const setMPageClientFn = useServerFn(setMetaBusinessPageClient);
   const disconnectM = useServerFn(disconnectMetaBusiness);
 
   const [mStatus, setMStatus] = useState<MetaBusinessStatus | null>(null);
+  const [mPages, setMPages] = useState<MetaBusinessPage[]>([]);
   const [mLoading, setMLoading] = useState(true);
   const [mBusy, setMBusy] = useState(false);
-  const [pageChoiceOpen, setPageChoiceOpen] = useState(false);
-  const [selectedPageId, setSelectedPageId] = useState("");
+  const [clientes, setClientes] = useState<Array<{ id: string; nome: string }>>([]);
+  const [rowBusyId, setRowBusyId] = useState<string | null>(null);
 
   const refreshM = async () => {
     setMLoading(true);
     try {
-      const s = await getMStatusFn();
+      const [s, pages] = await Promise.all([getMStatusFn(), getMPagesFn()]);
       setMStatus(s);
-      if (s.pendingPages && s.pendingPages.length > 0) setPageChoiceOpen(true);
+      setMPages(pages);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao carregar Meta Business");
     } finally {
       setMLoading(false);
     }
+  };
+
+  const loadClientes = async () => {
+    const { data, error } = await supabase.from("clientes").select("id, nome").order("nome");
+    if (!error) setClientes((data ?? []).map((c) => ({ id: c.id, nome: c.nome ?? "" })));
   };
 
   const handleMConnect = async () => {
@@ -113,27 +124,27 @@ export function IntegrationsTab() {
     }
   };
 
-  const handleMSelectPage = async () => {
-    if (!selectedPageId) {
-      toast.error("Escolha uma Página do Facebook");
-      return;
-    }
-    setMBusy(true);
+  const handleSetPageClient = async (pageRowId: string, clientId: string | null) => {
+    setRowBusyId(pageRowId);
     try {
-      const r = await selectMPage({ data: { pageId: selectedPageId } });
-      toast.success(`Conectado: ${r.pageName}${r.igUsername ? ` (@${r.igUsername})` : ""}`);
-      setPageChoiceOpen(false);
-      setSelectedPageId("");
-      await refreshM();
+      await setMPageClientFn({ data: { pageRowId, clientId } });
+      setMPages((prev) =>
+        prev.map((p) =>
+          p.id === pageRowId
+            ? { ...p, clientId, clientName: clientes.find((c) => c.id === clientId)?.nome ?? null }
+            : p,
+        ),
+      );
+      toast.success("Vínculo atualizado");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Falha ao selecionar página");
+      toast.error(e instanceof Error ? e.message : "Falha ao vincular");
     } finally {
-      setMBusy(false);
+      setRowBusyId(null);
     }
   };
 
   const handleMDisconnect = async () => {
-    if (!confirm("Desconectar o Meta Business?")) return;
+    if (!confirm("Desconectar o Meta Business? Todas as Páginas serão removidas.")) return;
     setMBusy(true);
     try {
       await disconnectM();
@@ -145,6 +156,7 @@ export function IntegrationsTab() {
       setMBusy(false);
     }
   };
+
 
   const refresh = async () => {
     setLoading(true);
@@ -172,15 +184,15 @@ export function IntegrationsTab() {
     void refresh();
     void refreshW();
     void refreshM();
+    void loadClientes();
     const params = new URLSearchParams(window.location.search);
     if (params.get("meta") === "connected") {
       toast.success("Meta Business conectado!");
       window.history.replaceState(null, "", window.location.pathname);
-    } else if (params.get("meta") === "choose-page") {
-      window.history.replaceState(null, "", window.location.pathname);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const handleConnect = async () => {
     setBusy(true);
@@ -509,19 +521,11 @@ export function IntegrationsTab() {
                 Publicar e coletar métricas de posts.
               </div>
               {mStatus?.connected && (
-                <div className="text-xs mt-1 space-y-0.5">
-                  {mStatus.pageName && (
-                    <div>
-                      Página: <span className="font-medium">{mStatus.pageName}</span>
-                    </div>
-                  )}
-                  {mStatus.igUsername && (
-                    <div>
-                      Instagram: <span className="font-medium">@{mStatus.igUsername}</span>
-                    </div>
-                  )}
+                <div className="text-xs mt-1">
+                  {mStatus.pagesCount} Página{mStatus.pagesCount === 1 ? "" : "s"} conectada{mStatus.pagesCount === 1 ? "" : "s"}
                 </div>
               )}
+
             </div>
           </div>
           <div className="flex gap-2">
@@ -549,50 +553,46 @@ export function IntegrationsTab() {
         </div>
       </div>
 
-      <Dialog open={pageChoiceOpen} onOpenChange={setPageChoiceOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Escolha a Página do Facebook</DialogTitle>
-            <DialogDescription>
-              Você administra mais de uma Página. Escolha qual conectar — vamos usar a Conta
-              Business do Instagram vinculada a ela, se houver.
-            </DialogDescription>
-          </DialogHeader>
+      {mStatus?.connected && mPages.length > 0 && (
+        <div className="rounded-xl border p-4 bg-card">
+          <div className="mb-3">
+            <div className="font-semibold text-sm">Páginas do Meta Business</div>
+            <p className="text-xs text-muted-foreground">
+              Vincule cada Página a um cliente para puxar métricas e publicar em nome dele.
+            </p>
+          </div>
           <div className="space-y-2">
-            {(mStatus?.pendingPages ?? []).map((p) => (
-              <label
-                key={p.id}
-                className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition ${
-                  selectedPageId === p.id ? "border-primary bg-muted/40" : ""
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="meta-page"
-                  value={p.id}
-                  checked={selectedPageId === p.id}
-                  onChange={() => setSelectedPageId(p.id)}
-                />
+            {mPages.map((p) => (
+              <div key={p.id} className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-lg border p-3">
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{p.name}</div>
+                  <div className="font-medium truncate">{p.pageName || p.pageId}</div>
                   <div className="text-xs text-muted-foreground">
-                    {p.hasInstagram ? "Instagram Business vinculado" : "Sem Instagram Business vinculado"}
+                    {p.igUsername ? `@${p.igUsername}` : p.hasInstagram ? "Instagram Business vinculado" : "Sem Instagram Business"}
                   </div>
                 </div>
-              </label>
+                <div className="sm:w-64">
+                  <Select
+                    value={p.clientId ?? "__none__"}
+                    onValueChange={(v) => handleSetPageClient(p.id, v === "__none__" ? null : v)}
+                    disabled={rowBusyId === p.id}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Nenhum cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Nenhum cliente</SelectItem>
+                      {clientes.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             ))}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPageChoiceOpen(false)} disabled={mBusy}>
-              Cancelar
-            </Button>
-            <Button onClick={handleMSelectPage} disabled={mBusy || !selectedPageId}>
-              {mBusy ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-              Conectar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
+
 
       {/* Placeholders */}
       <div className="space-y-2">

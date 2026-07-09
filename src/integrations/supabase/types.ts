@@ -570,8 +570,9 @@ export type Database = {
         }
         Relationships: []
       }
-      meta_business_connections: {
+      meta_business_pages: {
         Row: {
+          client_id: string | null
           created_at: string
           id: string
           ig_user_id: string | null
@@ -584,6 +585,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          client_id?: string | null
           created_at?: string
           id?: string
           ig_user_id?: string | null
@@ -596,6 +598,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          client_id?: string | null
           created_at?: string
           id?: string
           ig_user_id?: string | null
@@ -607,25 +610,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
-      }
-      meta_business_pending: {
-        Row: {
-          created_at: string
-          pages: Json
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          pages: Json
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          pages?: Json
-          user_id?: string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "meta_business_pages_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       onboarding_checklist: {
         Row: {
