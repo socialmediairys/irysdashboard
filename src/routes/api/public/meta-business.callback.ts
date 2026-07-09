@@ -147,41 +147,27 @@ export const Route = createFileRoute("/api/public/meta-business/callback")({
           );
         }
 
-        if (pages.length === 1) {
-          // Só uma página: conecta direto, sem precisar escolher.
-          const p = pages[0];
-          const { error } = await supabaseAdmin.from("meta_business_connections").upsert({
-            user_id: userId,
-            page_id: p.id,
-            page_name: p.name,
-            page_access_token: p.access_token,
-            ig_user_id: p.ig_user_id,
-            ig_username: p.ig_username,
-          });
-          if (error) {
-            console.error("upsert meta connection error", error);
-            return html("<h1>Falha ao salvar conexão</h1>", 500);
-          }
-          await supabaseAdmin.from("meta_business_pending").delete().eq("user_id", userId);
-          return new Response(null, {
-            status: 302,
-            headers: { location: "/admin/visao-geral?tab=integracoes&meta=connected" },
-          });
-        }
-
-        // Mais de uma página: guarda a lista e deixa o usuário escolher na tela.
-        const { error: pendingErr } = await supabaseAdmin.from("meta_business_pending").upsert({
+        // Salva todas as Páginas retornadas — vinculação a cliente é feita depois na UI.
+        const rows = pages.map((p) => ({
           user_id: userId,
-          pages,
-        });
-        if (pendingErr) {
-          console.error("upsert meta pending error", pendingErr);
-          return html("<h1>Falha ao salvar suas Páginas</h1>", 500);
+          page_id: p.id,
+          page_name: p.name,
+          page_access_token: p.access_token,
+          ig_user_id: p.ig_user_id,
+          ig_username: p.ig_username,
+        }));
+        const { error } = await supabaseAdmin
+          .from("meta_business_pages")
+          .upsert(rows, { onConflict: "page_id" });
+        if (error) {
+          console.error("upsert meta pages error", error);
+          return html("<h1>Falha ao salvar Páginas</h1>", 500);
         }
         return new Response(null, {
           status: 302,
-          headers: { location: "/admin/visao-geral?tab=integracoes&meta=choose-page" },
+          headers: { location: "/admin/visao-geral?tab=integracoes&meta=connected" },
         });
+
       },
     },
   },
