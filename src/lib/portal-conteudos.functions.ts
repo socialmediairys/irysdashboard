@@ -194,11 +194,14 @@ export const getPortalBySlug = createServerFn({ method: "GET" })
     const conteudos = await Promise.all(
       (conteudosRes.data ?? []).map(async (c) => {
         let signedUrl = c.url as string | null;
-        if (!signedUrl && c.storage_bucket && c.storage_path) {
+        // Buckets são privados: sempre que houver arquivo no storage,
+        // preferimos o link assinado (temporário e seguro) em vez da
+        // URL pública salva anteriormente, que não funciona em bucket privado.
+        if (c.storage_bucket && c.storage_path) {
           const { data: signed } = await supabaseAdmin.storage
             .from(c.storage_bucket as string)
             .createSignedUrl(c.storage_path as string, 60 * 60 * 6); // 6 horas
-          signedUrl = signed?.signedUrl ?? null;
+          if (signed?.signedUrl) signedUrl = signed.signedUrl;
         }
         return {
           id: c.id as string,
@@ -258,12 +261,15 @@ export const getMeuPortal = createServerFn({ method: "GET" })
 
     const conteudos = await Promise.all(
       (conteudosRes.data ?? []).map(async (c) => {
-        let signedUrl = (c.url as string | null) ?? null;
-        if (!signedUrl && c.storage_bucket && c.storage_path) {
+        let signedUrl = c.url as string | null;
+        // Buckets são privados: sempre que houver arquivo no storage,
+        // preferimos o link assinado (temporário e seguro) em vez da
+        // URL pública salva anteriormente, que não funciona em bucket privado.
+        if (c.storage_bucket && c.storage_path) {
           const { data: signed } = await supabaseAdmin.storage
             .from(c.storage_bucket as string)
             .createSignedUrl(c.storage_path as string, 60 * 60 * 6); // 6 horas
-          signedUrl = signed?.signedUrl ?? null;
+          if (signed?.signedUrl) signedUrl = signed.signedUrl;
         }
         return {
           id: c.id as string,
@@ -325,11 +331,14 @@ export const getPortalPreviewByClienteId = createServerFn({ method: "GET" })
     const conteudos = await Promise.all(
       (conteudosRes.data ?? []).map(async (c) => {
         let signedUrl = (c.url as string | null) ?? null;
-        if (!signedUrl && c.storage_bucket && c.storage_path) {
+        // Buckets são privados: sempre que houver arquivo no storage,
+        // preferimos o link assinado (temporário e seguro) em vez da
+        // URL pública salva anteriormente, que não funciona em bucket privado.
+        if (c.storage_bucket && c.storage_path) {
           const { data: signed } = await supabaseAdmin.storage
             .from(c.storage_bucket as string)
             .createSignedUrl(c.storage_path as string, 60 * 60 * 6);
-          signedUrl = signed?.signedUrl ?? null;
+          if (signed?.signedUrl) signedUrl = signed.signedUrl;
         }
         return {
           id: c.id as string,
