@@ -183,7 +183,11 @@ function TopicoBlock({
           topicoId: topico.id,
           tipo,
           titulo: titulo || arquivo.nome,
-          url: arquivo.url,
+          // Não salvamos a "url pública" aqui: os buckets são privados,
+          // então esse link nunca funcionaria. Guardamos só o caminho no
+          // storage — o portal do cliente gera um link assinado (temporário
+          // e seguro) na hora de exibir, usando storagePath + storageBucket.
+          url: null,
           storagePath: arquivo.path,
           storageBucket: arquivo.bucket,
         },
