@@ -167,26 +167,39 @@ function AudioItem({
   );
 }
 
+/* ---------- ícone + rótulo padrão por tipo de conteúdo ---------- */
+function iconeConteudo(tipo: ConteudoTipo) {
+  if (tipo === "video") return Video;
+  if (tipo === "audio") return Headphones;
+  return FileText;
+}
+function rotuloPadrao(tipo: ConteudoTipo) {
+  if (tipo === "video") return "Vídeo";
+  if (tipo === "audio") return "Áudio";
+  return "Documento";
+}
+
 /* ---------- Fase accordion ---------- */
 function FaseAccordion({
   fase,
   nome,
   desc,
-  subitens,
+  topicos,
+  conteudosPorTopico,
   ativa,
   open,
   onToggle,
-  count,
 }: {
   fase: number;
   nome: string;
   desc: string;
-  subitens: string[];
+  topicos: Topico[];
+  conteudosPorTopico: Record<string, Conteudo[]>;
   ativa: boolean;
   open: boolean;
   onToggle: () => void;
-  count: number;
 }) {
+  const count = topicos.reduce((s, t) => s + (conteudosPorTopico[t.id]?.length ?? 0), 0);
   return (
     <div className="rounded-[18px] overflow-hidden" style={{ background: "#fff", boxShadow: SHADOW }}>
       <button type="button" onClick={onToggle} className="w-full p-4 sm:p-5 flex items-center gap-3 sm:gap-4 text-left">
@@ -213,14 +226,69 @@ function FaseAccordion({
       {open && (
         <div className="px-4 sm:px-5 pb-4 sm:pb-5 sm:pl-[76px]">
           <p className="text-sm mb-3" style={{ color: C.textMid }}>{desc}</p>
-          <ul className="space-y-1.5">
-            {subitens.map((s, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm" style={{ color: C.text }}>
-                {ativa ? <CheckCircle2 size={14} style={{ color: C.mid }} /> : <Circle size={14} style={{ color: C.textMuted }} />}
-                {s}
-              </li>
-            ))}
-          </ul>
+          {topicos.length === 0 ? (
+            <div className="text-sm italic" style={{ color: C.textMid }}>Nenhum tópico configurado nesta fase.</div>
+          ) : (
+            <ul className="space-y-2">
+              {topicos.map((t) => {
+                const itens = conteudosPorTopico[t.id] ?? [];
+                const temConteudo = itens.length > 0;
+                return (
+                  <li
+                    key={t.id}
+                    className="flex items-center justify-between gap-3 rounded-[12px] p-2.5 sm:p-3 flex-wrap"
+                    style={{ background: C.beigeLight, border: `1px solid ${C.beige}` }}
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      {temConteudo ? (
+                        <CheckCircle2 size={15} style={{ color: C.mid }} className="shrink-0" />
+                      ) : (
+                        <Circle size={15} style={{ color: C.textMuted }} className="shrink-0" />
+                      )}
+                      <span className="text-sm font-semibold truncate" style={{ color: C.text }}>{t.nome}</span>
+                    </div>
+                    {temConteudo ? (
+                      <div className="flex flex-wrap items-center gap-2 shrink-0">
+                        {itens.map((c) => {
+                          const Icon = iconeConteudo(c.tipo);
+                          return c.url ? (
+                            <a
+                              key={c.id}
+                              href={c.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold"
+                              style={{ background: "#fff", color: C.mid, border: `1px solid ${C.beige}` }}
+                            >
+                              <Icon size={12} />
+                              {c.titulo || rotuloPadrao(c.tipo)}
+                              <ExternalLink size={11} />
+                            </a>
+                          ) : (
+                            <span
+                              key={c.id}
+                              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold"
+                              style={{ background: "#fff", color: C.textMuted, border: `1px solid ${C.beige}` }}
+                            >
+                              <Icon size={12} />
+                              {c.titulo || rotuloPadrao(c.tipo)}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <span
+                        className="shrink-0 text-[10px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1"
+                        style={{ color: C.textMuted, border: `1px solid ${C.beige}` }}
+                      >
+                        Pendente
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       )}
     </div>
@@ -286,15 +354,18 @@ export function PortalRico({
   const documentos = useMemo(() => conteudos.filter((c) => c.tipo === "documento"), [conteudos]);
   const videoBoasVindas = videos[0] ?? null;
 
-  const conteudosPorFase = useMemo(() => {
-    const topicoToFase = new Map(topicos.map((t) => [t.id, t.fase_id]));
-    const m: Record<number, number> = {};
-    for (const c of conteudos) {
-      const f = topicoToFase.get(c.topico_id);
-      if (f != null) m[f] = (m[f] ?? 0) + 1;
-    }
+  const conteudosPorTopico = useMemo(() => {
+    const m: Record<string, Conteudo[]> = {};
+    for (const c of conteudos) (m[c.topico_id] ??= []).push(c);
     return m;
-  }, [conteudos, topicos]);
+  }, [conteudos]);
+
+  const topicosPorFase = useMemo(() => {
+    const m: Record<number, Topico[]> = {};
+    for (const t of topicos) (m[t.fase_id] ??= []).push(t);
+    for (const arr of Object.values(m)) arr.sort((a, b) => a.ordem - b.ordem);
+    return m;
+  }, [topicos]);
 
   // combina timeline fixa com nomes reais das fases quando existirem
   const timeline = useMemo(() => {
@@ -399,8 +470,12 @@ export function PortalRico({
           {timeline.map((f) => (
             <FaseAccordion
               key={f.fase}
-              {...f}
-              count={conteudosPorFase[f.fase] ?? 0}
+              fase={f.fase}
+              nome={f.nome}
+              desc={f.desc}
+              ativa={f.ativa}
+              topicos={topicosPorFase[f.fase] ?? []}
+              conteudosPorTopico={conteudosPorTopico}
               open={openFase === f.fase}
               onToggle={() => setOpenFase(openFase === f.fase ? null : f.fase)}
             />
