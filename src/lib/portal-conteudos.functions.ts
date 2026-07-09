@@ -224,6 +224,71 @@ export const getPortalBySlug = createServerFn({ method: "GET" })
     };
   });
 
+// Cliente autenticado: busca o PRÓPRIO portal (mesmos dados/formato do preview do admin).
+// Usa supabaseAdmin internamente só para projetar campos seguros e gerar signed URLs —
+// a segurança vem de filtrar sempre por auth_user_id = context.userId (nunca por um id recebido do cliente).
+export const getMeuPortal = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: cliente, error: cErr } = await supabaseAdmin
+      .from("clientes")
+      .select("id, nome, plano_label, plano_atual, status_contrato, status_cadastro")
+      .eq("auth_user_id", context.userId)
+      .maybeSingle();
+    if (cErr) throw cErr;
+    if (!cliente) throw new Error("Nenhum portal encontrado para este usuário.");
+    if (cliente.status_cadastro !== "ativo") {
+      throw new Error("Seu cadastro ainda não está ativo. Fale com a equipe para liberar o acesso.");
+    }
+
+    const [fasesRes, topicosRes, conteudosRes] = await Promise.all([
+      supabaseAdmin.from("fases").select("id, nome, descricao").order("id"),
+      supabaseAdmin.from("topicos_fase").select("id, fase_id, nome, ordem").order("fase_id").order("ordem"),
+      supabaseAdmin
+        .from("conteudos_cliente")
+        .select("id, topico_id, tipo, titulo, url, storage_path, storage_bucket, created_at")
+        .eq("cliente_id", cliente.id)
+        .order("created_at"),
+    ]);
+    if (fasesRes.error) throw fasesRes.error;
+    if (topicosRes.error) throw topicosRes.error;
+    if (conteudosRes.error) throw conteudosRes.error;
+
+    const conteudos = await Promise.all(
+      (conteudosRes.data ?? []).map(async (c) => {
+        let signedUrl = (c.url as string | null) ?? null;
+        if (!signedUrl && c.storage_bucket && c.storage_path) {
+          const { data: signed } = await supabaseAdmin.storage
+            .from(c.storage_bucket as string)
+            .createSignedUrl(c.storage_path as string, 60 * 60 * 6); // 6 horas
+          signedUrl = signed?.signedUrl ?? null;
+        }
+        return {
+          id: c.id as string,
+          topico_id: c.topico_id as string,
+          tipo: c.tipo as ConteudoTipo,
+          titulo: (c.titulo as string) ?? null,
+          url: signedUrl,
+        };
+      }),
+    );
+
+    return {
+      cliente: {
+        id: cliente.id as string,
+        nome: cliente.nome as string,
+        plano: (cliente.plano_label as string) ?? (cliente.plano_atual as string) ?? null,
+        status: cliente.status_contrato as string,
+        status_cadastro: cliente.status_cadastro as string,
+      },
+      fases: (fasesRes.data ?? []) as Fase[],
+      topicos: (topicosRes.data ?? []) as Topico[],
+      conteudos,
+    };
+  });
+
 // Admin: preview do portal de um cliente específico (mesmos dados que o cliente vê).
 export const getPortalPreviewByClienteId = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
