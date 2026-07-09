@@ -42,14 +42,16 @@ function MeuPortalPage() {
       setTopicos(res.topicos);
       setConteudos(res.conteudos);
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Erro ao carregar seu portal";
+      const message = e instanceof Error ? e.message : "";
       // Cadastro ainda não ativo (ou sem cliente vinculado): mesmo comportamento
       // silencioso de antes — manda para /app em vez de mostrar tela de erro.
       if (message.includes("não está ativo") || message.includes("Nenhum portal encontrado")) {
         navigate({ to: "/app" });
         return;
       }
-      setErro(message);
+      console.error("[meu-portal] load error:", e);
+      setErro("Não foi possível carregar seu portal. Tente novamente.");
+
     } finally {
       setLoading(false);
     }
