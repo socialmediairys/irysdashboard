@@ -570,6 +570,63 @@ export type Database = {
         }
         Relationships: []
       }
+      meta_business_connections: {
+        Row: {
+          created_at: string
+          id: string
+          ig_user_id: string | null
+          ig_username: string | null
+          page_access_token: string
+          page_id: string
+          page_name: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ig_user_id?: string | null
+          ig_username?: string | null
+          page_access_token: string
+          page_id: string
+          page_name?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ig_user_id?: string | null
+          ig_username?: string | null
+          page_access_token?: string
+          page_id?: string
+          page_name?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meta_business_pending: {
+        Row: {
+          created_at: string
+          pages: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          pages: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          pages?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       onboarding_checklist: {
         Row: {
           cliente_id: string
