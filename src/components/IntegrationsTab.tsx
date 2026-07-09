@@ -553,50 +553,46 @@ export function IntegrationsTab() {
         </div>
       </div>
 
-      <Dialog open={pageChoiceOpen} onOpenChange={setPageChoiceOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Escolha a Página do Facebook</DialogTitle>
-            <DialogDescription>
-              Você administra mais de uma Página. Escolha qual conectar — vamos usar a Conta
-              Business do Instagram vinculada a ela, se houver.
-            </DialogDescription>
-          </DialogHeader>
+      {mStatus?.connected && mPages.length > 0 && (
+        <div className="rounded-xl border p-4 bg-card">
+          <div className="mb-3">
+            <div className="font-semibold text-sm">Páginas do Meta Business</div>
+            <p className="text-xs text-muted-foreground">
+              Vincule cada Página a um cliente para puxar métricas e publicar em nome dele.
+            </p>
+          </div>
           <div className="space-y-2">
-            {(mStatus?.pendingPages ?? []).map((p) => (
-              <label
-                key={p.id}
-                className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition ${
-                  selectedPageId === p.id ? "border-primary bg-muted/40" : ""
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="meta-page"
-                  value={p.id}
-                  checked={selectedPageId === p.id}
-                  onChange={() => setSelectedPageId(p.id)}
-                />
+            {mPages.map((p) => (
+              <div key={p.id} className="flex flex-col sm:flex-row sm:items-center gap-2 rounded-lg border p-3">
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium truncate">{p.name}</div>
+                  <div className="font-medium truncate">{p.pageName || p.pageId}</div>
                   <div className="text-xs text-muted-foreground">
-                    {p.hasInstagram ? "Instagram Business vinculado" : "Sem Instagram Business vinculado"}
+                    {p.igUsername ? `@${p.igUsername}` : p.hasInstagram ? "Instagram Business vinculado" : "Sem Instagram Business"}
                   </div>
                 </div>
-              </label>
+                <div className="sm:w-64">
+                  <Select
+                    value={p.clientId ?? "__none__"}
+                    onValueChange={(v) => handleSetPageClient(p.id, v === "__none__" ? null : v)}
+                    disabled={rowBusyId === p.id}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Nenhum cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Nenhum cliente</SelectItem>
+                      {clientes.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             ))}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPageChoiceOpen(false)} disabled={mBusy}>
-              Cancelar
-            </Button>
-            <Button onClick={handleMSelectPage} disabled={mBusy || !selectedPageId}>
-              {mBusy ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-              Conectar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
+
 
       {/* Placeholders */}
       <div className="space-y-2">
