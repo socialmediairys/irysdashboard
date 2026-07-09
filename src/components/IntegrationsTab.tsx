@@ -521,19 +521,11 @@ export function IntegrationsTab() {
                 Publicar e coletar métricas de posts.
               </div>
               {mStatus?.connected && (
-                <div className="text-xs mt-1 space-y-0.5">
-                  {mStatus.pageName && (
-                    <div>
-                      Página: <span className="font-medium">{mStatus.pageName}</span>
-                    </div>
-                  )}
-                  {mStatus.igUsername && (
-                    <div>
-                      Instagram: <span className="font-medium">@{mStatus.igUsername}</span>
-                    </div>
-                  )}
+                <div className="text-xs mt-1">
+                  {mStatus.pagesCount} Página{mStatus.pagesCount === 1 ? "" : "s"} conectada{mStatus.pagesCount === 1 ? "" : "s"}
                 </div>
               )}
+
             </div>
           </div>
           <div className="flex gap-2">
