@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Video,
   Headphones,
@@ -75,7 +75,7 @@ const JORNADA = [
 ];
 
 /* ---------- átomos visuais ---------- */
-function Eyebrow({ children }: { children: React.ReactNode }) {
+function Eyebrow({ children }: { children: ReactNode }) {
   return (
     <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: C.textMid }}>
       {children}
@@ -83,7 +83,7 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children }: { children: ReactNode }) {
   return (
     <div className="text-[11px] font-bold uppercase tracking-[0.18em] mb-2" style={{ color: C.mid }}>
       {children}
@@ -102,7 +102,7 @@ function TagBadge({ label }: { label: string }) {
   );
 }
 
-function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div className={`rounded-[18px] p-5 sm:p-6 ${className}`} style={{ background: "#fff", boxShadow: SHADOW }}>
       {children}
@@ -708,7 +708,7 @@ export function PortalRico({
           {BLOQUEADORES.map((b) => (
             <BloqueadorCard
               key={b.n}
-              {b}
+              {...b}
               open={openBloq === b.n}
               onToggle={() => setOpenBloq(openBloq === b.n ? null : b.n)}
             />
