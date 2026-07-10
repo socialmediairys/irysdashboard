@@ -1756,11 +1756,25 @@ function SocialPage() {
   }, [clientes, clienteId]);
 
   const insightsFn = useServerFn(getInstagramAccountInsights);
+  const [periodDays, setPeriodDays] = useState<number>(30);
   const [insights, setInsights] = useState<{
     username: string | null;
     followersCount: number | null;
     followsCount: number | null;
     mediaCount: number | null;
+    avgEngagementRate: number | null;
+    followerGrowth: number | null;
+    periodDays: number;
+    posts: Array<{
+      id: string;
+      caption: string | null;
+      permalink: string | null;
+      likes: number | null;
+      comments: number | null;
+      reach: number | null;
+      saved: number | null;
+      engagementRate: number | null;
+    }>;
   } | null>(null);
   const [igLoading, setIgLoading] = useState(false);
   const [igError, setIgError] = useState<string | null>(null);
@@ -1771,12 +1785,24 @@ function SocialPage() {
     setIgLoading(true);
     setIgError(null);
     setInsights(null);
-    insightsFn({ data: { clientId: clienteId } })
+    insightsFn({ data: { clientId: clienteId, periodDays } })
       .then((res) => { if (!cancel) setInsights(res); })
       .catch((e) => { if (!cancel) setIgError(e instanceof Error ? e.message : "Erro ao buscar métricas do Instagram"); })
       .finally(() => { if (!cancel) setIgLoading(false); });
     return () => { cancel = true; };
-  }, [clienteId, insightsFn]);
+  }, [clienteId, periodDays, insightsFn]);
+
+  const fmtNum = (n: number | null | undefined) => (typeof n === "number" ? n.toLocaleString("pt-BR") : "—");
+  const fmtPct = (r: number | null | undefined, digits = 1) =>
+    typeof r === "number" ? `${(r * 100).toFixed(digits).replace(".", ",")}%` : "—";
+  const fmtGrowth = (n: number | null | undefined) => {
+    if (typeof n !== "number") return "—";
+    const sign = n > 0 ? "+" : "";
+    return `${sign}${n.toLocaleString("pt-BR")}`;
+  };
+
+  const followersNow = insights?.followersCount ?? null;
+  const engagementNow = insights?.avgEngagementRate ?? null;
 
   return (
     <>
@@ -1784,16 +1810,31 @@ function SocialPage() {
         badges={<><LiveBadge label="Meta Business" /><LiveBadge label="Instagram" /></>}
       />
 
-      <div className="mb-6 max-w-xs">
-        <Label>Cliente</Label>
-        <Select value={clienteId} onValueChange={setClienteId}>
-          <SelectTrigger><SelectValue placeholder={clientesLoading ? "Carregando..." : "Selecione um cliente"} /></SelectTrigger>
-          <SelectContent>
-            {clientes.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
+        <div>
+          <Label>Cliente</Label>
+          <Select value={clienteId} onValueChange={setClienteId}>
+            <SelectTrigger><SelectValue placeholder={clientesLoading ? "Carregando..." : "Selecione um cliente"} /></SelectTrigger>
+            <SelectContent>
+              {clientes.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Período</Label>
+          <Select value={String(periodDays)} onValueChange={(v) => setPeriodDays(Number(v))}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Últimos 7 dias</SelectItem>
+              <SelectItem value="14">Últimos 14 dias</SelectItem>
+              <SelectItem value="30">Últimos 30 dias</SelectItem>
+              <SelectItem value="60">Últimos 60 dias</SelectItem>
+              <SelectItem value="90">Últimos 90 dias</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="grid grid-cols-4 gap-5 mb-6">
@@ -1814,10 +1855,16 @@ function SocialPage() {
             <>
               <div className="text-xs opacity-70">@{insights.username ?? "—"}</div>
               <div className="mt-4 text-3xl font-extrabold" style={{ letterSpacing: "-0.03em" }}>
-                {insights.followersCount != null ? insights.followersCount.toLocaleString("pt-BR") : "—"}
+                {fmtNum(insights.followersCount)}
               </div>
               <div className="text-xs opacity-70 mb-3">
                 {insights.mediaCount != null ? `${insights.mediaCount} publicações` : "—"}
+              </div>
+              <div className="text-xs opacity-80">
+                Crescimento ({insights.periodDays}d): <span className="font-semibold">{fmtGrowth(insights.followerGrowth)}</span>
+              </div>
+              <div className="text-xs opacity-80">
+                Engajamento médio: <span className="font-semibold">{fmtPct(insights.avgEngagementRate)}</span>
               </div>
             </>
           ) : (
@@ -1854,30 +1901,45 @@ function SocialPage() {
         </div>
         <div className="col-span-2">
           <Card dark>
-            {/* TODO: mockado, sem integração ainda */}
             <h3 className="font-extrabold text-lg mb-4">Metas do mês</h3>
             <div className="space-y-4">
               {[
-                { n:"Seguidores IG", s:"Meta 1.500 · Atual 1.141", p:78 },
-                { n:"Engajamento médio", s:"Meta 5% · Atual 4,2%", p:84 },
-                { n:"Reels publicados", s:"Meta 20 · Atual 14", p:70 },
-                { n:"Leads via DM", s:"Meta 30 · Atual 18", p:60 },
+                {
+                  n: "Seguidores IG",
+                  meta: 1500,
+                  atualLabel: fmtNum(followersNow),
+                  p: followersNow != null ? Math.min(100, Math.round((followersNow / 1500) * 100)) : null,
+                  s: `Meta 1.500 · Atual ${fmtNum(followersNow)}`,
+                },
+                {
+                  n: "Engajamento médio",
+                  meta: 0.05,
+                  atualLabel: fmtPct(engagementNow),
+                  p: engagementNow != null ? Math.min(100, Math.round((engagementNow / 0.05) * 100)) : null,
+                  s: `Meta 5% · Atual ${fmtPct(engagementNow)}`,
+                },
+                // Mantidos mockados por enquanto:
+                { n: "Reels publicados", meta: 20, atualLabel: "14", p: 70, s: "Meta 20 · Atual 14" },
+                { n: "Leads via DM",     meta: 30, atualLabel: "18", p: 60, s: "Meta 30 · Atual 18" },
               ].map((m, i) => (
                 <div key={i}>
                   <div className="flex justify-between mb-1.5">
                     <div>
                       <div className="font-semibold text-sm">{m.n}</div>
-                      <div className="text-xs opacity-70">{m.s}</div>
+                      <div className="text-xs opacity-70">{igLoading && i < 2 ? "Carregando..." : m.s}</div>
                     </div>
-                    <span className="rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: C.gold, color: C.dark }}>{m.p}%</span>
+                    <span className="rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: C.gold, color: C.dark }}>
+                      {m.p != null ? `${m.p}%` : "—"}
+                    </span>
                   </div>
-                  <GoldProgress pct={m.p} />
+                  <GoldProgress pct={m.p ?? 0} />
                 </div>
               ))}
             </div>
           </Card>
         </div>
       </div>
+
       <Card>
         <h3 className="font-extrabold text-lg mb-4">Calendário editorial</h3>
         <table className="w-full text-sm">
