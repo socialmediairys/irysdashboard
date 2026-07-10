@@ -38,6 +38,7 @@ export type Conteudo = {
   tipo: ConteudoTipo; 
   titulo: string | null; 
   url: string | null;
+  descricao?: string | null;
   fase_id?: number;
   topicos_fase?: { nome: string } | null;
 };
@@ -576,7 +577,7 @@ export function PortalRico({
                 key={a.id}
                 id={a.id}
                 title={a.titulo || "Áudio da dinâmica"}
-                desc=""
+                desc={a.descricao || ""}
                 url={a.url}
                 activeId={activeAudioId}
                 setActiveId={setActiveAudioId}
