@@ -146,15 +146,55 @@ export const disconnectMetaBusiness = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+export type InstagramPostMetrics = {
+  id: string;
+  caption: string | null;
+  mediaType: string | null;
+  permalink: string | null;
+  timestamp: string | null;
+  likes: number | null;
+  comments: number | null;
+  reach: number | null;
+  saved: number | null;
+  engagementRate: number | null; // 0..1
+};
+
+export type InstagramAccountInsights = {
+  username: string | null;
+  followersCount: number | null;
+  followsCount: number | null;
+  mediaCount: number | null;
+  avgEngagementRate: number | null; // 0..1 across sampled posts
+  followerGrowth: number | null;    // net delta in the selected period (days)
+  periodDays: number;
+  posts: InstagramPostMetrics[];
+};
+
+async function fetchJson<T>(url: string): Promise<T | null> {
+  try {
+    const res = await fetch(url);
+    const json = (await res.json()) as T & { error?: { message?: string } };
+    if (!res.ok) {
+      console.warn("meta insights request failed", { status: res.status, error: (json as { error?: unknown }).error });
+      return null;
+    }
+    return json;
+  } catch (e) {
+    console.warn("meta insights request threw", e);
+    return null;
+  }
+}
+
 // Métricas básicas da conta do Instagram vinculada à Página do cliente informado.
 export const getInstagramAccountInsights = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { clientId: string }) => {
+  .inputValidator((input: { clientId: string; periodDays?: number }) => {
     const clientId = input.clientId?.trim();
     if (!clientId) throw new Error("clientId é obrigatório");
-    return { clientId };
+    const periodDays = Math.min(Math.max(Number(input.periodDays) || 30, 1), 90);
+    return { clientId, periodDays };
   })
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data, context }): Promise<InstagramAccountInsights> => {
     const { data: page, error } = await context.supabase
       .from("meta_business_pages")
       .select("ig_user_id, page_access_token")
@@ -170,22 +210,121 @@ export const getInstagramAccountInsights = createServerFn({ method: "GET" })
     if (!page.ig_user_id) {
       throw new Error("A Página vinculada não tem uma Conta Business do Instagram.");
     }
-    const url = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${page.ig_user_id}`);
-    url.searchParams.set("fields", "username,followers_count,follows_count,media_count");
-    url.searchParams.set("access_token", page.page_access_token);
-    const res = await fetch(url.toString());
-    const json = (await res.json()) as {
-      error?: { message?: string };
+
+    const token = page.page_access_token;
+    const igId = page.ig_user_id;
+
+    // 1) Conta: username, followers_count, follows_count, media_count
+    const accountUrl = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${igId}`);
+    accountUrl.searchParams.set("fields", "username,followers_count,follows_count,media_count");
+    accountUrl.searchParams.set("access_token", token);
+    const account = await fetchJson<{
       username?: string;
       followers_count?: number;
       follows_count?: number;
       media_count?: number;
-    };
-    if (!res.ok) throw new Error(json.error?.message || `Falha ao buscar métricas (HTTP ${res.status})`);
+    }>(accountUrl.toString());
+
+    // 2) Crescimento de seguidores no período (métrica follower_count, period=day)
+    let followerGrowth: number | null = null;
+    try {
+      const until = Math.floor(Date.now() / 1000);
+      const since = until - data.periodDays * 24 * 60 * 60;
+      const growthUrl = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${igId}/insights`);
+      growthUrl.searchParams.set("metric", "follower_count");
+      growthUrl.searchParams.set("period", "day");
+      growthUrl.searchParams.set("since", String(since));
+      growthUrl.searchParams.set("until", String(until));
+      growthUrl.searchParams.set("access_token", token);
+      const growth = await fetchJson<{
+        data?: Array<{ values?: Array<{ value?: number }> }>;
+      }>(growthUrl.toString());
+      const values = growth?.data?.[0]?.values ?? [];
+      if (values.length > 0) {
+        followerGrowth = values.reduce((acc, v) => acc + (typeof v.value === "number" ? v.value : 0), 0);
+      }
+    } catch (e) {
+      console.warn("follower_count insights failed", e);
+    }
+
+    // 3) Últimas publicações + insights (reach, saved) por post
+    const posts: InstagramPostMetrics[] = [];
+    let avgEngagementRate: number | null = null;
+    try {
+      const mediaUrl = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${igId}/media`);
+      mediaUrl.searchParams.set(
+        "fields",
+        "id,caption,media_type,permalink,timestamp,like_count,comments_count",
+      );
+      mediaUrl.searchParams.set("limit", "12");
+      mediaUrl.searchParams.set("access_token", token);
+      const media = await fetchJson<{
+        data?: Array<{
+          id: string;
+          caption?: string;
+          media_type?: string;
+          permalink?: string;
+          timestamp?: string;
+          like_count?: number;
+          comments_count?: number;
+        }>;
+      }>(mediaUrl.toString());
+      const items = media?.data ?? [];
+
+      const enriched = await Promise.all(
+        items.map(async (m) => {
+          const insightsUrl = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${m.id}/insights`);
+          insightsUrl.searchParams.set("metric", "reach,saved");
+          insightsUrl.searchParams.set("access_token", token);
+          const ins = await fetchJson<{
+            data?: Array<{ name: string; values?: Array<{ value?: number }> }>;
+          }>(insightsUrl.toString());
+          let reach: number | null = null;
+          let saved: number | null = null;
+          for (const row of ins?.data ?? []) {
+            const v = typeof row.values?.[0]?.value === "number" ? row.values[0].value : null;
+            if (row.name === "reach") reach = v;
+            if (row.name === "saved") saved = v;
+          }
+          const likes = typeof m.like_count === "number" ? m.like_count : null;
+          const comments = typeof m.comments_count === "number" ? m.comments_count : null;
+          let engagementRate: number | null = null;
+          if (reach && reach > 0) {
+            engagementRate = ((likes ?? 0) + (comments ?? 0) + (saved ?? 0)) / reach;
+          }
+          return {
+            id: m.id,
+            caption: m.caption ?? null,
+            mediaType: m.media_type ?? null,
+            permalink: m.permalink ?? null,
+            timestamp: m.timestamp ?? null,
+            likes,
+            comments,
+            reach,
+            saved,
+            engagementRate,
+          } satisfies InstagramPostMetrics;
+        }),
+      );
+      posts.push(...enriched);
+
+      const rates = enriched.map((p) => p.engagementRate).filter((r): r is number => typeof r === "number");
+      if (rates.length > 0) {
+        avgEngagementRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+      }
+    } catch (e) {
+      console.warn("media insights failed", e);
+    }
+
     return {
-      username: json.username ?? null,
-      followersCount: json.followers_count ?? null,
-      followsCount: json.follows_count ?? null,
-      mediaCount: json.media_count ?? null,
+      username: account?.username ?? null,
+      followersCount: typeof account?.followers_count === "number" ? account.followers_count : null,
+      followsCount: typeof account?.follows_count === "number" ? account.follows_count : null,
+      mediaCount: typeof account?.media_count === "number" ? account.media_count : null,
+      avgEngagementRate,
+      followerGrowth,
+      periodDays: data.periodDays,
+      posts,
     };
   });
+
