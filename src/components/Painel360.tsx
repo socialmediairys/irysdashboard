@@ -1804,13 +1804,28 @@ function SocialPage() {
   const followersNow = insights?.followersCount ?? null;
   const engagementNow = insights?.avgEngagementRate ?? null;
 
+  const [network, setNetwork] = useState<"instagram" | "tiktok" | "youtube" | "facebook">("instagram");
+  const networkLabel = { instagram: "Instagram", tiktok: "TikTok", youtube: "YouTube", facebook: "Facebook" }[network];
+
+  const totalLikes = insights?.posts.reduce((a, p) => a + (p.likes ?? 0), 0) ?? null;
+  const totalComments = insights?.posts.reduce((a, p) => a + (p.comments ?? 0), 0) ?? null;
+  const totalReach = insights?.posts.reduce((a, p) => a + (p.reach ?? 0), 0) ?? null;
+  const totalSaved = insights?.posts.reduce((a, p) => a + (p.saved ?? 0), 0) ?? null;
+
+  const topPosts = insights
+    ? [...insights.posts]
+        .filter((p) => typeof p.reach === "number")
+        .sort((a, b) => (b.reach ?? 0) - (a.reach ?? 0))
+        .slice(0, 4)
+    : [];
+
   return (
     <>
       <PageHeader eyebrow="Meta Business + Instagram" title="Métricas" accent="sociais"
         badges={<><LiveBadge label="Meta Business" /><LiveBadge label="Instagram" /></>}
       />
 
-      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl">
         <div>
           <Label>Cliente</Label>
           <Select value={clienteId} onValueChange={setClienteId}>
@@ -1819,6 +1834,18 @@ function SocialPage() {
               {clientes.map((c) => (
                 <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Rede social</Label>
+          <Select value={network} onValueChange={(v) => setNetwork(v as typeof network)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="instagram">Instagram</SelectItem>
+              <SelectItem value="tiktok">TikTok</SelectItem>
+              <SelectItem value="youtube">YouTube</SelectItem>
+              <SelectItem value="facebook">Facebook</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -1837,68 +1864,80 @@ function SocialPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-5 mb-6">
+      <div className="mb-6">
         <Card dark>
-          <div className="font-extrabold text-lg">Instagram</div>
-          {igLoading ? (
-            <div className="text-xs opacity-70 mt-4">Carregando métricas...</div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="font-extrabold text-lg">{networkLabel}</div>
+            {network === "instagram" && insights?.username && (
+              <div className="text-xs opacity-70">@{insights.username}</div>
+            )}
+          </div>
+          {network !== "instagram" ? (
+            <div className="text-sm opacity-70 py-6 text-center">Integração em breve</div>
+          ) : igLoading ? (
+            <div className="text-xs opacity-70 py-6 text-center">Carregando métricas...</div>
           ) : igError ? (
-            <div className="mt-3 text-xs" style={{ color: "#FFC1B0" }}>
+            <div className="text-xs py-4" style={{ color: "#FFC1B0" }}>
               {igError}
               <div className="mt-2">
-                <a href="/admin/configuracoes?tab=integracoes" className="underline font-semibold">
-                  Ir para Integrações
-                </a>
+                <a href="/admin/configuracoes?tab=integracoes" className="underline font-semibold">Ir para Integrações</a>
               </div>
             </div>
           ) : insights ? (
-            <>
-              <div className="text-xs opacity-70">@{insights.username ?? "—"}</div>
-              <div className="mt-4 text-3xl font-extrabold" style={{ letterSpacing: "-0.03em" }}>
-                {fmtNum(insights.followersCount)}
-              </div>
-              <div className="text-xs opacity-70 mb-3">
-                {insights.mediaCount != null ? `${insights.mediaCount} publicações` : "—"}
-              </div>
-              <div className="text-xs opacity-80">
-                Crescimento ({insights.periodDays}d): <span className="font-semibold">{fmtGrowth(insights.followerGrowth)}</span>
-              </div>
-              <div className="text-xs opacity-80">
-                Engajamento médio: <span className="font-semibold">{fmtPct(insights.avgEngagementRate)}</span>
-              </div>
-            </>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+              {[
+                { label: "Curtidas", value: fmtNum(totalLikes) },
+                { label: "Comentários", value: fmtNum(totalComments) },
+                { label: "Alcance", value: fmtNum(totalReach) },
+                { label: "Salvamentos", value: fmtNum(totalSaved) },
+                { label: "Taxa de engajamento", value: fmtPct(engagementNow) },
+              ].map((m) => (
+                <div key={m.label} className="rounded-[10px] p-3" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <div className="text-xs opacity-70">{m.label}</div>
+                  <div className="mt-1 text-2xl font-extrabold" style={{ letterSpacing: "-0.03em" }}>{m.value}</div>
+                </div>
+              ))}
+            </div>
           ) : (
-            <div className="text-xs opacity-70 mt-4">Selecione um cliente</div>
+            <div className="text-xs opacity-70 py-6 text-center">Selecione um cliente</div>
           )}
         </Card>
-        {["TikTok", "YouTube", "Facebook"].map((plat) => (
-          <Card key={plat}>
-            <div className="font-extrabold text-lg">{plat}</div>
-            <div className="text-xs mt-4" style={{ color: C.textMuted }}>Integração em breve</div>
-          </Card>
-        ))}
       </div>
 
       <div className="grid grid-cols-5 gap-5 mb-6">
         <div className="col-span-3">
           <Card>
-            {/* TODO: mockado, sem integração ainda */}
-            <h3 className="font-extrabold text-lg mb-4">Posts com melhor desempenho</h3>
-            <div className="space-y-3">
-              {[
-                { n:"Reels: Método SMAM", m:"4.2k views", c:"gold" },
-                { n:"Carrossel: Funil de vendas", m:"1.8k saves", c:"amber" },
-                { n:"Story: Bastidores semana", m:"3.4k views", c:"green" },
-                { n:"Reels: Cases reais", m:"2.1k shares", c:"purple" },
-              ].map((p, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
-                  <div className="flex items-center gap-3"><Dot color={p.c} /><span className="font-semibold">{p.n}</span></div>
-                  <TagBadge label={p.m} variant="pendente" />
-                </div>
-              ))}
-            </div>
+            <h3 className="font-extrabold text-lg mb-4">Posts com melhor desempenho — {networkLabel}</h3>
+            {network !== "instagram" ? (
+              <div className="text-sm py-6 text-center" style={{ color: C.textMuted }}>Integração em breve</div>
+            ) : igLoading ? (
+              <div className="text-sm py-6 text-center" style={{ color: C.textMuted }}>Carregando...</div>
+            ) : topPosts.length === 0 ? (
+              <div className="text-sm py-6 text-center" style={{ color: C.textMuted }}>Sem posts disponíveis no período.</div>
+            ) : (
+              <div className="space-y-3">
+                {topPosts.map((p) => {
+                  const title = (p.caption ?? "").trim().split("\n")[0].slice(0, 60) || "Publicação sem legenda";
+                  const content = (
+                    <div className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Dot color="gold" />
+                        <span className="font-semibold truncate">{title}</span>
+                      </div>
+                      <TagBadge label={`${fmtNum(p.reach)} alcance`} variant="pendente" />
+                    </div>
+                  );
+                  return p.permalink ? (
+                    <a key={p.id} href={p.permalink} target="_blank" rel="noreferrer" className="block">{content}</a>
+                  ) : (
+                    <div key={p.id}>{content}</div>
+                  );
+                })}
+              </div>
+            )}
           </Card>
         </div>
+
         <div className="col-span-2">
           <Card dark>
             <h3 className="font-extrabold text-lg mb-4">Metas do mês</h3>
