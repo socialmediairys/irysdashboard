@@ -115,7 +115,6 @@ function AudioItem({
   id,
   title,
   desc,
-  duration,
   url,
   activeId,
   setActiveId,
@@ -123,13 +122,13 @@ function AudioItem({
   id: string;
   title: string;
   desc: string;
-  duration?: string;
   url: string | null;
   activeId: string | null;
   setActiveId: (id: string | null) => void;
 }) {
   const isPlaying = activeId === id;
   const [progress, setProgress] = useState(0);
+
   useEffect(() => {
     if (!isPlaying) {
       setProgress(0);
@@ -153,14 +152,13 @@ function AudioItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-2">
           <div className="font-semibold truncate text-sm" style={{ color: C.text }}>{title}</div>
-          {duration && <div className="text-[10px] sm:text-xs font-bold tabular-nums shrink-0" style={{ color: C.textMid }}>{duration}</div>}
         </div>
         {desc && <div className="text-[11px] sm:text-xs mt-0.5 mb-2 line-clamp-2" style={{ color: C.textMid }}>{desc}</div>}
         <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: C.beigeLight }}>
           <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${C.mid}, ${C.gold})` }} />
         </div>
       </div>
-      {url && (
+      {url ? (
         <a
           href={url}
           target="_blank"
@@ -170,17 +168,17 @@ function AudioItem({
         >
           Abrir
         </a>
-      )}
+      ) : null}
     </div>
   );
 }
 
-/* ---------- ícone + rótulo padrão por tipo de conteúdo ---------- */
 function iconeConteudo(tipo: ConteudoTipo) {
   if (tipo === "video") return Video;
   if (tipo === "audio") return Headphones;
   return FileText;
 }
+
 function rotuloPadrao(tipo: ConteudoTipo) {
   if (tipo === "video") return "Vídeo";
   if (tipo === "audio") return "Áudio";
@@ -207,7 +205,13 @@ function FaseAccordion({
   open: boolean;
   onToggle: () => void;
 }) {
-  const count = topicos.reduce((s, t) => s + (conteudosPorTopico[t.id]?.length ?? 0), 0);
+  const count = useMemo(() => {
+    return topicos.reduce((acc: number, t: Topico) => {
+      const lista = conteudosPorTopico[t.id];
+      return acc + (lista ? lista.length : 0);
+    }, 0);
+  }, [topicos, conteudosPorTopico]);
+
   return (
     <div className="rounded-[18px] overflow-hidden" style={{ background: "#fff", boxShadow: SHADOW }}>
       <button type="button" onClick={onToggle} className="w-full p-4 sm:p-5 flex items-center gap-3 sm:gap-4 text-left">
@@ -239,7 +243,7 @@ function FaseAccordion({
           ) : (
             <ul className="space-y-2">
               {topicos.map((t) => {
-                const itens = conteudosPorTopico[t.id] ?? [];
+                const itens = conteudosPorTopico[t.id] || [];
                 const temConteudo = itens.length > 0;
                 return (
                   <li
@@ -335,9 +339,9 @@ function BloqueadorCard({
 /* ---------- Componente principal ---------- */
 export function PortalRico({
   cliente,
-  fases,
-  topicos,
-  conteudos,
+  fases = [],
+  topicos = [],
+  conteudos = [],
   variant = "cliente",
 }: {
   cliente: ClientePortal | null;
@@ -351,52 +355,54 @@ export function PortalRico({
   const [openFase, setOpenFase] = useState<number | null>(1);
   const [openBloq, setOpenBloq] = useState<number | null>(null);
 
-  // Helper para normalizar strings e comparar nomes com mais segurança
-  const normalizarNome = (txt: string | null | undefined) => 
-    txt ? txt.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+  const normalizarNome = (txt: string | null | undefined): string => {
+    if (!txt) return "";
+    return String(txt).toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  };
 
-  // ========================================================
-  // FILTROS ESCOPADOS (Busca estritamente baseada no nome do tópico)
-  // ========================================================
+  const safeConteudos = useMemo(() => Array.isArray(conteudos) ? conteudos : [], [conteudos]);
+  const safeTopicos = useMemo(() => Array.isArray(topicos) ? topicos : [], [topicos]);
+  const safeFases = useMemo(() => Array.isArray(fases) ? fases : [], [fases]);
 
   // Bloco 1: Vídeo de boas-vindas
   const videoBoasVindas = useMemo(() => {
-    return conteudos.find(
-      (c) => normalizarNome(c.topicos_fase?.nome) === "video de boas-vindas"
-    ) ?? null;
-  }, [conteudos]);
+    return safeConteudos.find((c) => {
+      const nomeTopico = c?.topicos_fase?.nome;
+      return normalizarNome(nomeTopico) === "video de boas-vindas";
+    }) || null;
+  }, [safeConteudos]);
 
   // Bloco 3: Áudios da Dinâmica
   const audiosDinamica = useMemo(() => {
-    return conteudos.filter(
-      (c) => c.tipo === "audio" && normalizarNome(c.topicos_fase?.nome) === "audios da dinamica"
-    );
-  }, [conteudos]);
+    return safeConteudos.filter((c) => {
+      const nomeTopico = c?.topicos_fase?.nome;
+      return c?.tipo === "audio" && normalizarNome(nomeTopico) === "audios da dinamica";
+    });
+  }, [safeConteudos]);
 
   // Bloco 5: Documentos de insights
   const documentosInsights = useMemo(() => {
-    return conteudos.filter(
-      (c) => 
-        c.tipo === "documento" && 
-        normalizarNome(c.topicos_fase?.nome) === "documentos de insights" &&
-        !(c.fase_id && c.fase_id >= 1 && c.fase_id <= 6)
-    );
-  }, [conteudos]);
+    return safeConteudos.filter((c) => {
+      const nomeTopico = c?.topicos_fase?.nome;
+      const ehFaseValida = c?.fase_id && c.fase_id >= 1 && c.fase_id <= 6;
+      return c?.tipo === "documento" && normalizarNome(nomeTopico) === "documentos de insights" && !ehFaseValida;
+    });
+  }, [safeConteudos]);
 
-  // Bloco 5: Link do banco de insights (Para o botão dourado)
+  // Bloco 5: Link do banco de insights
   const linkBancoInsights = useMemo(() => {
-    return conteudos.find(
-      (c) => normalizarNome(c.topicos_fase?.nome) === "link do banco de insights"
-    ) ?? null;
-  }, [conteudos]);
+    return safeConteudos.find((c) => {
+      const nomeTopico = c?.topicos_fase?.nome;
+      return normalizarNome(nomeTopico) === "link do banco de insights";
+    }) || null;
+  }, [safeConteudos]);
 
-  // ========================================================
-  // MAPAS E ESTRUTURAS DO CORPO ORIGINAL (Para o Bloco 2)
-  // ========================================================
+  // Separador de conteúdos por tópicos da linha do tempo
   const conteudosPorTopico = useMemo(() => {
     const m: Record<string, Conteudo[]> = {};
-    for (const c of conteudos) {
-      const nomeTopico = normalizarNome(c.topicos_fase?.nome);
+    for (const c of safeConteudos) {
+      if (!c || !c.topico_id) continue;
+      const nomeTopico = normalizarNome(c?.topicos_fase?.nome);
       if (
         nomeTopico === "video de boas-vindas" ||
         nomeTopico === "audios da dinamica" ||
@@ -404,33 +410,43 @@ export function PortalRico({
         nomeTopico === "link do banco de insights"
       ) {
         if (c.fase_id && c.fase_id >= 1 && c.fase_id <= 6) {
-          // deixa passar caso explicitamente atrelado nas fases do serviço
+          // deixa passar se estiver fixado estruturalmente
         } else {
           continue; 
         }
       }
-      (m[c.topico_id] ??= []).push(c);
+      if (!m[c.topico_id]) m[c.topico_id] = [];
+      m[c.topico_id].push(c);
     }
     return m;
-  }, [conteudos]);
+  }, [safeConteudos]);
 
   const topicosPorFase = useMemo(() => {
     const m: Record<number, Topico[]> = {};
-    for (const t of topicos) (m[t.fase_id] ??= []).push(t);
-    for (const arr of Object.values(m)) arr.sort((a, b) => a.ordem - b.ordem);
+    for (const t of safeTopicos) {
+      if (!t || !t.fase_id) continue;
+      if (!m[t.fase_id]) m[t.fase_id] = [];
+      m[t.fase_id].push(t);
+    }
+    for (const chave of Object.keys(m)) {
+      const numChave = Number(chave);
+      if (m[numChave]) {
+        m[numChave].sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+      }
+    }
     return m;
-  }, [topicos]);
+  }, [safeTopicos]);
 
   const timeline = useMemo(() => {
     return ETAPAS_TIMELINE.map((et) => {
-      const real = fases.find((f) => f.id === et.fase);
+      const real = safeFases.find((f) => f && f.id === et.fase);
       return {
         ...et,
         nome: real?.nome || et.nome,
         desc: real?.descricao || et.desc,
       };
     });
-  }, [fases]);
+  }, [safeFases]);
 
   return (
     <div className="rounded-[20px] p-4 sm:p-6 lg:p-8 space-y-8 sm:space-y-10" style={{ background: C.bg, color: C.text }}>
@@ -440,13 +456,13 @@ export function PortalRico({
           className="h-11 w-11 rounded-full flex items-center justify-center text-sm font-extrabold shrink-0"
           style={{ background: `linear-gradient(135deg, ${C.mid}, ${C.gold})`, color: "#fff" }}
         >
-          {cliente?.nome?.[0]?.toUpperCase() ?? "•"}
+          {cliente?.nome ? cliente.nome[0].toUpperCase() : "•"}
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: "rgba(255,255,255,0.6)" }}>
             {variant === "admin" ? "Preview · Portal exclusivo" : "Portal exclusivo"}
           </div>
-          <div className="font-extrabold text-sm sm:text-base truncate">{cliente?.nome}</div>
+          <div className="font-extrabold text-sm sm:text-base truncate">{cliente?.nome || "Cliente"}</div>
           {cliente?.plano && (
             <div className="text-[11px] sm:text-xs mt-0.5" style={{ color: C.gold }}>Plano: {cliente.plano}</div>
           )}
@@ -472,7 +488,7 @@ export function PortalRico({
           className="aspect-video rounded-[18px] overflow-hidden relative flex items-center justify-center cursor-pointer group"
           style={{ background: `linear-gradient(135deg, ${C.dark}, #4A2510)`, boxShadow: SHADOW }}
           onClick={() => {
-            if (videoBoasVindas?.url) {
+            if (videoBoasVindas && videoBoasVindas.url) {
               window.open(videoBoasVindas.url, "_blank", "noopener,noreferrer");
               return;
             }
@@ -522,7 +538,7 @@ export function PortalRico({
               nome={f.nome}
               desc={f.desc}
               ativa={f.ativa}
-              topicos={topicosPorFase[f.fase] ?? []}
+              topicos={topicosPorFase[f.fase] || []}
               conteudosPorTopico={conteudosPorTopico}
               open={openFase === f.fase}
               onToggle={() => setOpenFase(openFase === f.fase ? null : f.fase)}
@@ -635,7 +651,7 @@ export function PortalRico({
             </div>
 
             {/* Botão Dourado Dinâmico por Link do Tópico */}
-            {linkBancoInsights?.url ? (
+            {linkBancoInsights && linkBancoInsights.url ? (
               <a
                 href={linkBancoInsights.url}
                 target="_blank"
@@ -701,7 +717,7 @@ export function PortalRico({
       </section>
 
       <footer className="pt-2 pb-2 text-center text-[11px]" style={{ color: C.textMuted }}>
-        Portal exclusivo {cliente?.nome} · gerido por Thamirys · Painel 360°
+        Portal exclusivo {cliente?.nome || ""} · gerido por Thamirys · Painel 360°
       </footer>
     </div>
   );
