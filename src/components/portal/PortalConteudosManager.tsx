@@ -147,6 +147,7 @@ function TopicoBlock({
 }) {
   const [tipo, setTipo] = useState<ConteudoTipo>("video");
   const [titulo, setTitulo] = useState("");
+  const [descricao, setDescricao] = useState("");
   const [url, setUrl] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -161,9 +162,10 @@ function TopicoBlock({
     setSaving(true);
     try {
       await create({
-        data: { clienteId, topicoId: topico.id, tipo, titulo: titulo || null, url: url.trim() },
+        data: { clienteId, topicoId: topico.id, tipo, titulo: titulo || null, descricao: descricao || null, url: url.trim() },
       });
       setTitulo("");
+      setDescricao("");
       setUrl("");
       toast.success("Conteúdo adicionado");
       onChanged();
@@ -183,6 +185,7 @@ function TopicoBlock({
           topicoId: topico.id,
           tipo,
           titulo: titulo || arquivo.nome,
+          descricao: descricao || null,
           // Não salvamos a "url pública" aqui: os buckets são privados,
           // então esse link nunca funcionaria. Guardamos só o caminho no
           // storage — o portal do cliente gera um link assinado (temporário
@@ -193,6 +196,7 @@ function TopicoBlock({
         },
       });
       setTitulo("");
+      setDescricao("");
       toast.success("Arquivo enviado e vinculado ao tópico");
       onChanged();
     } catch (e) {
@@ -224,7 +228,10 @@ function TopicoBlock({
           {conteudos.map((c) => (
             <li key={c.id} className="flex items-center gap-2 text-sm min-w-0">
               <span className="shrink-0"><TipoIcon tipo={c.tipo} /></span>
-              <span className="flex-1 truncate min-w-0">{c.titulo || c.url || c.storage_path}</span>
+              <span className="flex-1 truncate min-w-0">
+                {c.titulo || c.url || c.storage_path}
+                {c.descricao && <span className="text-muted-foreground"> — {c.descricao}</span>}
+              </span>
               {c.url && (
                 <a href={c.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs text-primary underline">
                   Abrir
@@ -254,6 +261,15 @@ function TopicoBlock({
           <Label className="text-xs">Título (opcional)</Label>
           <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex.: Vídeo de onboarding" />
         </div>
+      </div>
+
+      <div className="mt-2">
+        <Label className="text-xs">Frase/descrição (opcional)</Label>
+        <Input
+          value={descricao}
+          onChange={(e) => setDescricao(e.target.value)}
+          placeholder="Ex.: Como vai funcionar o dia a dia da nossa comunicação."
+        />
       </div>
 
       <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
