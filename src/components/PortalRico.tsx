@@ -373,7 +373,7 @@ export function PortalRico({
     );
   }, [conteudos]);
 
-  // Bloco 5: Documentos de insights (Ignora as fases 1-6 para não vazar relatórios estruturais)
+  // Bloco 5: Documentos de insights
   const documentosInsights = useMemo(() => {
     return conteudos.filter(
       (c) => 
@@ -396,7 +396,6 @@ export function PortalRico({
   const conteudosPorTopico = useMemo(() => {
     const m: Record<string, Conteudo[]> = {};
     for (const c of conteudos) {
-      // Protege para que os conteúdos estáticos não vazem na listagem geral do Bloco 2
       const nomeTopico = normalizarNome(c.topicos_fase?.nome);
       if (
         nomeTopico === "video de boas-vindas" ||
@@ -463,7 +462,7 @@ export function PortalRico({
         <p className="text-sm sm:text-base leading-relaxed" style={{ color: C.text }}>
           Seja bem-vinda ao seu ecossistema de <strong>posicionamento, desejo e marketing de diferenciação</strong>.
           Este é o espaço onde toda a estratégia da sua marca pessoal acontece — da primeira reunião à análise mensal.
-          Reserve um tempo para explorar cada bloco abaixo com calma; tudo aqui foi desenhado para destravar o seu próximo nível.
+          Reserve um tempo para explorar cada bloco abaixo com calma; tudo aqui foi desenho para destravar o seu próximo nível.
         </p>
       </section>
 
@@ -546,9 +545,11 @@ export function PortalRico({
             <div className="flex items-center gap-3">
               <Headphones size={18} style={{ color: C.mid }} />
               <div className="text-sm" style={{ color: C.textMid }}>
-                {variant === "admin"
-                  ? <>Nenhum áudio cadastrado ainda para o tópico <strong>Áudios da dinâmica</strong>.</>
-                  : "Nenhum áudio disponível ainda. Assim que forem liberados, aparecerão aqui."}
+                {variant === "admin" ? (
+                  <span>Nenhum áudio cadastrado ainda para o tópico <strong>Áudios da dinâmica</strong>.</span>
+                ) : (
+                  <span>Nenhum áudio disponível ainda. Assim que forem liberados, aparecerão aqui.</span>
+                )}
               </div>
             </div>
           </Card>
@@ -594,7 +595,7 @@ export function PortalRico({
                 <TagBadge label="Diário" />
               </div>
               <p className="text-sm" style={{ color: C.textMid }}>
-                Mínimo de 3 blocos de narrativa ao longo do dia para gerar conexão e desejo.
+                Mínimo de 3 blocks de narrativa ao longo do dia para gerar conexão e desejo.
               </p>
             </div>
           </div>
