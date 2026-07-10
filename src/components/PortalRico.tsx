@@ -31,8 +31,16 @@ const SHADOW = "0 2px 16px rgba(44,21,5,0.09)";
 /* ---------- tipos ---------- */
 export type Fase = { id: number; nome: string; descricao: string | null };
 export type Topico = { id: string; fase_id: number; nome: string; ordem: number };
-export type ConteudoTipo = "video" | "audio" | "documento";
-export type Conteudo = { id: string; topico_id: string; tipo: ConteudoTipo; titulo: string | null; url: string | null };
+export type ConteudoTipo = "video" | "audio" | "documento" | "link";
+export type Conteudo = { 
+  id: string; 
+  topico_id: string; 
+  tipo: ConteudoTipo; 
+  titulo: string | null; 
+  url: string | null;
+  fase_id?: number;
+  topicos_fase?: { nome: string } | null;
+};
 export type ClientePortal = {
   id: string;
   nome: string;
@@ -324,12 +332,7 @@ function BloqueadorCard({
   );
 }
 
-/* ---------- Componente principal (presentacional) ----------
- * Não busca dados sozinho — recebe tudo via props. Isso permite que
- * o admin (PortalPreview.tsx, via getPortalPreviewByClienteId) e o
- * cliente (rota /meu-portal, via getMeuPortal) usem exatamente o
- * mesmo visual, sem duas implementações que podem ficar dessincronizadas.
- */
+/* ---------- Componente principal ---------- */
 export function PortalRico({
   cliente,
   fases,
@@ -341,7 +344,6 @@ export function PortalRico({
   fases: Fase[];
   topicos: Topico[];
   conteudos: Conteudo[];
-  /** "admin" ajusta pequenos textos (ex: dica de onde cadastrar conteúdo) */
   variant?: "admin" | "cliente";
 }) {
   const [videoPlaying, setVideoPlaying] = useState(false);
@@ -349,14 +351,67 @@ export function PortalRico({
   const [openFase, setOpenFase] = useState<number | null>(1);
   const [openBloq, setOpenBloq] = useState<number | null>(null);
 
-  const videos = useMemo(() => conteudos.filter((c) => c.tipo === "video"), [conteudos]);
-  const audios = useMemo(() => conteudos.filter((c) => c.tipo === "audio"), [conteudos]);
-  const documentos = useMemo(() => conteudos.filter((c) => c.tipo === "documento"), [conteudos]);
-  const videoBoasVindas = videos[0] ?? null;
+  // Helper para normalizar strings e comparar nomes com mais segurança
+  const normalizarNome = (txt: string | null | undefined) => 
+    txt ? txt.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
+  // ========================================================
+  // FILTROS ESCOPADOS (Busca estritamente baseada no nome do tópico)
+  // ========================================================
+
+  // Bloco 1: Vídeo de boas-vindas
+  const videoBoasVindas = useMemo(() => {
+    return conteudos.find(
+      (c) => normalizarNome(c.topicos_fase?.nome) === "video de boas-vindas"
+    ) ?? null;
+  }, [conteudos]);
+
+  // Bloco 3: Áudios da Dinâmica
+  const audiosDinamica = useMemo(() => {
+    return conteudos.filter(
+      (c) => c.tipo === "audio" && normalizarNome(c.topicos_fase?.nome) === "audios da dinamica"
+    );
+  }, [conteudos]);
+
+  // Bloco 5: Documentos de insights (Ignora as fases 1-6 para não vazar relatórios estruturais)
+  const documentosInsights = useMemo(() => {
+    return conteudos.filter(
+      (c) => 
+        c.tipo === "documento" && 
+        normalizarNome(c.topicos_fase?.nome) === "documentos de insights" &&
+        !(c.fase_id && c.fase_id >= 1 && c.fase_id <= 6)
+    );
+  }, [conteudos]);
+
+  // Bloco 5: Link do banco de insights (Para o botão dourado)
+  const linkBancoInsights = useMemo(() => {
+    return conteudos.find(
+      (c) => normalizarNome(c.topicos_fase?.nome) === "link do banco de insights"
+    ) ?? null;
+  }, [conteudos]);
+
+  // ========================================================
+  // MAPAS E ESTRUTURAS DO CORPO ORIGINAL (Para o Bloco 2)
+  // ========================================================
   const conteudosPorTopico = useMemo(() => {
     const m: Record<string, Conteudo[]> = {};
-    for (const c of conteudos) (m[c.topico_id] ??= []).push(c);
+    for (const c of conteudos) {
+      // Protege para que os conteúdos estáticos não vazem na listagem geral do Bloco 2
+      const nomeTopico = normalizarNome(c.topicos_fase?.nome);
+      if (
+        nomeTopico === "video de boas-vindas" ||
+        nomeTopico === "audios da dinamica" ||
+        nomeTopico === "documentos de insights" ||
+        nomeTopico === "link do banco de insights"
+      ) {
+        if (c.fase_id && c.fase_id >= 1 && c.fase_id <= 6) {
+          // deixa passar caso explicitamente atrelado nas fases do serviço
+        } else {
+          continue; 
+        }
+      }
+      (m[c.topico_id] ??= []).push(c);
+    }
     return m;
   }, [conteudos]);
 
@@ -367,7 +422,6 @@ export function PortalRico({
     return m;
   }, [topicos]);
 
-  // combina timeline fixa com nomes reais das fases quando existirem
   const timeline = useMemo(() => {
     return ETAPAS_TIMELINE.map((et) => {
       const real = fases.find((f) => f.id === et.fase);
@@ -452,11 +506,6 @@ export function PortalRico({
             O vídeo ao lado contém orientações fundamentais sobre como funciona a nossa plataforma
             e o que você deve preencher até o dia do nosso encontro estratégico.
           </p>
-          {videos.length > 1 && (
-            <p className="text-xs mt-3" style={{ color: C.textMid }}>
-              + {videos.length - 1} outros vídeos disponíveis nas fases abaixo.
-            </p>
-          )}
         </div>
       </section>
 
@@ -483,33 +532,33 @@ export function PortalRico({
         </div>
       </section>
 
-      {/* Bloco 3 · Áudios */}
+      {/* Bloco 3 · Áudios (Nossa Dinâmica) */}
       <section>
         <Eyebrow>Bloco 3 · Gestão de expectativas</Eyebrow>
         <h2 className="text-lg sm:text-2xl font-extrabold mt-2 mb-1 sm:mb-2" style={{ color: C.text, letterSpacing: "-0.02em" }}>
-          Boas-vindas & nossa dinâmica.
+          Nossa Dinâmica.
         </h2>
         <p className="text-sm mb-4 sm:mb-5" style={{ color: C.textMid }}>
           Áudios de alinhamento gravados especialmente para a nossa operação — ouça antes do primeiro encontro estratégico.
         </p>
-        {audios.length === 0 ? (
+        {audiosDinamica.length === 0 ? (
           <Card>
             <div className="flex items-center gap-3">
               <Headphones size={18} style={{ color: C.mid }} />
               <div className="text-sm" style={{ color: C.textMid }}>
                 {variant === "admin"
-                  ? <>Nenhum áudio cadastrado ainda. Adicione na aba <strong>Portal — Gerenciar conteúdo</strong>.</>
+                  ? <>Nenhum áudio cadastrado ainda para o tópico <strong>Áudios da dinâmica</strong>.</>
                   : "Nenhum áudio disponível ainda. Assim que forem liberados, aparecerão aqui."}
               </div>
             </div>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {audios.map((a) => (
+            {audiosDinamica.map((a) => (
               <AudioItem
                 key={a.id}
                 id={a.id}
-                title={a.titulo || "Áudio"}
+                title={a.titulo || "Áudio da dinâmica"}
                 desc=""
                 url={a.url}
                 activeId={activeAudioId}
@@ -559,36 +608,54 @@ export function PortalRico({
           Onde você deposita ideias e como sua paciente decide comprar.
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-          <Card>
-            <SectionLabel>Banco de Insights</SectionLabel>
-            <p className="text-sm mb-4" style={{ color: C.textMid }}>
-              Envie aqui ideias espontâneas, dúvidas de balcão, prints de conversas com pacientes
-              e qualquer faísca que possa virar conteúdo. Nada se perde — tudo entra no radar editorial.
-            </p>
-            {documentos.length > 0 ? (
-              <ul className="space-y-2">
-                {documentos.slice(0, 4).map((d) => (
-                  <li key={d.id} className="flex items-center gap-2 rounded-lg border p-2" style={{ borderColor: C.beige, background: C.beigeLight }}>
-                    <FileText size={14} style={{ color: C.mid }} className="shrink-0" />
-                    <span className="flex-1 text-xs truncate" style={{ color: C.text }}>{d.titulo || "Documento"}</span>
-                    {d.url && (
-                      <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold underline shrink-0" style={{ color: C.mid }}>
-                        Abrir
-                      </a>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div
-                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold"
+          <Card className="flex flex-col justify-between">
+            <div>
+              <SectionLabel>Banco de Insights</SectionLabel>
+              <p className="text-sm mb-4" style={{ color: C.textMid }}>
+                Envie aqui ideias espontâneas, dúvidas de balcão, prints de conversas com pacientes
+                e qualquer faísca que possa virar conteúdo. Nada se perde — tudo entra no radar editorial.
+              </p>
+              
+              {documentosInsights.length > 0 && (
+                <ul className="space-y-2 mb-4">
+                  {documentosInsights.map((d) => (
+                    <li key={d.id} className="flex items-center gap-2 rounded-lg border p-2" style={{ borderColor: C.beige, background: C.beigeLight }}>
+                      <FileText size={14} style={{ color: C.mid }} className="shrink-0" />
+                      <span className="flex-1 text-xs truncate" style={{ color: C.text }}>{d.titulo || "Documento de insights"}</span>
+                      {d.url && (
+                        <a href={d.url} target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold underline shrink-0" style={{ color: C.mid }}>
+                          Abrir
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* Botão Dourado Dinâmico por Link do Tópico */}
+            {linkBancoInsights?.url ? (
+              <a
+                href={linkBancoInsights.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-bold w-full sm:w-auto transition-transform hover:scale-[1.01]"
                 style={{ background: C.gold, color: C.dark }}
               >
-                <FolderOpen size={14} /> Banco de Insights do Cliente
+                <FolderOpen size={14} /> Acessar Banco de Insights do Cliente
                 <ExternalLink size={12} />
-              </div>
+              </a>
+            ) : (
+              <button
+                disabled
+                className="inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-bold w-full sm:w-auto opacity-50 cursor-not-allowed"
+                style={{ background: C.beige, color: C.textMid }}
+              >
+                <FolderOpen size={14} /> Banco de Insights Indisponível
+              </button>
             )}
           </Card>
+          
           <Card>
             <SectionLabel>Jornada de compra da paciente</SectionLabel>
             <div className="space-y-3">
@@ -624,7 +691,7 @@ export function PortalRico({
           {BLOQUEADORES.map((b) => (
             <BloqueadorCard
               key={b.n}
-              {...b}
+              {b}
               open={openBloq === b.n}
               onToggle={() => setOpenBloq(openBloq === b.n ? null : b.n)}
             />
