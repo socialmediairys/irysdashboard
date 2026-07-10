@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Video,
   Headphones,
@@ -129,22 +129,52 @@ function AudioItem({
 }) {
   const isPlaying = activeId === id;
   const [progress, setProgress] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    if (!isPlaying) {
-      setProgress(0);
-      return;
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isPlaying) {
+      audio.play().catch(() => {
+        // autoplay pode ser bloqueado pelo navegador; usuário pode tentar de novo
+        setActiveId(null);
+      });
+    } else {
+      audio.pause();
     }
-    const t = setInterval(() => setProgress((p) => (p >= 100 ? 0 : p + 1.2)), 200);
-    return () => clearInterval(t);
   }, [isPlaying]);
+
+  useEffect(() => {
+    if (!isPlaying) setProgress(0);
+  }, [isPlaying]);
+
+  const handleTimeUpdate = () => {
+    const audio = audioRef.current;
+    if (!audio || !audio.duration) return;
+    setProgress((audio.currentTime / audio.duration) * 100);
+  };
+
+  const handleEnded = () => {
+    setProgress(0);
+    setActiveId(null);
+  };
 
   return (
     <div className="rounded-[14px] p-3 sm:p-4 flex items-center gap-3 sm:gap-4" style={{ background: "#fff", boxShadow: SHADOW }}>
+      {url && (
+        <audio
+          ref={audioRef}
+          src={url}
+          preload="none"
+          onTimeUpdate={handleTimeUpdate}
+          onEnded={handleEnded}
+        />
+      )}
       <button
         type="button"
+        disabled={!url}
         onClick={() => setActiveId(isPlaying ? null : id)}
-        className="h-11 w-11 sm:h-12 sm:w-12 rounded-full flex items-center justify-center shrink-0 transition-transform hover:scale-105"
+        className="h-11 w-11 sm:h-12 sm:w-12 rounded-full flex items-center justify-center shrink-0 transition-transform hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed"
         style={{ background: isPlaying ? C.gold : C.dark, color: isPlaying ? C.dark : "#fff" }}
         aria-label={isPlaying ? "Pausar" : "Reproduzir"}
       >
