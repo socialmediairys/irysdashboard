@@ -14,6 +14,7 @@ import {
   disconnectGoogleCalendar,
   listGoogleCalendarEvents,
 } from "@/lib/google-calendar.functions";
+import { getInstagramAccountInsights } from "@/lib/meta-business.functions";
 import {
   sendWhatsappCobrancaTemplate,
   sendWhatsappCobrancaLote,
@@ -1747,25 +1748,94 @@ function FinancasPage() {
 
 
 function SocialPage() {
+  const { rows: clientes, loading: clientesLoading } = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
+  const [clienteId, setClienteId] = useState<string>("");
+
+  useEffect(() => {
+    if (!clienteId && clientes.length > 0) setClienteId(clientes[0].id);
+  }, [clientes, clienteId]);
+
+  const insightsFn = useServerFn(getInstagramAccountInsights);
+  const [insights, setInsights] = useState<{
+    username: string | null;
+    followersCount: number | null;
+    followsCount: number | null;
+    mediaCount: number | null;
+  } | null>(null);
+  const [igLoading, setIgLoading] = useState(false);
+  const [igError, setIgError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!clienteId) return;
+    let cancel = false;
+    setIgLoading(true);
+    setIgError(null);
+    setInsights(null);
+    insightsFn({ data: { clientId: clienteId } })
+      .then((res) => { if (!cancel) setInsights(res); })
+      .catch((e) => { if (!cancel) setIgError(e instanceof Error ? e.message : "Erro ao buscar métricas do Instagram"); })
+      .finally(() => { if (!cancel) setIgLoading(false); });
+    return () => { cancel = true; };
+  }, [clienteId, insightsFn]);
+
   return (
     <>
       <PageHeader eyebrow="Meta Business + Instagram" title="Métricas" accent="sociais"
         badges={<><LiveBadge label="Meta Business" /><LiveBadge label="Instagram" /></>}
       />
+
+      <div className="mb-6 max-w-xs">
+        <Label>Cliente</Label>
+        <Select value={clienteId} onValueChange={setClienteId}>
+          <SelectTrigger><SelectValue placeholder={clientesLoading ? "Carregando..." : "Selecione um cliente"} /></SelectTrigger>
+          <SelectContent>
+            {clientes.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid grid-cols-4 gap-5 mb-6">
-        {DB.redesSociais.map((r) => (
-          <Card key={r.plat} dark={r.dark}>
-            <div className="font-extrabold text-lg">{r.plat}</div>
-            <div className="text-xs opacity-70">{r.handle}</div>
-            <div className="mt-4 text-3xl font-extrabold" style={{ letterSpacing: "-0.03em" }}>{r.followers}</div>
-            <div className="text-xs opacity-70 mb-3">Engajamento {r.eng} · Alcance {r.reach}</div>
-            <GoldProgress pct={r.pct} />
+        <Card dark>
+          <div className="font-extrabold text-lg">Instagram</div>
+          {igLoading ? (
+            <div className="text-xs opacity-70 mt-4">Carregando métricas...</div>
+          ) : igError ? (
+            <div className="mt-3 text-xs" style={{ color: "#FFC1B0" }}>
+              {igError}
+              <div className="mt-2">
+                <a href="/admin/configuracoes?tab=integracoes" className="underline font-semibold">
+                  Ir para Integrações
+                </a>
+              </div>
+            </div>
+          ) : insights ? (
+            <>
+              <div className="text-xs opacity-70">@{insights.username ?? "—"}</div>
+              <div className="mt-4 text-3xl font-extrabold" style={{ letterSpacing: "-0.03em" }}>
+                {insights.followersCount != null ? insights.followersCount.toLocaleString("pt-BR") : "—"}
+              </div>
+              <div className="text-xs opacity-70 mb-3">
+                {insights.mediaCount != null ? `${insights.mediaCount} publicações` : "—"}
+              </div>
+            </>
+          ) : (
+            <div className="text-xs opacity-70 mt-4">Selecione um cliente</div>
+          )}
+        </Card>
+        {["TikTok", "YouTube", "Facebook"].map((plat) => (
+          <Card key={plat}>
+            <div className="font-extrabold text-lg">{plat}</div>
+            <div className="text-xs mt-4" style={{ color: C.textMuted }}>Integração em breve</div>
           </Card>
         ))}
       </div>
+
       <div className="grid grid-cols-5 gap-5 mb-6">
         <div className="col-span-3">
           <Card>
+            {/* TODO: mockado, sem integração ainda */}
             <h3 className="font-extrabold text-lg mb-4">Posts com melhor desempenho</h3>
             <div className="space-y-3">
               {[
@@ -1784,6 +1854,7 @@ function SocialPage() {
         </div>
         <div className="col-span-2">
           <Card dark>
+            {/* TODO: mockado, sem integração ainda */}
             <h3 className="font-extrabold text-lg mb-4">Metas do mês</h3>
             <div className="space-y-4">
               {[
