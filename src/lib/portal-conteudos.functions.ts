@@ -10,6 +10,7 @@ export type Conteudo = {
   topico_id: string;
   tipo: ConteudoTipo;
   titulo: string | null;
+  descricao: string | null;
   url: string | null;
   storage_path: string | null;
   storage_bucket: string | null;
@@ -56,7 +57,7 @@ export const listConteudosCliente = createServerFn({ method: "GET" })
     await requireAdmin(context);
     const { data: rows, error } = await context.supabase
       .from("conteudos_cliente")
-      .select("id, cliente_id, topico_id, tipo, titulo, url, storage_path, storage_bucket, created_at")
+      .select("id, cliente_id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, created_at")
       .eq("cliente_id", data.clienteId)
       .order("created_at", { ascending: false });
     if (error) throw error;
@@ -71,6 +72,7 @@ export const createConteudoCliente = createServerFn({ method: "POST" })
     topicoId: string;
     tipo: ConteudoTipo;
     titulo?: string | null;
+    descricao?: string | null;
     url?: string | null;
     storagePath?: string | null;
     storageBucket?: string | null;
@@ -88,6 +90,7 @@ export const createConteudoCliente = createServerFn({ method: "POST" })
       topicoId,
       tipo: input.tipo,
       titulo: input.titulo?.trim() || null,
+      descricao: input.descricao?.trim() || null,
       url,
       storagePath,
       storageBucket: input.storageBucket?.trim() || null,
@@ -102,12 +105,13 @@ export const createConteudoCliente = createServerFn({ method: "POST" })
         topico_id: data.topicoId,
         tipo: data.tipo,
         titulo: data.titulo,
+        descricao: data.descricao,
         url: data.url,
         storage_path: data.storagePath,
         storage_bucket: data.storageBucket,
         created_by: context.userId,
       })
-      .select("id, cliente_id, topico_id, tipo, titulo, url, storage_path, storage_bucket, created_at")
+      .select("id, cliente_id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, created_at")
       .single();
     if (error) throw error;
     return row as Conteudo;
@@ -182,7 +186,7 @@ export const getPortalBySlug = createServerFn({ method: "GET" })
       supabaseAdmin.from("topicos_fase").select("id, fase_id, nome, ordem").order("fase_id").order("ordem"),
       supabaseAdmin
         .from("conteudos_cliente")
-        .select("id, topico_id, tipo, titulo, url, storage_path, storage_bucket, created_at")
+        .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, created_at, topicos_fase(nome, fase_id)")
         .eq("cliente_id", cliente.id)
         .order("created_at"),
     ]);
@@ -203,12 +207,16 @@ export const getPortalBySlug = createServerFn({ method: "GET" })
             .createSignedUrl(c.storage_path as string, 60 * 60 * 6); // 6 horas
           if (signed?.signedUrl) signedUrl = signed.signedUrl;
         }
+        const topicoFase = (c as { topicos_fase?: { nome: string; fase_id: number } | null }).topicos_fase ?? null;
         return {
           id: c.id as string,
           topico_id: c.topico_id as string,
           tipo: c.tipo as ConteudoTipo,
           titulo: (c.titulo as string) ?? null,
+          descricao: (c.descricao as string) ?? null,
           url: signedUrl,
+          fase_id: topicoFase?.fase_id,
+          topicos_fase: topicoFase ? { nome: topicoFase.nome } : null,
         };
       }),
     );
@@ -251,7 +259,7 @@ export const getMeuPortal = createServerFn({ method: "GET" })
       supabaseAdmin.from("topicos_fase").select("id, fase_id, nome, ordem").order("fase_id").order("ordem"),
       supabaseAdmin
         .from("conteudos_cliente")
-        .select("id, topico_id, tipo, titulo, url, storage_path, storage_bucket, created_at")
+        .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, created_at, topicos_fase(nome, fase_id)")
         .eq("cliente_id", cliente.id)
         .order("created_at"),
     ]);
@@ -271,12 +279,16 @@ export const getMeuPortal = createServerFn({ method: "GET" })
             .createSignedUrl(c.storage_path as string, 60 * 60 * 6); // 6 horas
           if (signed?.signedUrl) signedUrl = signed.signedUrl;
         }
+        const topicoFase = (c as { topicos_fase?: { nome: string; fase_id: number } | null }).topicos_fase ?? null;
         return {
           id: c.id as string,
           topico_id: c.topico_id as string,
           tipo: c.tipo as ConteudoTipo,
           titulo: (c.titulo as string) ?? null,
+          descricao: (c.descricao as string) ?? null,
           url: signedUrl,
+          fase_id: topicoFase?.fase_id,
+          topicos_fase: topicoFase ? { nome: topicoFase.nome } : null,
         };
       }),
     );
@@ -320,7 +332,7 @@ export const getPortalPreviewByClienteId = createServerFn({ method: "GET" })
       supabaseAdmin.from("topicos_fase").select("id, fase_id, nome, ordem").order("fase_id").order("ordem"),
       supabaseAdmin
         .from("conteudos_cliente")
-        .select("id, topico_id, tipo, titulo, url, storage_path, storage_bucket, created_at")
+        .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, created_at, topicos_fase(nome, fase_id)")
         .eq("cliente_id", data.clienteId)
         .order("created_at"),
     ]);
@@ -340,12 +352,16 @@ export const getPortalPreviewByClienteId = createServerFn({ method: "GET" })
             .createSignedUrl(c.storage_path as string, 60 * 60 * 6);
           if (signed?.signedUrl) signedUrl = signed.signedUrl;
         }
+        const topicoFase = (c as { topicos_fase?: { nome: string; fase_id: number } | null }).topicos_fase ?? null;
         return {
           id: c.id as string,
           topico_id: c.topico_id as string,
           tipo: c.tipo as ConteudoTipo,
           titulo: (c.titulo as string) ?? null,
+          descricao: (c.descricao as string) ?? null,
           url: signedUrl,
+          fase_id: topicoFase?.fase_id,
+          topicos_fase: topicoFase ? { nome: topicoFase.nome } : null,
         };
       }),
     );
