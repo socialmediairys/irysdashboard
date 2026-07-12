@@ -18,6 +18,9 @@ import {
   type ClienteRow,
 } from "@/components/Painel360";
 
+type TabKey = "dados" | "gerenciar" | "preview" | "cobranca";
+const TAB_KEYS: TabKey[] = ["dados", "gerenciar", "preview", "cobranca"];
+
 export const Route = createFileRoute("/_authenticated/admin/clientes/$clienteId")({
   head: () => ({
     meta: [
@@ -25,14 +28,15 @@ export const Route = createFileRoute("/_authenticated/admin/clientes/$clienteId"
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>): { tab: TabKey } => ({
+    tab: TAB_KEYS.includes(search.tab as TabKey) ? (search.tab as TabKey) : "dados",
+  }),
   component: () => (
     <CrudProvider>
       <ClienteProfilePage />
     </CrudProvider>
   ),
 });
-
-type TabKey = "dados" | "gerenciar" | "preview" | "cobranca";
 
 const TABS: { key: TabKey; label: string; icon: typeof FileText }[] = [
   { key: "dados", label: "Dados", icon: FileText },
@@ -49,11 +53,18 @@ function initialsOf(nome: string) {
 
 function ClienteProfilePage() {
   const { clienteId } = Route.useParams();
-  const navigate = useNavigate();
+  const { tab } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const { openEdit, openDelete } = useCrud();
   const [cliente, setCliente] = useState<ClienteRow | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<TabKey>("dados");
+
+  const setTab = useCallback(
+    (t: TabKey) => {
+      void navigate({ search: (prev) => ({ ...prev, tab: t }), replace: true });
+    },
+    [navigate],
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
