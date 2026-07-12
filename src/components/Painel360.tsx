@@ -266,7 +266,7 @@ function GoldProgress({ pct }: { pct: number }) {
 }
 
 /* ---------- MetricCard ---------- */
-function MetricCard({ variant = "default", value, label, delta, deltaType = "up" }: {
+export function MetricCard({ variant = "default", value, label, delta, deltaType = "up" }: {
   variant?: "default" | "hero" | "accent"; value: ReactNode; label: string; delta?: string; deltaType?: "up" | "down" | "neutral";
 }) {
   const dark = variant === "hero";
@@ -291,7 +291,7 @@ function MetricCard({ variant = "default", value, label, delta, deltaType = "up"
 
 
 /* ---------- Header ---------- */
-function PageHeader({ eyebrow, title, accent, actions, badges }: {
+export function PageHeader({ eyebrow, title, accent, actions, badges }: {
   eyebrow: string; title: string; accent?: string; actions?: ReactNode; badges?: ReactNode;
 }) {
   return (
@@ -1526,7 +1526,7 @@ function ClientesPage() {
 
 
 
-type LeadRow = {
+export type LeadRow = {
   id: string;
   nome: string;
   valor: number | null;
@@ -1541,9 +1541,9 @@ type LeadRow = {
   observacoes: string | null;
 };
 
-const ETAPA_COLS = ["Lead/Entrada", "Reunião Marcada", "Proposta Enviada", "Negociando"];
+export const ETAPA_COLS = ["Lead/Entrada", "Reunião Marcada", "Proposta Enviada", "Negociando"];
 
-function CRMPage() {
+export function CRMPage() {
   const { openCreate, openEdit, openDelete } = useCrud();
   const leadsQ = useSupabaseList<LeadRow>("leads", { order: { column: "created_at", ascending: false } });
   const { rows: leads, loading, error, refetch } = leadsQ;
