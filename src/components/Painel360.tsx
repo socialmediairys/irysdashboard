@@ -1757,6 +1757,7 @@ function SocialPage() {
 
   const insightsFn = useServerFn(getInstagramAccountInsights);
   const [periodDays, setPeriodDays] = useState<number>(30);
+  const [reloadKey, setReloadKey] = useState(0);
   const [insights, setInsights] = useState<{
     username: string | null;
     followersCount: number | null;
@@ -1785,12 +1786,18 @@ function SocialPage() {
     setIgLoading(true);
     setIgError(null);
     setInsights(null);
-    insightsFn({ data: { clientId: clienteId, periodDays } })
-      .then((res) => { if (!cancel) setInsights(res); })
-      .catch((e) => { if (!cancel) setIgError(e instanceof Error ? e.message : "Erro ao buscar métricas do Instagram"); })
+
+    const timeout = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error("Tempo esgotado ao buscar métricas. Tente novamente.")), 15000);
+    });
+
+    Promise.race([insightsFn({ data: { clientId: clienteId, periodDays } }), timeout])
+      .then((res) => { if (!cancel) setInsights(res as typeof insights); })
+      .catch((e) => { if (!cancel) setIgError(e instanceof Error ? e.message : "Não foi possível buscar as métricas agora."); })
       .finally(() => { if (!cancel) setIgLoading(false); });
+
     return () => { cancel = true; };
-  }, [clienteId, periodDays, insightsFn]);
+  }, [clienteId, periodDays, insightsFn, reloadKey]);
 
   const fmtNum = (n: number | null | undefined) => (typeof n === "number" ? n.toLocaleString("pt-BR") : "—");
   const fmtPct = (r: number | null | undefined, digits = 1) =>
@@ -1879,7 +1886,14 @@ function SocialPage() {
           ) : igError ? (
             <div className="text-xs py-4" style={{ color: "#FFC1B0" }}>
               {igError}
-              <div className="mt-2">
+              <div className="mt-2 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setReloadKey((k) => k + 1)}
+                  className="underline font-semibold"
+                >
+                  Tentar novamente
+                </button>
                 <a href="/admin/configuracoes?tab=integracoes" className="underline font-semibold">Ir para Integrações</a>
               </div>
             </div>
