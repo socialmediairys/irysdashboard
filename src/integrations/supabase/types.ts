@@ -210,6 +210,7 @@ export type Database = {
           cliente_id: string
           created_at: string | null
           created_by: string | null
+          descricao: string | null
           id: string
           storage_bucket: string | null
           storage_path: string | null
@@ -222,6 +223,7 @@ export type Database = {
           cliente_id: string
           created_at?: string | null
           created_by?: string | null
+          descricao?: string | null
           id?: string
           storage_bucket?: string | null
           storage_path?: string | null
@@ -234,6 +236,7 @@ export type Database = {
           cliente_id?: string
           created_at?: string | null
           created_by?: string | null
+          descricao?: string | null
           id?: string
           storage_bucket?: string | null
           storage_path?: string | null
