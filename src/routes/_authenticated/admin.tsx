@@ -1,9 +1,7 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { AdminSidebar } from "@/components/layout/AdminSidebar";
 
-// Server-side (pre-render) admin gate for all /admin/* routes.
-// Runs before any child component mounts. Parent `_authenticated` layout
-// already ensures the user is signed in.
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
   beforeLoad: async () => {
@@ -19,5 +17,18 @@ export const Route = createFileRoute("/_authenticated/admin")({
       throw redirect({ to: "/portal" });
     }
   },
-  component: () => <Outlet />,
+  component: AdminLayout,
 });
+
+function AdminLayout() {
+  return (
+    <div className="h-screen overflow-hidden flex flex-col md:flex-row" style={{ background: "#EDEAE5" }}>
+      <AdminSidebar />
+      <main className="flex-1 overflow-y-auto md:ml-60 transition-[margin] duration-200">
+        <div className="mx-auto max-w-[1400px] p-4 md:p-8">
+          <Outlet />
+        </div>
+      </main>
+    </div>
+  );
+}
