@@ -23,6 +23,7 @@ export type Database = {
           descricao: string | null
           duracao_min: number | null
           id: string
+          org_id: string | null
           prioridade: string | null
           responsavel_id: string | null
           titulo: string
@@ -36,6 +37,7 @@ export type Database = {
           descricao?: string | null
           duracao_min?: number | null
           id?: string
+          org_id?: string | null
           prioridade?: string | null
           responsavel_id?: string | null
           titulo: string
@@ -49,6 +51,7 @@ export type Database = {
           descricao?: string | null
           duracao_min?: number | null
           id?: string
+          org_id?: string | null
           prioridade?: string | null
           responsavel_id?: string | null
           titulo?: string
@@ -60,6 +63,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agenda_itens_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
