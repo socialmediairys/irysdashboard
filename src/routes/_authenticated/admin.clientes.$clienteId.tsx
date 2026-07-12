@@ -61,7 +61,7 @@ function ClienteProfilePage() {
 
   const setTab = useCallback(
     (t: TabKey) => {
-      void navigate({ search: (prev) => ({ ...prev, tab: t }), replace: true });
+      void navigate({ search: (prev: Record<string, unknown>) => ({ ...prev, tab: t }), replace: true });
     },
     [navigate],
   );
