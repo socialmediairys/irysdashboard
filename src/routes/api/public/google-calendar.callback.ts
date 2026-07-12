@@ -8,7 +8,10 @@ type GoogleOAuthConfig =
 function readGoogleOAuthConfig(): GoogleOAuthConfig {
   const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID?.trim();
   const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET?.trim();
-  const signingSecret = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || process.env.LOVABLE_API_KEY?.trim();
+  const signingSecret =
+    process.env.GOOGLE_OAUTH_STATE_SECRET?.trim() ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ||
+    process.env.LOVABLE_API_KEY?.trim();
   const missing = [
     ...(!clientId ? ["GOOGLE_OAUTH_CLIENT_ID"] : []),
     ...(!clientSecret ? ["GOOGLE_OAUTH_CLIENT_SECRET"] : []),
