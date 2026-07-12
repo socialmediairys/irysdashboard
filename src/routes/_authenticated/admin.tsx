@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 
@@ -21,6 +21,15 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 function AdminLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // "/admin/visao-geral" renderiza <Painel360 /> inteiro, que já tem seu
+  // próprio shell + sidebar embutidos. Não duplicar o wrapper aqui.
+  const hasOwnShell = pathname === "/admin/visao-geral" || pathname === "/admin";
+
+  if (hasOwnShell) {
+    return <Outlet />;
+  }
+
   return (
     <div className="h-screen overflow-hidden flex flex-col md:flex-row" style={{ background: "#EDEAE5" }}>
       <AdminSidebar />
