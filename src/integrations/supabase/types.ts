@@ -773,6 +773,7 @@ export type Database = {
           email: string | null
           id: string
           nome: string | null
+          org_id: string | null
           updated_at: string
         }
         Insert: {
@@ -782,6 +783,7 @@ export type Database = {
           email?: string | null
           id: string
           nome?: string | null
+          org_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -791,6 +793,7 @@ export type Database = {
           email?: string | null
           id?: string
           nome?: string | null
+          org_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -799,6 +802,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
