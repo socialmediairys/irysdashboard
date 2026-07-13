@@ -1538,117 +1538,281 @@ export type LeadRow = {
   telefone: string | null;
   proxima_acao: string | null;
   data_proxima_acao: string | null;
+  ultimo_contato: string | null;
   observacoes: string | null;
 };
 
-export const ETAPA_COLS = ["Lead/Entrada", "Reunião Marcada", "Proposta Enviada", "Negociando"];
+export const ETAPA_COLS = ["Novo Lead", "Contato Feito", "Proposta Enviada", "Fechado", "Perdido"];
+
+const ETAPA_LEGACY: Record<string, string> = {
+  "Lead/Entrada": "Novo Lead",
+  "Reunião Marcada": "Contato Feito",
+  "Negociando": "Proposta Enviada",
+};
+
+function normalizeEtapa(e: string | null | undefined): string {
+  if (!e) return "Novo Lead";
+  if (ETAPA_COLS.includes(e)) return e;
+  return ETAPA_LEGACY[e] ?? "Novo Lead";
+}
+
+function fmtDateBR(d: string | null | undefined): string {
+  if (!d) return "—";
+  const [y, m, day] = d.split("-");
+  if (!y || !m || !day) return d;
+  return `${day}/${m}/${y.slice(2)}`;
+}
+
+function followUpState(d: string | null | undefined): "none" | "overdue" | "today" | "soon" | "future" {
+  if (!d) return "none";
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(`${d}T00:00:00`);
+  const diff = Math.round((target.getTime() - today.getTime()) / 86400000);
+  if (diff < 0) return "overdue";
+  if (diff === 0) return "today";
+  if (diff <= 3) return "soon";
+  return "future";
+}
+
+function FollowUpBadge({ date }: { date: string | null | undefined }) {
+  const state = followUpState(date);
+  if (state === "none") {
+    return (
+      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold"
+        style={{ background: "#F1EDE6", color: C.textMid }}>
+        Sem follow-up
+      </span>
+    );
+  }
+  const styles: Record<string, { bg: string; fg: string; label: string }> = {
+    overdue: { bg: "#FEE2E2", fg: "#B91C1C", label: `Atrasado · ${fmtDateBR(date)}` },
+    today:   { bg: "#FEF3C7", fg: "#92400E", label: `Hoje · ${fmtDateBR(date)}` },
+    soon:    { bg: "#FEF9C3", fg: "#854D0E", label: `Em breve · ${fmtDateBR(date)}` },
+    future:  { bg: "#DCFCE7", fg: "#166534", label: fmtDateBR(date) },
+  };
+  const s = styles[state];
+  return (
+    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold"
+      style={{ background: s.bg, color: s.fg }}>
+      {s.label}
+    </span>
+  );
+}
+
+/* -------- DnD Kanban -------- */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function KanbanCard({ lead, onEdit, onDelete, dragHandle }: any) {
+  return (
+    <div
+      className="rounded-[10px] bg-white p-3"
+      style={{ boxShadow: SHADOW }}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <button
+          type="button"
+          className="flex-1 text-left min-w-0"
+          onClick={() => onEdit(lead)}
+        >
+          <div className="font-semibold text-sm truncate">{lead.nome}</div>
+          <div className="font-extrabold mt-1" style={{ color: C.mid }}>
+            {brl(Number(lead.valor) || 0)}
+          </div>
+          <div className="text-[11px] mt-1" style={{ color: C.textMuted }}>
+            Último contato: {fmtDateBR(lead.ultimo_contato)}
+          </div>
+          <div className="mt-2">
+            <FollowUpBadge date={lead.data_proxima_acao} />
+          </div>
+        </button>
+        <div className="flex flex-col items-center gap-1 shrink-0">
+          <button
+            type="button"
+            aria-label="Arrastar"
+            className="cursor-grab active:cursor-grabbing rounded p-1 text-xs"
+            style={{ color: C.textMid }}
+            {...dragHandle}
+          >
+            ⋮⋮
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(lead)}
+            aria-label="Excluir"
+            className="text-[10px]"
+            style={{ color: "#B91C1C" }}
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function SortableLead({ lead, onEdit, onDelete }: any) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { useSortable } = require("@dnd-kit/sortable");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { CSS } = require("@dnd-kit/utilities");
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: lead.id, data: { etapa: normalizeEtapa(lead.etapa) } });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <KanbanCard lead={lead} onEdit={onEdit} onDelete={onDelete} dragHandle={listeners} />
+    </div>
+  );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function DroppableColumn({ etapa, items, children }: any) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const { useDroppable } = require("@dnd-kit/core");
+  const { setNodeRef, isOver } = useDroppable({ id: `col:${etapa}`, data: { etapa } });
+  const totalValor = items.reduce((s: number, l: LeadRow) => s + (Number(l.valor) || 0), 0);
+  return (
+    <div
+      ref={setNodeRef}
+      className="rounded-[12px] p-3 flex flex-col min-h-[280px]"
+      style={{ background: isOver ? "#F7F0E0" : C.beigeLight, transition: "background 120ms" }}
+    >
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs font-bold uppercase tracking-wider" style={{ color: C.textMid }}>
+          {etapa}
+        </span>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#fff", color: C.textMid }}>
+          {items.length} · {brl(totalValor)}
+        </span>
+      </div>
+      <div className="space-y-2 flex-1">
+        {items.length === 0 && (
+          <div className="text-xs italic text-center py-6" style={{ color: C.textMuted }}>
+            Solte um card aqui
+          </div>
+        )}
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export function CRMPage() {
   const { openCreate, openEdit, openDelete } = useCrud();
   const leadsQ = useSupabaseList<LeadRow>("leads", { order: { column: "created_at", ascending: false } });
-  const { rows: leads, loading, error, refetch } = leadsQ;
-  const { rows: clientes } = useSupabaseList<ClienteRow>("clientes", { order: { column: "nome" } });
+  const { rows: leadsRaw, loading, error, refetch } = leadsQ;
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const dndCore = require("@dnd-kit/core");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const dndSortable = require("@dnd-kit/sortable");
+  const { DndContext, PointerSensor, useSensor, useSensors, closestCorners } = dndCore;
+  const { SortableContext, verticalListSortingStrategy } = dndSortable;
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  // Local optimistic overrides for etapa while realtime catches up
+  const [override, setOverride] = useState<Record<string, string>>({});
+  const leads = useMemo(
+    () => leadsRaw.map((l) => ({ ...l, etapa: override[l.id] ?? normalizeEtapa(l.etapa) })),
+    [leadsRaw, override],
+  );
 
   const potencial = leads.reduce((s, l) => s + Number(l.valor || 0), 0);
-  const quentes = leads.filter(l => l.etapa === "Lead/Entrada").length;
-  const propostas = leads.filter(l => l.etapa === "Proposta Enviada").length;
-  const ativos = clientes.filter(c => c.status_contrato === "ativo").length;
+  const novos = leads.filter((l) => l.etapa === "Novo Lead").length;
+  const propostas = leads.filter((l) => l.etapa === "Proposta Enviada").length;
+  const fechados = leads.filter((l) => l.etapa === "Fechado").length;
+  const atrasados = leads.filter((l) => followUpState(l.data_proxima_acao) === "overdue").length;
+
+  const columns = ETAPA_COLS.map((etapa) => ({
+    etapa,
+    items: leads.filter((l) => l.etapa === etapa),
+  }));
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const onDragEnd = async (event: any) => {
+    const { active, over } = event;
+    if (!over) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    const from = active.data.current?.etapa as string | undefined;
+    let to: string | undefined = over.data.current?.etapa;
+    if (!to && overId.startsWith("col:")) to = overId.slice(4);
+    if (!to || !from || to === from) return;
+    if (!ETAPA_COLS.includes(to)) return;
+
+    setOverride((prev) => ({ ...prev, [activeId]: to! }));
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { error } = await supabase.from("leads").update({ etapa: to }).eq("id", activeId);
+      if (error) throw error;
+      toast.success(`Movido para "${to}"`);
+    } catch (err) {
+      setOverride((prev) => {
+        const n = { ...prev };
+        delete n[activeId];
+        return n;
+      });
+      const msg = err instanceof Error ? err.message : "Falha ao mover";
+      toast.error(msg);
+    }
+  };
 
   return (
     <>
-      <PageHeader eyebrow="CRM" title="Pipeline de" accent="vendas"
+      <PageHeader eyebrow="Comercial" title="Pipeline" accent="comercial"
         actions={<PillBtn onClick={() => openCreate("lead")}><Plus size={14} className="inline mr-1" /> Novo lead</PillBtn>} />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6">
         <MetricCard variant="hero" value={brl(potencial)} label="Potencial no pipeline" />
-        <MetricCard value={quentes} label="Leads quentes" />
+        <MetricCard value={novos} label="Novos leads" />
         <MetricCard variant="accent" value={propostas} label="Propostas enviadas" />
-        <MetricCard value={ativos} label="Clientes · Recorrência" />
+        <MetricCard value={fechados} label="Fechados" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 mb-6">
-        {ETAPA_COLS.map((title) => {
-          const items = leads.filter(l => l.etapa === title);
-          return (
-            <div key={title} className="rounded-[12px] p-4" style={{ background: C.beigeLight }}>
-              <div className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: C.textMid }}>{title}</div>
-              <div className="space-y-2">
-                {items.length === 0 && <div className="text-xs italic" style={{ color: C.textMuted }}>—</div>}
-                {items.map((it) => (
-                  <button
-                    key={it.id}
-                    onClick={() => openEdit("lead", it)}
-                    className="w-full text-left rounded-[10px] bg-white p-3 hover:brightness-95"
-                    style={{ boxShadow: SHADOW }}
-                  >
-                    <div className="font-semibold text-sm">{it.nome}</div>
-                    <div className="font-extrabold mt-1" style={{ color: C.mid }}>{brl(Number(it.valor) || 0)}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-        <div className="rounded-[12px] p-4" style={{ background: C.beigeLight }}>
-          <div className="mb-3 text-xs font-bold uppercase tracking-wider" style={{ color: C.textMid }}>✅ Ativo</div>
-          <div className="space-y-2">
-            {clientes.filter(c => c.status_contrato === "ativo").map((c) => (
-              <div key={c.id} className="rounded-[10px] bg-white p-3" style={{ boxShadow: SHADOW }}>
-                <div className="font-semibold text-sm">{c.nome}</div>
-                <div className="font-extrabold mt-1" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}</div>
-              </div>
-            ))}
-          </div>
+      {atrasados > 0 && (
+        <div className="mb-4 rounded-[12px] px-4 py-3 text-sm font-semibold"
+          style={{ background: "#FEE2E2", color: "#B91C1C" }}>
+          ⚠ {atrasados} lead(s) com follow-up atrasado
         </div>
-      </div>
+      )}
 
-      <Card>
-        <h3 className="font-extrabold text-lg mb-4">Todos os leads</h3>
+      <Card className="mb-6">
+        <h3 className="font-extrabold text-lg mb-4">Pipeline · arraste os cards entre as colunas</h3>
         <ListState
           loading={loading}
           error={error}
           rows={leads}
           onRetry={refetch}
           skeletonVariant="row"
-          skeletonCount={4}
+          skeletonCount={3}
           emptyTitle="Nenhum lead ainda"
           emptyDescription="Adicione seu primeiro lead para começar o pipeline."
           actionLabel="Novo lead"
           onAction={() => openCreate("lead")}
         >
-          {/* Desktop table */}
-          <table className="hidden md:table w-full text-sm">
-            <thead>
-              <tr className="text-left text-xs uppercase tracking-wider" style={{ color: C.textMid }}>
-                <th className="py-2">Nome</th><th>Valor</th><th>Etapa</th><th>Origem</th><th>Potencial</th><th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {leads.map((l) => (
-                <tr key={l.id} className="border-t" style={{ borderColor: C.beigeLight }}>
-                  <td className="py-3 font-semibold">{l.nome}</td>
-                  <td className="font-extrabold" style={{ color: C.mid }}>{brl(Number(l.valor) || 0)}</td>
-                  <td><TagBadge label={l.etapa} variant="frio" /></td>
-                  <td style={{ color: C.textMid }}>{l.origem ?? "—"}</td>
-                  <td style={{ color: C.textMid }}>{l.potencial ?? "—"}</td>
-                  <td><RowActions onEdit={() => openEdit("lead", l)} onDelete={() => openDelete("lead", l)} /></td>
-                </tr>
+          <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-3">
+              {columns.map((col) => (
+                <SortableContext key={col.etapa} items={col.items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+                  <DroppableColumn etapa={col.etapa} items={col.items}>
+                    {col.items.map((lead) => (
+                      <SortableLead
+                        key={lead.id}
+                        lead={lead}
+                        onEdit={(l: LeadRow) => openEdit("lead", l)}
+                        onDelete={(l: LeadRow) => openDelete("lead", l)}
+                      />
+                    ))}
+                  </DroppableColumn>
+                </SortableContext>
               ))}
-            </tbody>
-          </table>
-          {/* Mobile cards */}
-          <div className="md:hidden space-y-3">
-            {leads.map((l) => (
-              <div key={l.id} className="rounded-[10px] p-3 flex items-start justify-between gap-2" style={{ background: C.beigeLight }}>
-                <div className="min-w-0">
-                  <div className="font-semibold truncate">{l.nome}</div>
-                  <div className="font-extrabold text-sm" style={{ color: C.mid }}>{brl(Number(l.valor) || 0)}</div>
-                  <div className="text-xs mt-1" style={{ color: C.textMid }}>{l.etapa} · {l.origem ?? "—"}</div>
-                </div>
-                <RowActions onEdit={() => openEdit("lead", l)} onDelete={() => openDelete("lead", l)} />
-              </div>
-            ))}
-          </div>
+            </div>
+          </DndContext>
         </ListState>
       </Card>
     </>
