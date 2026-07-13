@@ -1,0 +1,122 @@
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { DollarSign, TrendingUp, TrendingDown, CheckCircle2 } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+
+export default function DashboardFinanceiro() {
+  const [transacoes, setTransacoes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchFinanceiro();
+  }, []);
+
+  async function fetchFinanceiro() {
+    try {
+      const { data, error } = await supabase
+        .from('financeiro')
+        .select('*')
+        .order('data_vencimento', { ascending: true });
+
+      if (error) throw error;
+      setTransacoes(data || []);
+    } catch (error) {
+      console.error('Erro ao buscar financeiro:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const marcarComoPago = async (id: string) => {
+    const { error } = await supabase
+      .from('financeiro')
+      .update({ status: 'pago' })
+      .eq('id', id);
+
+    if (error) {
+      toast({ title: "Erro", description: "Não foi possível atualizar o status.", variant: "destructive" });
+    } else {
+      toast({ title: "Sucesso", description: "Conta marcada como paga!" });
+      fetchFinanceiro();
+    }
+  };
+
+  const totalReceitas = transacoes.filter(t => t.tipo === 'receita').reduce((acc, t) => acc + Number(t.valor), 0);
+  const totalDespesas = transacoes.filter(t => t.tipo === 'despesa').reduce((acc, t) => acc + Number(t.valor), 0);
+  const saldo = totalReceitas - totalDespesas;
+
+  return (
+    <div className="p-6 space-y-6">
+      <h2 className="text-3xl font-bold tracking-tight">Financeiro</h2>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Receitas</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold">R$ {totalReceitas.toFixed(2)}</div></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Despesas</CardTitle>
+            <TrendingDown className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold">R$ {totalDespesas.toFixed(2)}</div></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Saldo do Mês</CardTitle>
+            <DollarSign className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold">R$ {saldo.toFixed(2)}</div></CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Próximas Contas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Descrição</TableHead>
+                <TableHead>Vencimento</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Ação</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {transacoes.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">{item.descricao}</TableCell>
+                  <TableCell>{new Date(item.data_vencimento).toLocaleDateString()}</TableCell>
+                  <TableCell>R$ {item.valor}</TableCell>
+                  <TableCell>
+                    <Badge variant={item.status === 'pago' ? 'default' : 'secondary'}>
+                      {item.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {item.status === 'pendente' && (
+                      <Button size="sm" variant="outline" onClick={() => marcarComoPago(item.id)}>
+                        <CheckCircle2 className="h-4 w-4 mr-1" /> Pagar
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
