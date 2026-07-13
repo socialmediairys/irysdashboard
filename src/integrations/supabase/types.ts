@@ -1047,6 +1047,7 @@ export type Database = {
           criado_por: string | null
           descricao: string | null
           id: string
+          org_id: string | null
           prazo: string | null
           prioridade: string
           status: string
@@ -1061,6 +1062,7 @@ export type Database = {
           criado_por?: string | null
           descricao?: string | null
           id?: string
+          org_id?: string | null
           prazo?: string | null
           prioridade?: string
           status?: string
@@ -1075,6 +1077,7 @@ export type Database = {
           criado_por?: string | null
           descricao?: string | null
           id?: string
+          org_id?: string | null
           prazo?: string | null
           prioridade?: string
           status?: string
@@ -1088,6 +1091,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
