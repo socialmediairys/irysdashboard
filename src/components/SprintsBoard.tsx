@@ -62,10 +62,12 @@ type TaskRow = {
 type TagRow = { id: string; name: string; color: string };
 
 const COLS: { key: string; label: string }[] = [
-  { key: "not_started", label: "Not started" },
-  { key: "in_progress", label: "In progress" },
-  { key: "done", label: "Done" },
+  { key: "not_started", label: "A Fazer" },
+  { key: "in_progress", label: "Em Andamento" },
+  { key: "in_review", label: "Em Revisão" },
+  { key: "done", label: "Concluído" },
 ];
+
 
 const PRIORITY_STYLES: Record<string, { bg: string; fg: string; label: string }> = {
   high: { bg: "#FEE2E2", fg: "#B91C1C", label: "High" },
@@ -76,9 +78,11 @@ const PRIORITY_STYLES: Record<string, { bg: string; fg: string; label: string }>
 function normalizeStatus(s: string | null | undefined): string {
   const v = (s ?? "").toLowerCase();
   if (["in_progress", "em_andamento", "doing"].includes(v)) return "in_progress";
-  if (["done", "concluida", "concluído", "concluida"].includes(v)) return "done";
+  if (["in_review", "em_revisao", "em_revisão", "review", "revisao"].includes(v)) return "in_review";
+  if (["done", "concluida", "concluído", "concluido"].includes(v)) return "done";
   return "not_started";
 }
+
 
 function normalizePriority(p: string | null | undefined): "high" | "medium" | "low" {
   const v = (p ?? "").toLowerCase();
@@ -646,16 +650,24 @@ export function SprintsBoard() {
           </div>
 
           <Card>
-            <ListState
-              loading={loading}
-              error={error}
-              rows={displayTasks}
-              onRetry={() => selectedSprintId && fetchTasksFor(selectedSprintId)}
-              emptyTitle="Nenhuma tarefa nesta sprint"
-              emptyDescription="Clique em + New task em qualquer coluna para adicionar."
-            >
+            {loading ? (
+              <div className="py-10 text-center text-sm" style={{ color: C.textMuted }}>
+                Carregando tarefas...
+              </div>
+            ) : error ? (
+              <div className="py-10 text-center text-sm text-red-600">
+                {error}{" "}
+                <button
+                  type="button"
+                  onClick={() => selectedSprintId && fetchTasksFor(selectedSprintId)}
+                  className="underline font-semibold ml-2"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            ) : (
               <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
                   {columns.map((col) => (
                     <SortableContext
                       key={col.key}
@@ -676,8 +688,9 @@ export function SprintsBoard() {
                   ))}
                 </div>
               </DndContext>
-            </ListState>
+            )}
           </Card>
+
         </>
       )}
 
