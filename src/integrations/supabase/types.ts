@@ -507,6 +507,50 @@ export type Database = {
           },
         ]
       }
+      financeiro: {
+        Row: {
+          created_at: string | null
+          data_vencimento: string
+          descricao: string
+          id: string
+          org_id: string | null
+          recorrente: boolean | null
+          status: string | null
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string | null
+          data_vencimento: string
+          descricao: string
+          id?: string
+          org_id?: string | null
+          recorrente?: boolean | null
+          status?: string | null
+          tipo: string
+          valor: number
+        }
+        Update: {
+          created_at?: string | null
+          data_vencimento?: string
+          descricao?: string
+          id?: string
+          org_id?: string | null
+          recorrente?: boolean | null
+          status?: string | null
+          tipo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financeiro_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       google_calendar_tokens: {
         Row: {
           access_token: string
