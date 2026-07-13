@@ -1,16 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, CreditCard, TrendingUp, TrendingDown, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, CreditCard, TrendingUp, TrendingDown, Trash2, Repeat } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/financeiro")({
   head: () => ({ meta: [{ title: "Financeiro — Irys OS" }] }),
   component: FinanceiroPage,
 });
+
+type Tabela = "entradas_financeiras" | "saidas_financeiras";
 
 type Mov = {
   id: string;
@@ -20,37 +24,118 @@ type Mov = {
   data_ref: string;
   status_pagamento?: string;
   recorrente?: boolean;
+  is_fixed?: boolean;
+  recurrence_day?: number | null;
+  fixed_template_id?: string | null;
 };
+
+type Filtro = "todas" | "fixas" | "variaveis";
+
+function lastDayOfMonth(year: number, monthIndex0: number) {
+  return new Date(year, monthIndex0 + 1, 0).getDate();
+}
+
+function targetDateForRecurrence(day: number): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const useDay = Math.min(day, lastDayOfMonth(y, m));
+  const iso = `${y}-${String(m + 1).padStart(2, "0")}-${String(useDay).padStart(2, "0")}`;
+  return iso;
+}
+
+async function gerarRecorrenciasDoMes(tabela: Tabela) {
+  const { data: modelos, error } = await supabase
+    .from(tabela)
+    .select("*")
+    .eq("is_fixed", true)
+    .is("fixed_template_id", null);
+  if (error || !modelos) return;
+
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString().slice(0, 10);
+
+  for (const m of modelos as Mov[]) {
+    if (!m.recurrence_day) continue;
+    const { data: existente } = await supabase
+      .from(tabela)
+      .select("id")
+      .eq("fixed_template_id", m.id)
+      .gte("data_ref", start)
+      .lt("data_ref", end)
+      .maybeSingle();
+    if (existente) continue;
+
+    await supabase.from(tabela).insert({
+      descricao: m.descricao,
+      categoria: m.categoria,
+      valor: m.valor,
+      data_ref: targetDateForRecurrence(m.recurrence_day),
+      is_fixed: true,
+      recurrence_day: m.recurrence_day,
+      fixed_template_id: m.id,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+  }
+}
 
 function FinanceiroPage() {
   const [entradas, setEntradas] = useState<Mov[]>([]);
   const [saidas, setSaidas] = useState<Mov[]>([]);
   const [aba, setAba] = useState<"entradas" | "saidas">("entradas");
-  const [form, setForm] = useState({ descricao: "", categoria: "", valor: "" });
+  const [filtro, setFiltro] = useState<Filtro>("todas");
+  const [form, setForm] = useState({
+    descricao: "",
+    categoria: "",
+    valor: "",
+    is_fixed: false,
+    recurrence_day: "",
+  });
 
-  async function carregar() {
+  const carregar = useCallback(async () => {
+    // Geração idempotente antes de listar
+    await Promise.all([
+      gerarRecorrenciasDoMes("entradas_financeiras"),
+      gerarRecorrenciasDoMes("saidas_financeiras"),
+    ]);
     const [{ data: e }, { data: s }] = await Promise.all([
       supabase.from("entradas_financeiras").select("*").order("data_ref", { ascending: false }),
       supabase.from("saidas_financeiras").select("*").order("data_ref", { ascending: false }),
     ]);
     setEntradas((e as Mov[]) ?? []);
     setSaidas((s as Mov[]) ?? []);
-  }
-  useEffect(() => { void carregar(); }, []);
+  }, []);
+
+  useEffect(() => { void carregar(); }, [carregar]);
 
   async function criar(e: React.FormEvent) {
     e.preventDefault();
     if (!form.descricao || !form.valor) return;
-    const tabela = aba === "entradas" ? "entradas_financeiras" : "saidas_financeiras";
-    await supabase.from(tabela).insert({
+    const tabela: Tabela = aba === "entradas" ? "entradas_financeiras" : "saidas_financeiras";
+    const day = form.is_fixed ? Number(form.recurrence_day) : null;
+    if (form.is_fixed && (!day || day < 1 || day > 31)) {
+      alert("Informe um dia de vencimento entre 1 e 31.");
+      return;
+    }
+    const payload: Record<string, unknown> = {
       descricao: form.descricao,
       categoria: form.categoria || null,
       valor: Number(form.valor),
-    });
-    setForm({ descricao: "", categoria: "", valor: "" });
+      is_fixed: form.is_fixed,
+      recurrence_day: day,
+      fixed_template_id: null,
+    };
+    if (form.is_fixed && day) {
+      payload.data_ref = targetDateForRecurrence(day);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await supabase.from(tabela).insert(payload as any);
+    setForm({ descricao: "", categoria: "", valor: "", is_fixed: false, recurrence_day: "" });
     void carregar();
   }
-  async function apagar(tabela: "entradas_financeiras" | "saidas_financeiras", id: string) {
+
+  async function apagar(tabela: Tabela, id: string) {
     if (!confirm("Apagar movimentação?")) return;
     await supabase.from(tabela).delete().eq("id", id);
     void carregar();
@@ -59,7 +144,12 @@ function FinanceiroPage() {
   const totalE = entradas.reduce((a, b) => a + Number(b.valor), 0);
   const totalS = saidas.reduce((a, b) => a + Number(b.valor), 0);
   const saldo = totalE - totalS;
-  const lista = aba === "entradas" ? entradas : saidas;
+  const listaBase = aba === "entradas" ? entradas : saidas;
+  const lista = listaBase.filter((m) => {
+    if (filtro === "fixas") return m.is_fixed === true;
+    if (filtro === "variaveis") return !m.is_fixed;
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-[#EDEAE5]">
@@ -90,18 +180,37 @@ function FinanceiroPage() {
           </Card>
         </div>
 
-        <div className="flex gap-2">
-          {(["entradas", "saidas"] as const).map((a) => (
-            <button
-              key={a}
-              onClick={() => setAba(a)}
-              className={`px-4 py-2 rounded-full text-sm cursor-pointer ${
-                aba === a ? "bg-[#2C1505] text-white" : "bg-white text-[#7A4A18] border border-[#E8D8C0]"
-              }`}
-            >
-              {a === "entradas" ? "Entradas" : "Saídas"}
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-2 items-center justify-between">
+          <div className="flex gap-2">
+            {(["entradas", "saidas"] as const).map((a) => (
+              <button
+                key={a}
+                onClick={() => setAba(a)}
+                className={`px-4 py-2 rounded-full text-sm cursor-pointer ${
+                  aba === a ? "bg-[#2C1505] text-white" : "bg-white text-[#7A4A18] border border-[#E8D8C0]"
+                }`}
+              >
+                {a === "entradas" ? "Entradas" : "Saídas"}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            {([
+              ["todas", "Todas"],
+              ["fixas", "Só fixas"],
+              ["variaveis", "Só variáveis"],
+            ] as const).map(([k, label]) => (
+              <button
+                key={k}
+                onClick={() => setFiltro(k)}
+                className={`px-3 py-1.5 rounded-full text-xs cursor-pointer ${
+                  filtro === k ? "bg-[#7A4A18] text-white" : "bg-white text-[#7A4A18] border border-[#E8D8C0]"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <Card className="p-5 bg-white border-[#E8D8C0]">
@@ -118,6 +227,30 @@ function FinanceiroPage() {
               <Label>Valor (R$)</Label>
               <Input type="number" step="0.01" value={form.valor} onChange={(e) => setForm({ ...form, valor: e.target.value })} />
             </div>
+
+            <div className="md:col-span-2 flex items-center gap-3 pt-1">
+              <Switch
+                id="is_fixed"
+                checked={form.is_fixed}
+                onCheckedChange={(v) => setForm({ ...form, is_fixed: v })}
+              />
+              <Label htmlFor="is_fixed" className="cursor-pointer flex items-center gap-1">
+                <Repeat className="w-4 h-4" /> Conta fixa (recorrente mensal)
+              </Label>
+            </div>
+            {form.is_fixed && (
+              <div>
+                <Label>Dia de vencimento (1–31)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={31}
+                  value={form.recurrence_day}
+                  onChange={(e) => setForm({ ...form, recurrence_day: e.target.value })}
+                />
+              </div>
+            )}
+
             <div className="md:col-span-4">
               <Button className="bg-[#2C1505] hover:bg-[#7A4A18] text-white">
                 Registrar {aba === "entradas" ? "entrada" : "saída"}
@@ -147,7 +280,14 @@ function FinanceiroPage() {
                     <td className="px-4 py-2 text-[#2C1505]">{m.descricao}</td>
                     <td className="px-4 py-2 text-[#7A6050]">{m.categoria || "—"}</td>
                     <td className={`px-4 py-2 text-right font-semibold ${aba === "entradas" ? "text-emerald-700" : "text-red-700"}`}>
-                      R$ {Number(m.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      <div className="flex items-center justify-end gap-2">
+                        <span>R$ {Number(m.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                        {m.is_fixed && (
+                          <Badge variant="secondary" className="gap-1 bg-[#F0E4D3] text-[#7A4A18] border-[#E8D8C0]">
+                            <Repeat className="w-3 h-3" /> Fixa
+                          </Badge>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-2 text-right">
                       <button
