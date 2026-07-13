@@ -1735,8 +1735,8 @@ export function CRMPage() {
     if (!over) return;
     const activeId = String(active.id);
     const overId = String(over.id);
-    const from = active.data.current?.etapa as string | undefined;
-    let to: string | undefined = over.data.current?.etapa;
+    const from = (active.data.current as { etapa?: string } | undefined)?.etapa;
+    let to: string | undefined = (over.data.current as { etapa?: string } | undefined)?.etapa;
     if (!to && overId.startsWith("col:")) to = overId.slice(4);
     if (!to || !from || to === from) return;
     if (!ETAPA_COLS.includes(to)) return;
