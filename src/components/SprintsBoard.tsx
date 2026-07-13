@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { C, Card, PillBtn, PageHeader } from "@/components/Painel360";
 import { ListState } from "@/components/ListState";
 import { useClientes } from "@/components/crud/forms";
+import { TaskDetailPanel } from "@/components/TaskDetailPanel";
 import {
   Dialog,
   DialogContent,
