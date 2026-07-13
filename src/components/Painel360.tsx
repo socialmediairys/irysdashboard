@@ -1658,11 +1658,10 @@ function KanbanCard({ lead, onEdit, onDelete, dragHandle }: any) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function SortableLead({ lead, onEdit, onDelete }: any) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { useSortable } = require("@dnd-kit/sortable");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { CSS } = require("@dnd-kit/utilities");
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: lead.id, data: { etapa: normalizeEtapa(lead.etapa) } });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: lead.id,
+    data: { etapa: normalizeEtapa(lead.etapa) },
+  });
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -1677,8 +1676,6 @@ function SortableLead({ lead, onEdit, onDelete }: any) {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function DroppableColumn({ etapa, items, children }: any) {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const { useDroppable } = require("@dnd-kit/core");
   const { setNodeRef, isOver } = useDroppable({ id: `col:${etapa}`, data: { etapa } });
   const totalValor = items.reduce((s: number, l: LeadRow) => s + (Number(l.valor) || 0), 0);
   return (
@@ -1712,14 +1709,8 @@ export function CRMPage() {
   const leadsQ = useSupabaseList<LeadRow>("leads", { order: { column: "created_at", ascending: false } });
   const { rows: leadsRaw, loading, error, refetch } = leadsQ;
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const dndCore = require("@dnd-kit/core");
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const dndSortable = require("@dnd-kit/sortable");
-  const { DndContext, PointerSensor, useSensor, useSensors, closestCorners } = dndCore;
-  const { SortableContext, verticalListSortingStrategy } = dndSortable;
-
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
 
   // Local optimistic overrides for etapa while realtime catches up
   const [override, setOverride] = useState<Record<string, string>>({});
