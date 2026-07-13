@@ -5,6 +5,12 @@ import {
   UserSquare2, Play, Pause, ChevronDown, ChevronRight, ArrowLeft, FolderOpen, Video, CheckCircle2, Circle,
   RefreshCw, LinkIcon, LogOut, ExternalLink, Copy, MessageCircle, Loader2, AlertCircle, Send,
 } from "lucide-react";
+import {
+  DndContext, PointerSensor, useSensor, useSensors, closestCorners, useDroppable,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
