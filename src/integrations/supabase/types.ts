@@ -566,6 +566,7 @@ export type Database = {
           responsavel_id: string | null
           status: string
           telefone: string | null
+          ultimo_contato: string | null
           updated_at: string
           valor: number | null
         }
@@ -583,6 +584,7 @@ export type Database = {
           responsavel_id?: string | null
           status?: string
           telefone?: string | null
+          ultimo_contato?: string | null
           updated_at?: string
           valor?: number | null
         }
@@ -600,6 +602,7 @@ export type Database = {
           responsavel_id?: string | null
           status?: string
           telefone?: string | null
+          ultimo_contato?: string | null
           updated_at?: string
           valor?: number | null
         }
