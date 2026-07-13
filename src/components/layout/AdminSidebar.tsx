@@ -26,7 +26,13 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
       { to: "/admin/equipe", label: "Equipe", icon: Users },
     ],
   },
-  { label: "Produção", items: [{ to: "/admin/sprint", label: "Sprint", icon: KanbanSquare }] },
+  {
+    label: "Produção",
+    items: [
+      { to: "/admin/sprint", label: "Sprint", icon: KanbanSquare },
+      { to: "/admin/sprints", label: "Sprints (board)", icon: KanbanSquare },
+    ],
+  },
   {
     label: "Conteúdo",
     items: [
