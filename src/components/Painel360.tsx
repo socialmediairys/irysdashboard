@@ -42,6 +42,8 @@ import {
 import { CrudProvider, useCrud } from "@/components/crud/CrudProvider";
 import { RowActions } from "@/components/crud/RowActions";
 import { useSupabaseList } from "@/hooks/useSupabaseList";
+import { SprintsBoard } from "@/components/SprintsBoard";
+
 import { toast } from "sonner";
 import { ListState } from "@/components/ListState";
 import { ProfileTab } from "@/components/ProfileTab";
