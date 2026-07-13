@@ -78,9 +78,11 @@ const PRIORITY_STYLES: Record<string, { bg: string; fg: string; label: string }>
 function normalizeStatus(s: string | null | undefined): string {
   const v = (s ?? "").toLowerCase();
   if (["in_progress", "em_andamento", "doing"].includes(v)) return "in_progress";
-  if (["done", "concluida", "concluído", "concluida"].includes(v)) return "done";
+  if (["in_review", "em_revisao", "em_revisão", "review", "revisao"].includes(v)) return "in_review";
+  if (["done", "concluida", "concluído", "concluido"].includes(v)) return "done";
   return "not_started";
 }
+
 
 function normalizePriority(p: string | null | undefined): "high" | "medium" | "low" {
   const v = (p ?? "").toLowerCase();
