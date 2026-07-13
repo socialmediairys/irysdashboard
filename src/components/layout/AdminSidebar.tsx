@@ -1,7 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Users, FileText, TrendingUp, CreditCard,
-  Library, Scale, Menu, ArrowLeft,
+  LayoutDashboard,
+  Users,
+  FileText,
+  TrendingUp,
+  CreditCard,
+  Library,
+  Scale,
+  Menu,
+  ArrowLeft,
+  KanbanSquare,
 } from "lucide-react";
 import { useState } from "react";
 import { C } from "@/components/Painel360";
@@ -10,22 +18,30 @@ type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
 type NavGroup = { label: string; items: NavItem[] };
 
 const ADMIN_NAV_GROUPS: NavGroup[] = [
-  { label: "Operação", items: [
-    { to: "/admin/visao-geral", label: "Visão geral", icon: LayoutDashboard },
-    { to: "/admin/cadastros",   label: "Cadastros pendentes", icon: Users },
-    { to: "/admin/equipe",      label: "Equipe", icon: Users },
-  ]},
-  { label: "Conteúdo", items: [
-    { to: "/admin/portal-conteudos", label: "Gerenciar portais", icon: FileText },
-    { to: "/admin/biblioteca-midia", label: "Biblioteca", icon: Library },
-  ]},
-  { label: "Comercial", items: [
-    { to: "/admin/crm", label: "Comercial", icon: TrendingUp },
-  ]},
-  { label: "Financeiro", items: [
-    { to: "/admin/financeiro", label: "Financeiro", icon: CreditCard },
-    { to: "/admin/juridico",   label: "Jurídico", icon: Scale },
-  ]},
+  {
+    label: "Operação",
+    items: [
+      { to: "/admin/visao-geral", label: "Visão geral", icon: LayoutDashboard },
+      { to: "/admin/cadastros", label: "Cadastros pendentes", icon: Users },
+      { to: "/admin/equipe", label: "Equipe", icon: Users },
+    ],
+  },
+  { label: "Produção", items: [{ to: "/admin/sprint", label: "Sprint", icon: KanbanSquare }] },
+  {
+    label: "Conteúdo",
+    items: [
+      { to: "/admin/portal-conteudos", label: "Gerenciar portais", icon: FileText },
+      { to: "/admin/biblioteca-midia", label: "Biblioteca", icon: Library },
+    ],
+  },
+  { label: "Comercial", items: [{ to: "/admin/crm", label: "Comercial", icon: TrendingUp }] },
+  {
+    label: "Financeiro",
+    items: [
+      { to: "/admin/financeiro", label: "Financeiro", icon: CreditCard },
+      { to: "/admin/juridico", label: "Jurídico", icon: Scale },
+    ],
+  },
 ];
 
 export function AdminSidebar() {
@@ -97,7 +113,10 @@ export function AdminSidebar() {
           {ADMIN_NAV_GROUPS.map((g) => (
             <div key={g.label} className="mt-2">
               {!collapsed && (
-                <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <div
+                  className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider"
+                  style={{ color: "rgba(255,255,255,0.4)" }}
+                >
                   {g.label}
                 </div>
               )}
@@ -117,7 +136,9 @@ export function AdminSidebar() {
                     }}
                   >
                     <Icon size={18} strokeWidth={2} className="shrink-0" />
-                    <span className={`text-sm font-semibold ${collapsed ? "md:hidden" : ""}`}>{n.label}</span>
+                    <span className={`text-sm font-semibold ${collapsed ? "md:hidden" : ""}`}>
+                      {n.label}
+                    </span>
                   </Link>
                 );
               })}

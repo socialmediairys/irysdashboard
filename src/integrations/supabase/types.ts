@@ -1042,6 +1042,45 @@ export type Database = {
           },
         ]
       }
+      tarefa_comentarios: {
+        Row: {
+          autor_id: string | null
+          conteudo: string
+          created_at: string
+          id: string
+          tarefa_id: string
+        }
+        Insert: {
+          autor_id?: string | null
+          conteudo: string
+          created_at?: string
+          id?: string
+          tarefa_id: string
+        }
+        Update: {
+          autor_id?: string | null
+          conteudo?: string
+          created_at?: string
+          id?: string
+          tarefa_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefa_comentarios_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefa_comentarios_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tarefas: {
         Row: {
           arquivo_url: string | null
@@ -1054,6 +1093,8 @@ export type Database = {
           prazo: string | null
           prioridade: string
           status: string
+          tempo_total_segundos: number
+          timer_iniciado_em: string | null
           tipo: string
           titulo: string
           updated_at: string
@@ -1069,6 +1110,8 @@ export type Database = {
           prazo?: string | null
           prioridade?: string
           status?: string
+          tempo_total_segundos?: number
+          timer_iniciado_em?: string | null
           tipo?: string
           titulo: string
           updated_at?: string
@@ -1084,6 +1127,8 @@ export type Database = {
           prazo?: string | null
           prioridade?: string
           status?: string
+          tempo_total_segundos?: number
+          timer_iniciado_em?: string | null
           tipo?: string
           titulo?: string
           updated_at?: string

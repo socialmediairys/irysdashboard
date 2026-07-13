@@ -54,9 +54,9 @@ export type TarefaFormValues = {
   descricao: string | null;
 };
 
-const TAREFA_TIPOS = ["Reels", "Carrossel", "Story", "Post Feed", "Legenda", "Design", "Vídeo", "Outro"];
-const TAREFA_STATUS = ["Backlog", "Ideação", "Produção", "Revisão Interna", "Aprovação Cliente", "Agendado"];
-const TAREFA_PRIORIDADE = ["Baixa", "Média", "Alta", "Urgente"];
+export const TAREFA_TIPOS = ["Reels", "Carrossel", "Story", "Post Feed", "Legenda", "Design", "Vídeo", "Outro"];
+export const TAREFA_STATUS = ["Backlog", "Ideação", "Produção", "Revisão Interna", "Aprovação Cliente", "Agendado"];
+export const TAREFA_PRIORIDADE = ["Baixa", "Média", "Alta", "Urgente"];
 
 export function TarefaForm({ value, onChange, errors }: {
   value: TarefaFormValues;
