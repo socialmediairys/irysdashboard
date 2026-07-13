@@ -328,7 +328,10 @@ export type Database = {
           created_at: string
           data_ref: string
           descricao: string
+          fixed_template_id: string | null
           id: string
+          is_fixed: boolean
+          recurrence_day: number | null
           status_pagamento: string
           updated_at: string
           valor: number
@@ -339,7 +342,10 @@ export type Database = {
           created_at?: string
           data_ref?: string
           descricao: string
+          fixed_template_id?: string | null
           id?: string
+          is_fixed?: boolean
+          recurrence_day?: number | null
           status_pagamento?: string
           updated_at?: string
           valor: number
@@ -350,7 +356,10 @@ export type Database = {
           created_at?: string
           data_ref?: string
           descricao?: string
+          fixed_template_id?: string | null
           id?: string
+          is_fixed?: boolean
+          recurrence_day?: number | null
           status_pagamento?: string
           updated_at?: string
           valor?: number
@@ -361,6 +370,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entradas_financeiras_fixed_template_id_fkey"
+            columns: ["fixed_template_id"]
+            isOneToOne: false
+            referencedRelation: "entradas_financeiras"
             referencedColumns: ["id"]
           },
         ]
@@ -971,8 +987,11 @@ export type Database = {
           created_at: string
           data_ref: string
           descricao: string
+          fixed_template_id: string | null
           id: string
+          is_fixed: boolean
           recorrente: boolean
+          recurrence_day: number | null
           updated_at: string
           valor: number
         }
@@ -981,8 +1000,11 @@ export type Database = {
           created_at?: string
           data_ref?: string
           descricao: string
+          fixed_template_id?: string | null
           id?: string
+          is_fixed?: boolean
           recorrente?: boolean
+          recurrence_day?: number | null
           updated_at?: string
           valor: number
         }
@@ -991,12 +1013,23 @@ export type Database = {
           created_at?: string
           data_ref?: string
           descricao?: string
+          fixed_template_id?: string | null
           id?: string
+          is_fixed?: boolean
           recorrente?: boolean
+          recurrence_day?: number | null
           updated_at?: string
           valor?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "saidas_financeiras_fixed_template_id_fkey"
+            columns: ["fixed_template_id"]
+            isOneToOne: false
+            referencedRelation: "saidas_financeiras"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       solicitacoes_cadastro: {
         Row: {
