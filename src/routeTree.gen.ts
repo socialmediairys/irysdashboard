@@ -19,6 +19,7 @@ import { Route as AuthenticatedMeuPortalRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminVisaoGeralRouteImport } from './routes/_authenticated/admin.visao-geral'
+import { Route as AuthenticatedAdminSprintsRouteImport } from './routes/_authenticated/admin.sprints'
 import { Route as AuthenticatedAdminSprintRouteImport } from './routes/_authenticated/admin.sprint'
 import { Route as AuthenticatedAdminPortalConteudosRouteImport } from './routes/_authenticated/admin.portal-conteudos'
 import { Route as AuthenticatedAdminJuridicoRouteImport } from './routes/_authenticated/admin.juridico'
@@ -80,6 +81,12 @@ const AuthenticatedAdminVisaoGeralRoute =
   AuthenticatedAdminVisaoGeralRouteImport.update({
     id: '/visao-geral',
     path: '/visao-geral',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminSprintsRoute =
+  AuthenticatedAdminSprintsRouteImport.update({
+    id: '/sprints',
+    path: '/sprints',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminSprintRoute =
@@ -171,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
   '/admin/sprint': typeof AuthenticatedAdminSprintRoute
+  '/admin/sprints': typeof AuthenticatedAdminSprintsRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
@@ -194,6 +202,7 @@ export interface FileRoutesByTo {
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
   '/admin/sprint': typeof AuthenticatedAdminSprintRoute
+  '/admin/sprints': typeof AuthenticatedAdminSprintsRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
@@ -219,6 +228,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/_authenticated/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
   '/_authenticated/admin/sprint': typeof AuthenticatedAdminSprintRoute
+  '/_authenticated/admin/sprints': typeof AuthenticatedAdminSprintsRoute
   '/_authenticated/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/_authenticated/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
     | '/admin/juridico'
     | '/admin/portal-conteudos'
     | '/admin/sprint'
+    | '/admin/sprints'
     | '/admin/visao-geral'
     | '/admin/clientes/$clienteId'
     | '/api/public/google-calendar/callback'
@@ -267,6 +278,7 @@ export interface FileRouteTypes {
     | '/admin/juridico'
     | '/admin/portal-conteudos'
     | '/admin/sprint'
+    | '/admin/sprints'
     | '/admin/visao-geral'
     | '/admin/clientes/$clienteId'
     | '/api/public/google-calendar/callback'
@@ -291,6 +303,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/juridico'
     | '/_authenticated/admin/portal-conteudos'
     | '/_authenticated/admin/sprint'
+    | '/_authenticated/admin/sprints'
     | '/_authenticated/admin/visao-geral'
     | '/_authenticated/admin/clientes/$clienteId'
     | '/api/public/google-calendar/callback'
@@ -379,6 +392,13 @@ declare module '@tanstack/react-router' {
       path: '/visao-geral'
       fullPath: '/admin/visao-geral'
       preLoaderRoute: typeof AuthenticatedAdminVisaoGeralRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/sprints': {
+      id: '/_authenticated/admin/sprints'
+      path: '/sprints'
+      fullPath: '/admin/sprints'
+      preLoaderRoute: typeof AuthenticatedAdminSprintsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/sprint': {
@@ -477,6 +497,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminJuridicoRoute: typeof AuthenticatedAdminJuridicoRoute
   AuthenticatedAdminPortalConteudosRoute: typeof AuthenticatedAdminPortalConteudosRoute
   AuthenticatedAdminSprintRoute: typeof AuthenticatedAdminSprintRoute
+  AuthenticatedAdminSprintsRoute: typeof AuthenticatedAdminSprintsRoute
   AuthenticatedAdminVisaoGeralRoute: typeof AuthenticatedAdminVisaoGeralRoute
   AuthenticatedAdminClientesClienteIdRoute: typeof AuthenticatedAdminClientesClienteIdRoute
 }
@@ -492,6 +513,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminPortalConteudosRoute:
     AuthenticatedAdminPortalConteudosRoute,
   AuthenticatedAdminSprintRoute: AuthenticatedAdminSprintRoute,
+  AuthenticatedAdminSprintsRoute: AuthenticatedAdminSprintsRoute,
   AuthenticatedAdminVisaoGeralRoute: AuthenticatedAdminVisaoGeralRoute,
   AuthenticatedAdminClientesClienteIdRoute:
     AuthenticatedAdminClientesClienteIdRoute,
