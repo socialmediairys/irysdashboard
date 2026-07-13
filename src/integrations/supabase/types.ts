@@ -226,6 +226,62 @@ export type Database = {
           },
         ]
       }
+      contas_fixas: {
+        Row: {
+          ativo: boolean
+          categoria: string | null
+          cliente_id: string | null
+          created_at: string
+          data_fim: string | null
+          data_inicio: string
+          descricao: string
+          dia_vencimento: number
+          frequencia: string
+          id: string
+          tipo: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          ativo?: boolean
+          categoria?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio: string
+          descricao: string
+          dia_vencimento: number
+          frequencia?: string
+          id?: string
+          tipo: string
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string | null
+          cliente_id?: string | null
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          descricao?: string
+          dia_vencimento?: number
+          frequencia?: string
+          id?: string
+          tipo?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contas_fixas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conteudos_cliente: {
         Row: {
           cliente_id: string
@@ -325,6 +381,7 @@ export type Database = {
         Row: {
           categoria: string | null
           cliente_id: string | null
+          conta_fixa_id: string | null
           created_at: string
           data_ref: string
           descricao: string
@@ -339,6 +396,7 @@ export type Database = {
         Insert: {
           categoria?: string | null
           cliente_id?: string | null
+          conta_fixa_id?: string | null
           created_at?: string
           data_ref?: string
           descricao: string
@@ -353,6 +411,7 @@ export type Database = {
         Update: {
           categoria?: string | null
           cliente_id?: string | null
+          conta_fixa_id?: string | null
           created_at?: string
           data_ref?: string
           descricao?: string
@@ -370,6 +429,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entradas_financeiras_conta_fixa_id_fkey"
+            columns: ["conta_fixa_id"]
+            isOneToOne: false
+            referencedRelation: "contas_fixas"
             referencedColumns: ["id"]
           },
           {
@@ -984,6 +1050,7 @@ export type Database = {
       saidas_financeiras: {
         Row: {
           categoria: string | null
+          conta_fixa_id: string | null
           created_at: string
           data_ref: string
           descricao: string
@@ -997,6 +1064,7 @@ export type Database = {
         }
         Insert: {
           categoria?: string | null
+          conta_fixa_id?: string | null
           created_at?: string
           data_ref?: string
           descricao: string
@@ -1010,6 +1078,7 @@ export type Database = {
         }
         Update: {
           categoria?: string | null
+          conta_fixa_id?: string | null
           created_at?: string
           data_ref?: string
           descricao?: string
@@ -1022,6 +1091,13 @@ export type Database = {
           valor?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "saidas_financeiras_conta_fixa_id_fkey"
+            columns: ["conta_fixa_id"]
+            isOneToOne: false
+            referencedRelation: "contas_fixas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "saidas_financeiras_fixed_template_id_fkey"
             columns: ["fixed_template_id"]
