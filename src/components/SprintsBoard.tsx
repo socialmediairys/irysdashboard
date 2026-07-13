@@ -667,7 +667,7 @@ export function SprintsBoard() {
                         onNewTask={() => setNewTaskCol(col.key)}
                       >
                         {col.items.map((t) => (
-                          <SortableTask key={t.id} data={buildCardData(t)} />
+                          <SortableTask key={t.id} data={buildCardData(t)} onOpen={() => setOpenTaskId(t.id)} />
                         ))}
                       </DroppableColumn>
                     </SortableContext>
