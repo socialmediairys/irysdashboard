@@ -62,10 +62,12 @@ type TaskRow = {
 type TagRow = { id: string; name: string; color: string };
 
 const COLS: { key: string; label: string }[] = [
-  { key: "not_started", label: "Not started" },
-  { key: "in_progress", label: "In progress" },
-  { key: "done", label: "Done" },
+  { key: "not_started", label: "A Fazer" },
+  { key: "in_progress", label: "Em Andamento" },
+  { key: "in_review", label: "Em Revisão" },
+  { key: "done", label: "Concluído" },
 ];
+
 
 const PRIORITY_STYLES: Record<string, { bg: string; fg: string; label: string }> = {
   high: { bg: "#FEE2E2", fg: "#B91C1C", label: "High" },
