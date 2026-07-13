@@ -695,6 +695,11 @@ export function SprintsBoard() {
         defaultStatus={newTaskCol ?? "not_started"}
         onCreated={() => selectedSprintId && fetchTasksFor(selectedSprintId)}
       />
+      <TaskDetailPanel
+        taskId={openTaskId}
+        onOpenChange={(v) => !v && setOpenTaskId(null)}
+        onChanged={() => selectedSprintId && fetchTasksFor(selectedSprintId)}
+      />
     </>
   );
 }
