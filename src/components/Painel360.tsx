@@ -42,6 +42,8 @@ import {
 import { CrudProvider, useCrud } from "@/components/crud/CrudProvider";
 import { RowActions } from "@/components/crud/RowActions";
 import { useSupabaseList } from "@/hooks/useSupabaseList";
+import { SprintsBoard } from "@/components/SprintsBoard";
+
 import { toast } from "sonner";
 import { ListState } from "@/components/ListState";
 import { ProfileTab } from "@/components/ProfileTab";
@@ -2952,31 +2954,9 @@ function TabBar({ tabs, active, onChange }: { tabs: { key: string; label: string
 }
 
 function ConteudoPage() {
-  const [tab, setTab] = useState("calendario");
-  return (
-    <>
-      <TabBar
-        active={tab}
-        onChange={setTab}
-        tabs={[
-          { key: "calendario", label: "Calendário editorial" },
-          { key: "pipeline",   label: "Pipeline de produção" },
-          { key: "entregas",   label: "Entregas do mês" },
-        ]}
-      />
-      {tab === "calendario" && <EstrategiaPage />}
-      {tab === "pipeline"   && <OficinaPage />}
-      {tab === "entregas"   && (
-        <Card>
-          <h3 className="font-extrabold text-lg mb-2">Entregas do mês</h3>
-          <p className="text-sm" style={{ color: C.textMid }}>
-            Sistema de check por cliente — será implementado no Bloco 3.
-          </p>
-        </Card>
-      )}
-    </>
-  );
+  return <SprintsBoard />;
 }
+
 
 function BibliotecaPage() {
   const [tab, setTab] = useState("referencias");
