@@ -1730,8 +1730,7 @@ export function CRMPage() {
     items: leads.filter((l) => l.etapa === etapa),
   }));
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onDragEnd = async (event: any) => {
+  const onDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
     const activeId = String(active.id);
