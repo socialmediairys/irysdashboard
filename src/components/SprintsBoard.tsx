@@ -650,16 +650,24 @@ export function SprintsBoard() {
           </div>
 
           <Card>
-            <ListState
-              loading={loading}
-              error={error}
-              rows={displayTasks}
-              onRetry={() => selectedSprintId && fetchTasksFor(selectedSprintId)}
-              emptyTitle="Nenhuma tarefa nesta sprint"
-              emptyDescription="Clique em + New task em qualquer coluna para adicionar."
-            >
+            {loading ? (
+              <div className="py-10 text-center text-sm" style={{ color: C.textMuted }}>
+                Carregando tarefas...
+              </div>
+            ) : error ? (
+              <div className="py-10 text-center text-sm text-red-600">
+                {error}{" "}
+                <button
+                  type="button"
+                  onClick={() => selectedSprintId && fetchTasksFor(selectedSprintId)}
+                  className="underline font-semibold ml-2"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            ) : (
               <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
                   {columns.map((col) => (
                     <SortableContext
                       key={col.key}
@@ -680,8 +688,9 @@ export function SprintsBoard() {
                   ))}
                 </div>
               </DndContext>
-            </ListState>
+            )}
           </Card>
+
         </>
       )}
 
