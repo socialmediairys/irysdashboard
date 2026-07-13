@@ -275,9 +275,10 @@ export type LeadFormValues = {
   telefone: string | null;
   proxima_acao: string | null;
   data_proxima_acao: string | null;
+  ultimo_contato: string | null;
   observacoes: string | null;
 };
-const LEAD_ETAPAS = ["Lead/Entrada", "Reunião Marcada", "Proposta Enviada", "Negociando"];
+const LEAD_ETAPAS = ["Novo Lead", "Contato Feito", "Proposta Enviada", "Fechado", "Perdido"];
 const LEAD_ORIGENS = ["Instagram", "Google", "Indicação", "LinkedIn", "Outro"];
 const LEAD_POTENCIAL = ["Altíssimo", "Alto", "Médio", "Baixo"];
 
@@ -320,11 +321,14 @@ export function LeadForm({ value, onChange, errors }: {
         <Field label="WhatsApp">
           <Input value={value.telefone ?? ""} onChange={(e) => set("telefone", e.target.value)} />
         </Field>
+        <Field label="Último contato">
+          <Input type="date" value={value.ultimo_contato ?? ""} onChange={(e) => set("ultimo_contato", e.target.value || null)} />
+        </Field>
+        <Field label="Próximo follow-up">
+          <Input type="date" value={value.data_proxima_acao ?? ""} onChange={(e) => set("data_proxima_acao", e.target.value || null)} />
+        </Field>
         <Field label="Próxima ação">
           <Input value={value.proxima_acao ?? ""} onChange={(e) => set("proxima_acao", e.target.value)} />
-        </Field>
-        <Field label="Data próxima ação">
-          <Input type="date" value={value.data_proxima_acao ?? ""} onChange={(e) => set("data_proxima_acao", e.target.value || null)} />
         </Field>
       </div>
       <Field label="Anotações">
@@ -334,8 +338,8 @@ export function LeadForm({ value, onChange, errors }: {
   );
 }
 export const LEAD_DEFAULTS: LeadFormValues = {
-  nome: "", valor: 0, etapa: "Lead/Entrada", origem: "Instagram", potencial: "Alto",
-  email: null, telefone: null, proxima_acao: null, data_proxima_acao: null, observacoes: null,
+  nome: "", valor: 0, etapa: "Novo Lead", origem: "Instagram", potencial: "Alto",
+  email: null, telefone: null, proxima_acao: null, data_proxima_acao: null, ultimo_contato: null, observacoes: null,
 };
 export function validateLead(v: LeadFormValues) {
   const e: Partial<Record<keyof LeadFormValues, string>> = {};

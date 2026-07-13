@@ -20,7 +20,7 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
     { to: "/admin/biblioteca-midia", label: "Biblioteca", icon: Library },
   ]},
   { label: "Comercial", items: [
-    { to: "/admin/crm", label: "Pipeline de vendas", icon: TrendingUp },
+    { to: "/admin/crm", label: "Comercial", icon: TrendingUp },
   ]},
   { label: "Financeiro", items: [
     { to: "/admin/financeiro", label: "Financeiro", icon: CreditCard },
