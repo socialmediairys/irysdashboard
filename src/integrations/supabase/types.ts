@@ -1042,6 +1042,44 @@ export type Database = {
           },
         ]
       }
+      sprints: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          name: string
+          org_id: string | null
+          start_date: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          name: string
+          org_id?: string | null
+          start_date?: string | null
+          status: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          name?: string
+          org_id?: string | null
+          start_date?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sprints_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suporte_tickets: {
         Row: {
           assunto: string
@@ -1086,6 +1124,24 @@ export type Database = {
           },
         ]
       }
+      tags: {
+        Row: {
+          color: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       tarefa_comentarios: {
         Row: {
           autor_id: string | null
@@ -1128,6 +1184,7 @@ export type Database = {
       tarefas: {
         Row: {
           arquivo_url: string | null
+          assignee_id: string | null
           cliente_id: string | null
           created_at: string
           criado_por: string | null
@@ -1136,15 +1193,18 @@ export type Database = {
           org_id: string | null
           prazo: string | null
           prioridade: string
+          sprint_id: string | null
           status: string
           tempo_total_segundos: number
           timer_iniciado_em: string | null
+          timer_status: string | null
           tipo: string
           titulo: string
           updated_at: string
         }
         Insert: {
           arquivo_url?: string | null
+          assignee_id?: string | null
           cliente_id?: string | null
           created_at?: string
           criado_por?: string | null
@@ -1153,15 +1213,18 @@ export type Database = {
           org_id?: string | null
           prazo?: string | null
           prioridade?: string
+          sprint_id?: string | null
           status?: string
           tempo_total_segundos?: number
           timer_iniciado_em?: string | null
+          timer_status?: string | null
           tipo?: string
           titulo: string
           updated_at?: string
         }
         Update: {
           arquivo_url?: string | null
+          assignee_id?: string | null
           cliente_id?: string | null
           created_at?: string
           criado_por?: string | null
@@ -1170,14 +1233,23 @@ export type Database = {
           org_id?: string | null
           prazo?: string | null
           prioridade?: string
+          sprint_id?: string | null
           status?: string
           tempo_total_segundos?: number
           timer_iniciado_em?: string | null
+          timer_status?: string | null
           tipo?: string
           titulo?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tarefas_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tarefas_cliente_id_fkey"
             columns: ["cliente_id"]
@@ -1190,6 +1262,82 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_sprint_id_fkey"
+            columns: ["sprint_id"]
+            isOneToOne: false
+            referencedRelation: "sprints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_comments: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string
+          id: string
+          task_id: string
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          task_id: string
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_tags: {
+        Row: {
+          tag_id: string
+          task_id: string
+        }
+        Insert: {
+          tag_id: string
+          task_id: string
+        }
+        Update: {
+          tag_id?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_tags_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
             referencedColumns: ["id"]
           },
         ]
