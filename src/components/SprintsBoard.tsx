@@ -131,12 +131,12 @@ type CardData = {
   assigneeName: string | null;
 };
 
-function TaskCard({ data, dragHandle }: { data: CardData; dragHandle: React.HTMLAttributes<HTMLButtonElement> }) {
+function TaskCard({ data, onOpen, dragHandle }: { data: CardData; onOpen: () => void; dragHandle: React.HTMLAttributes<HTMLButtonElement> }) {
   const { task, clientName, tags, commentCount, assigneeName } = data;
   return (
     <div className="rounded-[10px] bg-white p-3" style={{ boxShadow: SHADOW }}>
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
+        <button type="button" onClick={onOpen} className="flex-1 min-w-0 text-left">
           <div className="font-semibold text-sm">{task.titulo}</div>
           {clientName && (
             <div className="text-[11px] mt-0.5" style={{ color: C.textMuted }}>
@@ -161,7 +161,7 @@ function TaskCard({ data, dragHandle }: { data: CardData; dragHandle: React.HTML
               </span>
             )}
           </div>
-        </div>
+        </button>
         <button
           type="button"
           aria-label="Arrastar"
@@ -176,7 +176,7 @@ function TaskCard({ data, dragHandle }: { data: CardData; dragHandle: React.HTML
   );
 }
 
-function SortableTask({ data }: { data: CardData }) {
+function SortableTask({ data, onOpen }: { data: CardData; onOpen: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: data.task.id,
     data: { status: normalizeStatus(data.task.status) },
@@ -188,10 +188,11 @@ function SortableTask({ data }: { data: CardData }) {
   };
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-      <TaskCard data={data} dragHandle={listeners as unknown as React.HTMLAttributes<HTMLButtonElement>} />
+      <TaskCard data={data} onOpen={onOpen} dragHandle={listeners as unknown as React.HTMLAttributes<HTMLButtonElement>} />
     </div>
   );
 }
+
 
 function DroppableColumn({
   colKey,
