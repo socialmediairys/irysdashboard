@@ -430,6 +430,7 @@ export function SprintsBoard() {
   const [override, setOverride] = useState<Record<string, string>>({});
   const [newSprintOpen, setNewSprintOpen] = useState(false);
   const [newTaskCol, setNewTaskCol] = useState<string | null>(null);
+  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
 
   const clientes = useClientes();
   const clientNameById = useMemo(() => {
