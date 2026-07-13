@@ -74,10 +74,10 @@ function rowToValues(entity: Entity, row: any): unknown {
       qtd_entregaveis: row.qtd_entregaveis ?? 0, objetivo: row.objetivo,
     } satisfies EstrategiaFormValues;
     case "lead": return {
-      nome: row.nome ?? "", valor: Number(row.valor) || 0, etapa: row.etapa ?? "Lead/Entrada",
+      nome: row.nome ?? "", valor: Number(row.valor) || 0, etapa: row.etapa ?? "Novo Lead",
       origem: row.origem ?? "Instagram", potencial: row.potencial ?? "Alto",
       email: row.email, telefone: row.telefone, proxima_acao: row.proxima_acao,
-      data_proxima_acao: row.data_proxima_acao, observacoes: row.observacoes,
+      data_proxima_acao: row.data_proxima_acao, ultimo_contato: row.ultimo_contato ?? null, observacoes: row.observacoes,
     } satisfies LeadFormValues;
     case "lancamento": return {
       tipo: row.tipo ?? "entrada", descricao: row.descricao ?? "",
