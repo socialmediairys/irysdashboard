@@ -329,7 +329,7 @@ const NAV_GROUPS: NavGroup[] = [
     { key: "social",   label: "Métricas sociais", icon: Instagram },
   ]},
   { label: "Comercial", items: [
-    { key: "crm", label: "Pipeline de vendas", icon: TrendingUp },
+    { key: "crm", label: "Comercial", icon: TrendingUp },
   ]},
   { label: "Financeiro", items: [
     { key: "financas", label: "Financeiro", icon: CreditCard },
