@@ -712,6 +712,8 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
           </Card>
         </div>
       </div>
+
+      <SocialMetricsDashboardCard />
     </>
   );
 }
