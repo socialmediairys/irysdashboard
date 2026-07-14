@@ -1765,11 +1765,11 @@ export function CRMPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Comercial" title="Pipeline" accent="comercial"
+      <PageHeader eyebrow="Comercial" title="Funil" accent="comercial"
         actions={<PillBtn onClick={() => openCreate("lead")}><Plus size={14} className="inline mr-1" /> Novo lead</PillBtn>} />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6">
-        <MetricCard variant="hero" value={brl(potencial)} label="Potencial no pipeline" />
+        <MetricCard variant="hero" value={brl(potencial)} label="Potencial no funil" />
         <MetricCard value={novos} label="Novos leads" />
         <MetricCard variant="accent" value={propostas} label="Propostas enviadas" />
         <MetricCard value={fechados} label="Fechados" />
@@ -1782,8 +1782,10 @@ export function CRMPage() {
         </div>
       )}
 
+      <ComercialCharts leads={leads} />
+
       <Card className="mb-6">
-        <h3 className="font-extrabold text-lg mb-4">Pipeline · arraste os cards entre as colunas</h3>
+        <h3 className="font-extrabold text-lg mb-4">Funil · arraste os cards entre as colunas</h3>
         <ListState
           loading={loading}
           error={error}
@@ -1792,7 +1794,7 @@ export function CRMPage() {
           skeletonVariant="row"
           skeletonCount={3}
           emptyTitle="Nenhum lead ainda"
-          emptyDescription="Adicione seu primeiro lead para começar o pipeline."
+          emptyDescription="Adicione seu primeiro lead para começar o funil."
           actionLabel="Novo lead"
           onAction={() => openCreate("lead")}
         >
