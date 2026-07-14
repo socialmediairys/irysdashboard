@@ -226,6 +226,8 @@ function FinanceiroPage() {
           </Card>
         </div>
 
+        <FinanceiroCharts entradas={entradas} saidas={saidas} />
+
         <div className="flex flex-wrap gap-2 items-center justify-between">
           <div className="flex gap-2">
             {([
