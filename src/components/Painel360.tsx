@@ -43,6 +43,7 @@ import { CrudProvider, useCrud } from "@/components/crud/CrudProvider";
 import { RowActions } from "@/components/crud/RowActions";
 import { useSupabaseList } from "@/hooks/useSupabaseList";
 import { SprintsBoard } from "@/components/SprintsBoard";
+import { SocialMetricsDashboardCard } from "@/components/metricas/SocialMetricsDashboardCard";
 
 import { toast } from "sonner";
 import { ListState } from "@/components/ListState";
@@ -712,6 +713,8 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
           </Card>
         </div>
       </div>
+
+      <SocialMetricsDashboardCard />
     </>
   );
 }

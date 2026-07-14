@@ -1107,6 +1107,123 @@ export type Database = {
           },
         ]
       }
+      social_accounts: {
+        Row: {
+          access_token: string | null
+          client_id: string
+          connection_type: string
+          created_at: string
+          id: string
+          platform: string
+          username: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          client_id: string
+          connection_type?: string
+          created_at?: string
+          id?: string
+          platform: string
+          username?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          client_id?: string
+          connection_type?: string
+          created_at?: string
+          id?: string
+          platform?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_accounts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_goals: {
+        Row: {
+          created_at: string
+          id: string
+          metric: string
+          social_account_id: string
+          target_date: string | null
+          target_value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric: string
+          social_account_id: string
+          target_date?: string | null
+          target_value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric?: string
+          social_account_id?: string
+          target_date?: string | null
+          target_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_goals_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_metrics_snapshots: {
+        Row: {
+          created_at: string
+          engagement_rate: number | null
+          followers: number | null
+          id: string
+          impressions: number | null
+          reach: number | null
+          snapshot_date: string
+          social_account_id: string
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_rate?: number | null
+          followers?: number | null
+          id?: string
+          impressions?: number | null
+          reach?: number | null
+          snapshot_date: string
+          social_account_id: string
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          engagement_rate?: number | null
+          followers?: number | null
+          id?: string
+          impressions?: number | null
+          reach?: number | null
+          snapshot_date?: string
+          social_account_id?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_metrics_snapshots_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       solicitacoes_cadastro: {
         Row: {
           auth_user_id: string

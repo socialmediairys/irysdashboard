@@ -22,6 +22,7 @@ import { Route as AuthenticatedAdminVisaoGeralRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminSprintsRouteImport } from './routes/_authenticated/admin.sprints'
 import { Route as AuthenticatedAdminSprintRouteImport } from './routes/_authenticated/admin.sprint'
 import { Route as AuthenticatedAdminPortalConteudosRouteImport } from './routes/_authenticated/admin.portal-conteudos'
+import { Route as AuthenticatedAdminMetricasSociaisRouteImport } from './routes/_authenticated/admin.metricas-sociais'
 import { Route as AuthenticatedAdminJuridicoRouteImport } from './routes/_authenticated/admin.juridico'
 import { Route as AuthenticatedAdminFinanceiroRouteImport } from './routes/_authenticated/admin.financeiro'
 import { Route as AuthenticatedAdminEquipeRouteImport } from './routes/_authenticated/admin.equipe'
@@ -101,6 +102,12 @@ const AuthenticatedAdminPortalConteudosRoute =
     path: '/portal-conteudos',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminMetricasSociaisRoute =
+  AuthenticatedAdminMetricasSociaisRouteImport.update({
+    id: '/metricas-sociais',
+    path: '/metricas-sociais',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminJuridicoRoute =
   AuthenticatedAdminJuridicoRouteImport.update({
     id: '/juridico',
@@ -176,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
+  '/admin/metricas-sociais': typeof AuthenticatedAdminMetricasSociaisRoute
   '/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
   '/admin/sprint': typeof AuthenticatedAdminSprintRoute
   '/admin/sprints': typeof AuthenticatedAdminSprintsRoute
@@ -200,6 +208,7 @@ export interface FileRoutesByTo {
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
+  '/admin/metricas-sociais': typeof AuthenticatedAdminMetricasSociaisRoute
   '/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
   '/admin/sprint': typeof AuthenticatedAdminSprintRoute
   '/admin/sprints': typeof AuthenticatedAdminSprintsRoute
@@ -226,6 +235,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/equipe': typeof AuthenticatedAdminEquipeRoute
   '/_authenticated/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/_authenticated/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
+  '/_authenticated/admin/metricas-sociais': typeof AuthenticatedAdminMetricasSociaisRoute
   '/_authenticated/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
   '/_authenticated/admin/sprint': typeof AuthenticatedAdminSprintRoute
   '/_authenticated/admin/sprints': typeof AuthenticatedAdminSprintsRoute
@@ -252,6 +262,7 @@ export interface FileRouteTypes {
     | '/admin/equipe'
     | '/admin/financeiro'
     | '/admin/juridico'
+    | '/admin/metricas-sociais'
     | '/admin/portal-conteudos'
     | '/admin/sprint'
     | '/admin/sprints'
@@ -276,6 +287,7 @@ export interface FileRouteTypes {
     | '/admin/equipe'
     | '/admin/financeiro'
     | '/admin/juridico'
+    | '/admin/metricas-sociais'
     | '/admin/portal-conteudos'
     | '/admin/sprint'
     | '/admin/sprints'
@@ -301,6 +313,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/equipe'
     | '/_authenticated/admin/financeiro'
     | '/_authenticated/admin/juridico'
+    | '/_authenticated/admin/metricas-sociais'
     | '/_authenticated/admin/portal-conteudos'
     | '/_authenticated/admin/sprint'
     | '/_authenticated/admin/sprints'
@@ -415,6 +428,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPortalConteudosRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/metricas-sociais': {
+      id: '/_authenticated/admin/metricas-sociais'
+      path: '/metricas-sociais'
+      fullPath: '/admin/metricas-sociais'
+      preLoaderRoute: typeof AuthenticatedAdminMetricasSociaisRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/juridico': {
       id: '/_authenticated/admin/juridico'
       path: '/juridico'
@@ -495,6 +515,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminEquipeRoute: typeof AuthenticatedAdminEquipeRoute
   AuthenticatedAdminFinanceiroRoute: typeof AuthenticatedAdminFinanceiroRoute
   AuthenticatedAdminJuridicoRoute: typeof AuthenticatedAdminJuridicoRoute
+  AuthenticatedAdminMetricasSociaisRoute: typeof AuthenticatedAdminMetricasSociaisRoute
   AuthenticatedAdminPortalConteudosRoute: typeof AuthenticatedAdminPortalConteudosRoute
   AuthenticatedAdminSprintRoute: typeof AuthenticatedAdminSprintRoute
   AuthenticatedAdminSprintsRoute: typeof AuthenticatedAdminSprintsRoute
@@ -510,6 +531,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminEquipeRoute: AuthenticatedAdminEquipeRoute,
   AuthenticatedAdminFinanceiroRoute: AuthenticatedAdminFinanceiroRoute,
   AuthenticatedAdminJuridicoRoute: AuthenticatedAdminJuridicoRoute,
+  AuthenticatedAdminMetricasSociaisRoute:
+    AuthenticatedAdminMetricasSociaisRoute,
   AuthenticatedAdminPortalConteudosRoute:
     AuthenticatedAdminPortalConteudosRoute,
   AuthenticatedAdminSprintRoute: AuthenticatedAdminSprintRoute,

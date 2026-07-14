@@ -7,6 +7,7 @@ import {
   CreditCard,
   Library,
   Scale,
+  BarChart3,
   Menu,
   ArrowLeft,
   KanbanSquare,
@@ -41,6 +42,7 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
     ],
   },
   { label: "Comercial", items: [{ to: "/admin/crm", label: "Comercial", icon: TrendingUp }] },
+  { label: "Métricas", items: [{ to: "/admin/metricas-sociais", label: "Métricas sociais", icon: BarChart3 }] },
   {
     label: "Financeiro",
     items: [
