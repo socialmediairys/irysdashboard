@@ -7,6 +7,7 @@ import {
   CreditCard,
   Library,
   Scale,
+  BarChart3,
   Menu,
   ArrowLeft,
   KanbanSquare,
