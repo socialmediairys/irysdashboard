@@ -579,7 +579,7 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
         <MetricCard variant="hero" value={anyLoading ? "—" : brl(faturamento)} label="Faturamento mensal" />
         <MetricCard value={anyLoading ? "—" : clientesAtivos} label="Clientes ativos" />
         <MetricCard variant="accent" value={anyLoading ? "—" : postsEntregues} label="Posts entregues" delta={postsPrevistos ? `de ${postsPrevistos} previstos` : "sem tarefas"} deltaType="neutral" />
-        <MetricCard value={anyLoading ? "—" : leads.length} label="Leads pipeline" />
+        <MetricCard value={anyLoading ? "—" : leads.length} label="Leads no funil" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5 mb-6">
