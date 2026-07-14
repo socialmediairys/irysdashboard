@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, CreditCard, TrendingUp, TrendingDown, Trash2, Repeat } from "lucide-react";
+import { FinanceiroCharts } from "@/components/charts/FinanceiroCharts";
 
 export const Route = createFileRoute("/_authenticated/admin/financeiro")({
   head: () => ({ meta: [{ title: "Financeiro — Irys OS" }] }),
@@ -225,6 +226,8 @@ function FinanceiroPage() {
             </p>
           </Card>
         </div>
+
+        <FinanceiroCharts entradas={entradas} saidas={saidas} />
 
         <div className="flex flex-wrap gap-2 items-center justify-between">
           <div className="flex gap-2">
