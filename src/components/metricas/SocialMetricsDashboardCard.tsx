@@ -53,11 +53,8 @@ export function SocialMetricsDashboardCard() {
     (async () => {
       setLoading(true);
       const [a, s, g, c] = await Promise.all([
-        // @ts-expect-error table may not exist in generated types yet
         supabase.from("social_accounts").select("*"),
-        // @ts-expect-error idem
         supabase.from("social_metrics_snapshots").select("*").order("snapshot_date", { ascending: false }),
-        // @ts-expect-error idem
         supabase.from("social_goals").select("*"),
         supabase.from("clientes").select("id,nome"),
       ]);
