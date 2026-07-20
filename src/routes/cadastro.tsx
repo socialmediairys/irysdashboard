@@ -41,21 +41,36 @@ function CadastroPage() {
       });
       if (signUpErr) throw signUpErr;
 
-      // Se e-mail não requer confirmação, já teremos sessão; senão tentamos login para
-      // obter sessão e conseguir gravar a solicitação (RLS exige auth.uid()).
-      if (!signUp.session) {
-        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInErr) {
-          // E-mail requer confirmação — não conseguimos gravar solicitação ainda.
-          setEnviado(true);
-          setMsg(
-            "Verifique seu e-mail para confirmar a conta. Depois faça login e sua solicitação será registrada automaticamente.",
-          );
-          return;
+      const authUserId = signUp.user?.id;
+
+      // Grava a solicitação imediatamente via service role, para não depender
+      // de o cliente voltar a logar depois de confirmar o e-mail.
+      if (authUserId) {
+        try {
+          await registrarSolicitacaoPublica({
+            data: { authUserId, nome, email },
+          });
+        } catch (err) {
+          console.error("Falha ao registrar solicitação pública", err);
         }
       }
 
-      await criarSolicitacao({ data: { nome, email } });
+      // Se e-mail requer confirmação, não há sessão — apenas avisa o usuário.
+      if (!signUp.session) {
+        setEnviado(true);
+        setMsg(
+          "Recebemos sua solicitação. Verifique seu e-mail para confirmar a conta — a aprovação da equipe já está em andamento.",
+        );
+        return;
+      }
+
+      // Caminho com sessão ativa: tenta reforçar via função autenticada
+      // (mantida como segunda camada; falha silenciosa se já existir).
+      try {
+        await criarSolicitacao({ data: { nome, email } });
+      } catch {
+        // já registrada acima via service role.
+      }
       setEnviado(true);
     } catch (err) {
       setMsg(err instanceof Error ? err.message : "Erro inesperado");
