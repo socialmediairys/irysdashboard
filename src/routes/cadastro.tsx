@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { criarSolicitacao } from "@/lib/cadastros.functions";
+import { criarSolicitacao, registrarSolicitacaoPublica } from "@/lib/cadastros.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
