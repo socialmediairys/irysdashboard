@@ -91,6 +91,42 @@ export const criarSolicitacao = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+// Cria/atualiza a solicitação de cadastro via service role, para o fluxo de
+// signup com confirmação de e-mail (ainda sem sessão ativa no navegador).
+export const registrarSolicitacaoPublica = createServerFn({ method: "POST" })
+  .inputValidator((input: { authUserId: string; nome: string; email: string }) => {
+    const authUserId = input.authUserId?.trim();
+    const nome = input.nome?.trim();
+    const email = input.email?.trim().toLowerCase();
+    if (!authUserId) throw new Error("authUserId é obrigatório");
+    if (!nome) throw new Error("Nome é obrigatório");
+    if (!email) throw new Error("E-mail é obrigatório");
+    return { authUserId, nome, email };
+  })
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Confirma que o auth_user_id realmente existe (evita gravação arbitrária).
+    const { data: userRes, error: userErr } = await supabaseAdmin.auth.admin.getUserById(
+      data.authUserId,
+    );
+    if (userErr) throw userErr;
+    if (!userRes?.user) throw new Error("Usuário não encontrado.");
+
+    const { error } = await supabaseAdmin
+      .from("solicitacoes_cadastro")
+      .upsert(
+        {
+          auth_user_id: data.authUserId,
+          nome: data.nome,
+          email: data.email,
+          status: "pendente",
+        },
+        { onConflict: "auth_user_id" },
+      );
+    if (error) throw error;
+    return { ok: true as const };
+  });
+
 // Admin: lista pendentes.
 export const listarPendentes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
