@@ -208,6 +208,8 @@ function TopicoBlock({
   const remove = useServerFn(deleteConteudoCliente);
   const createGlob = useServerFn(createConteudoGlobal);
   const removeGlob = useServerFn(deleteConteudoGlobal);
+  const updateGlob = useServerFn(updateConteudoGlobal);
+
 
   const submit = async () => {
     if (!url.trim()) {
