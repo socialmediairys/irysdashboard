@@ -743,7 +743,7 @@ export function PortalRico({
               <AudioItem
                 key={a.id}
                 id={a.id}
-                title={a.titulo || "Áudio da dinâmica"}
+                title={a.titulo || nomeDoArquivo(a.url) || nomeDoArquivo(a.storage_path) || "Áudio da dinâmica"}
                 desc={a.descricao || ""}
                 url={a.url}
                 activeId={activeAudioId}
