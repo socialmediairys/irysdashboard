@@ -685,6 +685,7 @@ export function PortalRico({
               conteudosPorTopico={conteudosPorTopico}
               open={openFase === f.fase}
               onToggle={() => setOpenFase(openFase === f.fase ? null : f.fase)}
+              onOpenMedia={openMediaFor}
             />
           ))}
         </div>
