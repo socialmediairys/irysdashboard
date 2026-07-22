@@ -300,6 +300,7 @@ type RawConteudoRow = {
   storage_path: string | null;
   storage_bucket: string | null;
   created_at?: string;
+  ordem?: number | null;
   topicos_fase?: { nome: string; fase_id: number } | null;
 };
 
@@ -325,6 +326,7 @@ async function assinarConteudo(
     url: signedUrl,
     storage_path: c.storage_path ?? null,
     storage_bucket: c.storage_bucket ?? null,
+    ordem: c.ordem ?? 0,
     fase_id: topicoFase?.fase_id,
     topicos_fase: topicoFase ? { nome: topicoFase.nome } : null,
     is_global: extra.is_global ?? false,
@@ -340,12 +342,14 @@ async function fetchGlobaisMerge(
   const ids = topicosGlobais.map((t) => t.id);
   const { data, error } = await supabaseAdmin
     .from("conteudos_globais")
-    .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, created_at, topicos_fase(nome, fase_id)")
+    .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, ordem, created_at, topicos_fase(nome, fase_id)")
     .in("topico_id", ids)
+    .order("ordem")
     .order("created_at");
   if (error) throw error;
   return Promise.all((data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as unknown as RawConteudoRow, { is_global: true })));
 }
+
 
 // Público: resolve slug → dados do portal.
 export const getPortalBySlug = createServerFn({ method: "GET" })
