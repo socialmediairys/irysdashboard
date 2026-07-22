@@ -308,7 +308,7 @@ async function fetchGlobaisMerge(
     .in("topico_id", ids)
     .order("created_at");
   if (error) throw error;
-  return Promise.all((data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as RawConteudoRow, { is_global: true })));
+  return Promise.all((data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as unknown as RawConteudoRow, { is_global: true })));
 }
 
 // Público: resolve slug → dados do portal.
@@ -343,7 +343,7 @@ export const getPortalBySlug = createServerFn({ method: "GET" })
 
     const topicos = (topicosRes.data ?? []) as Topico[];
     const conteudosCliente = await Promise.all(
-      (conteudosRes.data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as RawConteudoRow)),
+      (conteudosRes.data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as unknown as RawConteudoRow)),
     );
     const conteudosGlobais = await fetchGlobaisMerge(supabaseAdmin, topicos);
 
@@ -392,7 +392,7 @@ export const getMeuPortal = createServerFn({ method: "GET" })
 
     const topicos = (topicosRes.data ?? []) as Topico[];
     const conteudosCliente = await Promise.all(
-      (conteudosRes.data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as RawConteudoRow)),
+      (conteudosRes.data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as unknown as RawConteudoRow)),
     );
     const conteudosGlobais = await fetchGlobaisMerge(supabaseAdmin, topicos);
 
@@ -444,7 +444,7 @@ export const getPortalPreviewByClienteId = createServerFn({ method: "GET" })
 
     const topicos = (topicosRes.data ?? []) as Topico[];
     const conteudosCliente = await Promise.all(
-      (conteudosRes.data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as RawConteudoRow)),
+      (conteudosRes.data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as unknown as RawConteudoRow)),
     );
     const conteudosGlobais = await fetchGlobaisMerge(supabaseAdmin, topicos);
 
