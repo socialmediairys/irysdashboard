@@ -400,7 +400,10 @@ function FaseAccordion({
                         {itens.map((c) => {
                           const Icon = iconeConteudo(c.tipo);
                           const isMedia = c.tipo === "video" || c.tipo === "audio";
-                          const label = c.titulo || rotuloPadrao(c.tipo);
+                          const label =
+                            c.tipo === "audio"
+                              ? c.titulo || nomeDoArquivo(c.url) || nomeDoArquivo(c.storage_path) || "Áudio"
+                              : c.titulo || rotuloPadrao(c.tipo);
                           if (isMedia && c.url) {
                             return (
                               <button
