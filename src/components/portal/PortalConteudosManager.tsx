@@ -177,8 +177,13 @@ function TopicoBlock({
   const [url, setUrl] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const podeGlobal = topicoAceitaGlobal(topico);
+  const [asGlobal, setAsGlobal] = useState(podeGlobal);
+
   const create = useServerFn(createConteudoCliente);
   const remove = useServerFn(deleteConteudoCliente);
+  const createGlob = useServerFn(createConteudoGlobal);
+  const removeGlob = useServerFn(deleteConteudoGlobal);
 
   const submit = async () => {
     if (!url.trim()) {
@@ -187,9 +192,15 @@ function TopicoBlock({
     }
     setSaving(true);
     try {
-      await create({
-        data: { clienteId, topicoId: topico.id, tipo, titulo: titulo || null, descricao: descricao || null, url: url.trim() },
-      });
+      if (asGlobal && podeGlobal) {
+        await createGlob({
+          data: { topicoId: topico.id, tipo, titulo: titulo || null, descricao: descricao || null, url: url.trim() },
+        });
+      } else {
+        await create({
+          data: { clienteId, topicoId: topico.id, tipo, titulo: titulo || null, descricao: descricao || null, url: url.trim() },
+        });
+      }
       setTitulo("");
       setDescricao("");
       setUrl("");
@@ -205,22 +216,33 @@ function TopicoBlock({
   const handleUploaded = async (arquivo: { url: string; nome: string; bucket: string; path: string }) => {
     setSaving(true);
     try {
-      await create({
-        data: {
-          clienteId,
-          topicoId: topico.id,
-          tipo,
-          titulo: titulo || arquivo.nome,
-          descricao: descricao || null,
-          // Não salvamos a "url pública" aqui: os buckets são privados,
-          // então esse link nunca funcionaria. Guardamos só o caminho no
-          // storage — o portal do cliente gera um link assinado (temporário
-          // e seguro) na hora de exibir, usando storagePath + storageBucket.
-          url: null,
-          storagePath: arquivo.path,
-          storageBucket: arquivo.bucket,
-        },
-      });
+      if (asGlobal && podeGlobal) {
+        await createGlob({
+          data: {
+            topicoId: topico.id,
+            tipo,
+            titulo: titulo || null,
+            descricao: descricao || null,
+            url: null,
+            storagePath: arquivo.path,
+            storageBucket: arquivo.bucket,
+          },
+        });
+      } else {
+        await create({
+          data: {
+            clienteId,
+            topicoId: topico.id,
+            tipo,
+            titulo: titulo || null,
+            descricao: descricao || null,
+            // Buckets são privados: o portal gera link assinado a partir de path+bucket.
+            url: null,
+            storagePath: arquivo.path,
+            storageBucket: arquivo.bucket,
+          },
+        });
+      }
       setTitulo("");
       setDescricao("");
       toast.success("Arquivo enviado e vinculado ao tópico");
@@ -232,10 +254,14 @@ function TopicoBlock({
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Remover este conteúdo?")) return;
+  const handleDelete = async (c: Conteudo) => {
+    if (!confirm(c.is_global ? "Remover este conteúdo global (some pra todos os clientes)?" : "Remover este conteúdo?")) return;
     try {
-      await remove({ data: { id } });
+      if (c.is_global) {
+        await removeGlob({ data: { id: c.id } });
+      } else {
+        await remove({ data: { id: c.id } });
+      }
       onChanged();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao remover");
@@ -244,7 +270,14 @@ function TopicoBlock({
 
   return (
     <div className="rounded-lg border p-3 sm:p-4 bg-muted/20 min-w-0">
-      <div className="font-semibold mb-2 break-words">{topico.nome}</div>
+      <div className="font-semibold mb-2 break-words flex items-center gap-2">
+        {topico.nome}
+        {podeGlobal && (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
+            <Globe className="h-3 w-3" /> Compartilhável
+          </span>
+        )}
+      </div>
       {loading ? (
         <div className="text-xs text-muted-foreground">Carregando…</div>
       ) : conteudos.length === 0 ? (
@@ -256,6 +289,7 @@ function TopicoBlock({
               <span className="shrink-0"><TipoIcon tipo={c.tipo} /></span>
               <span className="flex-1 truncate min-w-0">
                 {c.titulo || c.url || c.storage_path}
+                {c.is_global && <span className="ml-1 text-[10px] font-bold uppercase text-primary">(global)</span>}
                 {c.descricao && <span className="text-muted-foreground"> — {c.descricao}</span>}
               </span>
               {c.url && (
@@ -263,12 +297,21 @@ function TopicoBlock({
                   Abrir
                 </a>
               )}
-              <Button variant="ghost" size="icon" className="shrink-0 h-7 w-7 text-destructive" onClick={() => handleDelete(c.id)}>
+              <Button variant="ghost" size="icon" className="shrink-0 h-7 w-7 text-destructive" onClick={() => handleDelete(c)}>
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             </li>
           ))}
         </ul>
+      )}
+
+      {podeGlobal && (
+        <div className="mb-3 flex items-center gap-2 rounded-md border bg-background p-2">
+          <Switch checked={asGlobal} onCheckedChange={setAsGlobal} id={`global-${topico.id}`} />
+          <Label htmlFor={`global-${topico.id}`} className="text-xs cursor-pointer flex-1">
+            Salvar como conteúdo global — vale para todos os clientes.
+          </Label>
+        </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-2 items-end">
@@ -284,8 +327,8 @@ function TopicoBlock({
           </Select>
         </div>
         <div>
-          <Label className="text-xs">Título (opcional)</Label>
-          <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Ex.: Vídeo de onboarding" />
+          <Label className="text-xs">Título (opcional — deixe em branco para usar o rótulo padrão)</Label>
+          <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Opcional" />
         </div>
       </div>
 
@@ -307,7 +350,7 @@ function TopicoBlock({
           <FileUploader
             bucket={BUCKET_BY_TIPO[tipo]}
             contexto="central_cliente"
-            clienteId={clienteId}
+            clienteId={asGlobal && podeGlobal ? undefined : clienteId}
             visivelCliente={true}
             label={`Enviar ${tipo}`}
             onUploaded={handleUploaded}
