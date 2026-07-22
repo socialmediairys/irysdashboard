@@ -46,6 +46,24 @@ function TipoIcon({ tipo }: { tipo: ConteudoTipo }) {
   return <FileText className="h-4 w-4" />;
 }
 
+function rotuloPadrao(tipo: ConteudoTipo) {
+  if (tipo === "video") return "Assistir vídeo";
+  return "Ver documento";
+}
+
+function nomeDoArquivo(src: string | null | undefined): string | null {
+  if (!src) return null;
+  try {
+    const u = new URL(src);
+    const last = u.pathname.split("/").pop();
+    if (last && last.includes(".")) return decodeURIComponent(last);
+  } catch {
+    const last = src.split("/").pop();
+    if (last && last.includes(".")) return decodeURIComponent(last);
+  }
+  return null;
+}
+
 export function PortalConteudosManager({ clienteId }: { clienteId: string }) {
   const [fases, setFases] = useState<Fase[]>([]);
   const [topicos, setTopicos] = useState<Topico[]>([]);
