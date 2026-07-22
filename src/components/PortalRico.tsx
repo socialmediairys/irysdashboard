@@ -627,23 +627,23 @@ export function PortalRico({
 
       {/* Vídeo de boas-vindas + guia */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 items-center">
-        <div
-          className="aspect-video rounded-[18px] overflow-hidden relative flex items-center justify-center cursor-pointer group"
+        <button
+          type="button"
+          className="aspect-video rounded-[18px] overflow-hidden relative flex items-center justify-center cursor-pointer group text-left"
           style={{ background: `linear-gradient(135deg, ${C.dark}, #4A2510)`, boxShadow: SHADOW }}
           onClick={() => {
             if (videoBoasVindas && videoBoasVindas.url) {
-              window.open(videoBoasVindas.url, "_blank", "noopener,noreferrer");
-              return;
+              openMediaFor(videoBoasVindas);
             }
-            setVideoPlaying((v) => !v);
           }}
+          disabled={!videoBoasVindas?.url}
         >
           <div className="absolute inset-0 flex items-center justify-center">
             <div
               className="h-16 w-16 sm:h-20 sm:w-20 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
               style={{ background: C.gold, color: C.dark }}
             >
-              {videoPlaying ? <Pause size={24} /> : <Play size={24} className="ml-1" />}
+              <Play size={24} className="ml-1" />
             </div>
           </div>
           <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 flex items-center gap-2 text-[11px] sm:text-xs font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
@@ -654,7 +654,7 @@ export function PortalRico({
               Placeholder
             </div>
           )}
-        </div>
+        </button>
         <div>
           <Eyebrow>Guia de navegação</Eyebrow>
           <h3 className="text-lg sm:text-2xl font-extrabold mt-2 mb-2 sm:mb-3" style={{ color: C.text, letterSpacing: "-0.02em" }}>
