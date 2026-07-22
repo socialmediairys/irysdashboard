@@ -50,11 +50,13 @@ export function PortalConteudosManager({ clienteId }: { clienteId: string }) {
   const [fases, setFases] = useState<Fase[]>([]);
   const [topicos, setTopicos] = useState<Topico[]>([]);
   const [conteudos, setConteudos] = useState<Conteudo[]>([]);
+  const [globais, setGlobais] = useState<Conteudo[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingConteudos, setLoadingConteudos] = useState(false);
 
   const listFases = useServerFn(listFasesComTopicos);
   const listConteudos = useServerFn(listConteudosCliente);
+  const listGlobais = useServerFn(listConteudosGlobais);
 
   useEffect(() => {
     const load = async () => {
@@ -77,8 +79,12 @@ export function PortalConteudosManager({ clienteId }: { clienteId: string }) {
     if (!clienteId) return;
     setLoadingConteudos(true);
     try {
-      const rows = await listConteudos({ data: { clienteId } });
+      const [rows, glob] = await Promise.all([
+        listConteudos({ data: { clienteId } }),
+        listGlobais().catch(() => [] as Conteudo[]),
+      ]);
       setConteudos(rows);
+      setGlobais(glob);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao carregar conteúdos");
     } finally {
@@ -100,6 +106,11 @@ export function PortalConteudosManager({ clienteId }: { clienteId: string }) {
         { event: "*", schema: "public", table: "conteudos_cliente", filter: `cliente_id=eq.${clienteId}` },
         () => { void refreshConteudos(); },
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "conteudos_globais" },
+        () => { void refreshConteudos(); },
+      )
       .subscribe();
     return () => { supabase.removeChannel(channel); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -114,8 +125,9 @@ export function PortalConteudosManager({ clienteId }: { clienteId: string }) {
   const conteudosPorTopico = useMemo(() => {
     const m: Record<string, Conteudo[]> = {};
     for (const c of conteudos) (m[c.topico_id] ??= []).push(c);
+    for (const c of globais) (m[c.topico_id] ??= []).push(c);
     return m;
-  }, [conteudos]);
+  }, [conteudos, globais]);
 
   if (loading) return <div className="p-4 text-sm text-muted-foreground">Carregando…</div>;
 
