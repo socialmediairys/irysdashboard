@@ -543,11 +543,14 @@ export function PortalRico({
 
   // Bloco 3: Áudios da Dinâmica
   const audiosDinamica = useMemo(() => {
-    return safeConteudos.filter((c) => {
-      const nomeTopico = c?.topicos_fase?.nome;
-      return c?.tipo === "audio" && normalizarNome(nomeTopico) === "audios da dinamica";
-    });
+    return safeConteudos
+      .filter((c) => {
+        const nomeTopico = c?.topicos_fase?.nome;
+        return c?.tipo === "audio" && normalizarNome(nomeTopico) === "audios da dinamica";
+      })
+      .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
   }, [safeConteudos]);
+
 
   // Bloco 5: Documentos de insights
   const documentosInsights = useMemo(() => {
