@@ -863,6 +863,14 @@ export function PortalRico({
       <footer className="pt-2 pb-2 text-center text-[11px]" style={{ color: C.textMuted }}>
         Portal exclusivo {cliente?.nome || ""} · gerido por Thamirys · Painel 360°
       </footer>
+
+      <MediaModal
+        open={!!mediaModal}
+        onOpenChange={(v) => { if (!v) setMediaModal(null); }}
+        tipo={mediaModal?.tipo ?? "video"}
+        url={mediaModal?.url ?? null}
+        titulo={mediaModal?.titulo ?? ""}
+      />
     </div>
   );
 }
