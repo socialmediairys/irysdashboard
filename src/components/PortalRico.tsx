@@ -43,6 +43,8 @@ export type Conteudo = {
   descricao?: string | null;
   fase_id?: number;
   topicos_fase?: { nome: string } | null;
+  storage_path?: string | null;
+  storage_bucket?: string | null;
 };
 export type ClientePortal = {
   id: string;
@@ -218,6 +220,21 @@ function rotuloPadrao(tipo: ConteudoTipo) {
   return "Ver documento";
 }
 
+function nomeDoArquivo(src: string | null | undefined): string | null {
+  if (!src) return null;
+  try {
+    const u = new URL(src);
+    const pathname = u.pathname;
+    const last = pathname.split("/").pop();
+    if (last && last.includes(".")) return decodeURIComponent(last);
+  } catch {
+    // não é URL — trata como path
+    const last = src.split("/").pop();
+    if (last && last.includes(".")) return decodeURIComponent(last);
+  }
+  return null;
+}
+
 /* ---------- Detecção de origem do vídeo → URL embed ---------- */
 function toEmbedUrl(rawUrl: string): { kind: "iframe" | "video"; src: string } {
   try {
@@ -383,7 +400,10 @@ function FaseAccordion({
                         {itens.map((c) => {
                           const Icon = iconeConteudo(c.tipo);
                           const isMedia = c.tipo === "video" || c.tipo === "audio";
-                          const label = c.titulo || rotuloPadrao(c.tipo);
+                          const label =
+                            c.tipo === "audio"
+                              ? c.titulo || nomeDoArquivo(c.url) || nomeDoArquivo(c.storage_path) || "Áudio"
+                              : c.titulo || rotuloPadrao(c.tipo);
                           if (isMedia && c.url) {
                             return (
                               <button
@@ -494,7 +514,11 @@ export function PortalRico({
   const openMediaFor = (c: Conteudo) => {
     if (!c.url) return;
     if (c.tipo === "video" || c.tipo === "audio") {
-      setMediaModal({ tipo: c.tipo, url: c.url, titulo: c.titulo || rotuloPadrao(c.tipo) });
+      const titulo =
+        c.tipo === "audio"
+          ? c.titulo || nomeDoArquivo(c.url) || nomeDoArquivo(c.storage_path) || "Áudio"
+          : c.titulo || rotuloPadrao(c.tipo);
+      setMediaModal({ tipo: c.tipo, url: c.url, titulo });
     }
   };
 
@@ -719,7 +743,7 @@ export function PortalRico({
               <AudioItem
                 key={a.id}
                 id={a.id}
-                title={a.titulo || "Áudio da dinâmica"}
+                title={a.titulo || nomeDoArquivo(a.url) || nomeDoArquivo(a.storage_path) || "Áudio da dinâmica"}
                 desc={a.descricao || ""}
                 url={a.url}
                 activeId={activeAudioId}

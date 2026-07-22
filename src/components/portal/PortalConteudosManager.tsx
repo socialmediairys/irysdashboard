@@ -46,6 +46,24 @@ function TipoIcon({ tipo }: { tipo: ConteudoTipo }) {
   return <FileText className="h-4 w-4" />;
 }
 
+function rotuloPadrao(tipo: ConteudoTipo) {
+  if (tipo === "video") return "Assistir vídeo";
+  return "Ver documento";
+}
+
+function nomeDoArquivo(src: string | null | undefined): string | null {
+  if (!src) return null;
+  try {
+    const u = new URL(src);
+    const last = u.pathname.split("/").pop();
+    if (last && last.includes(".")) return decodeURIComponent(last);
+  } catch {
+    const last = src.split("/").pop();
+    if (last && last.includes(".")) return decodeURIComponent(last);
+  }
+  return null;
+}
+
 export function PortalConteudosManager({ clienteId }: { clienteId: string }) {
   const [fases, setFases] = useState<Fase[]>([]);
   const [topicos, setTopicos] = useState<Topico[]>([]);
@@ -288,7 +306,9 @@ function TopicoBlock({
             <li key={c.id} className="flex items-center gap-2 text-sm min-w-0">
               <span className="shrink-0"><TipoIcon tipo={c.tipo} /></span>
               <span className="flex-1 truncate min-w-0">
-                {c.titulo || c.url || c.storage_path}
+                {c.tipo === "audio"
+                  ? c.titulo || nomeDoArquivo(c.url) || nomeDoArquivo(c.storage_path) || "Áudio"
+                  : c.titulo || rotuloPadrao(c.tipo)}
                 {c.is_global && <span className="ml-1 text-[10px] font-bold uppercase text-primary">(global)</span>}
                 {c.descricao && <span className="text-muted-foreground"> — {c.descricao}</span>}
               </span>
