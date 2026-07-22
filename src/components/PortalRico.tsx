@@ -64,11 +64,11 @@ const ETAPAS_TIMELINE = [
 
 const BLOQUEADORES = [
   { n: 1, t: "Panfletagem digital", sub: "Excesso de posts de venda direta", por: "O algoritmo penaliza perfis que só vendem. Sem entregar valor, o feed perde alcance e o público se desconecta — vira ruído comercial." },
-  { n: 2, t: "Uso de linguagem muito técnica", sub: "Explicar termos clínicos sem traduzir para benefícios reais", por: "A paciente não compra procedimento, compra transformação. Termos técnicos afastam quem ainda não entende o que precisa." },
+  { n: 2, t: "Uso de linguagem muito técnica", sub: "Explicar termos clínicos sem traduzir para benefícios reais", por: "O cliente não compra procedimento, compra transformação. Termos técnicos afastam quem ainda não entende o que precisa." },
   { n: 3, t: "Perfil 'fantasma'", sub: "Falta de humanização e bastidores reais nos stories", por: "Sem rosto, sem voz e sem rotina, o perfil vira catálogo. A conexão humana é o que gera desejo e confiança para agendar." },
   { n: 4, t: "Falta de consistência e ritmo", sub: "Postagens instáveis e quebra de algoritmo", por: "O algoritmo recompensa frequência. Sumir por semanas zera o aquecimento da conta e força recomeçar do zero." },
   { n: 5, t: "Atração de público errado", sub: "Trends sem nexo ou puramente por curtidas vazias", por: "Viralizar com público que nunca vai te contratar infla vaidade, mas não gera agenda. Métrica que importa é qualificação." },
-  { n: 6, t: "Link da bio quebrado ou complexo", sub: "Falta de canal direto facilitado para WhatsApp", por: "Cada clique a mais é uma paciente perdida. Link direto, sem intermediários, é o que converte interesse em agendamento." },
+  { n: 6, t: "Link da bio quebrado ou complexo", sub: "Falta de canal direto facilitado para WhatsApp", por: "Cada clique a mais é um cliente perdido. Link direto, sem intermediários, é o que converte interesse em agendamento." },
 ];
 
 const JORNADA = [
