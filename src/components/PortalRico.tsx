@@ -818,7 +818,7 @@ export function PortalRico({
           </Card>
           
           <Card>
-            <SectionLabel>Jornada de compra da paciente</SectionLabel>
+            <SectionLabel>Jornada de compra do cliente</SectionLabel>
             <div className="space-y-3">
               {JORNADA.map((x, i) => (
                 <div key={i} className="p-3 rounded-[12px] flex items-center gap-3" style={{ background: x.c }}>
