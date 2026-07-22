@@ -7,6 +7,7 @@ import {
   listConteudosGlobais,
   createConteudoCliente,
   createConteudoGlobal,
+  updateConteudoGlobal,
   deleteConteudoCliente,
   deleteConteudoGlobal,
   type Fase,
@@ -14,6 +15,7 @@ import {
   type Conteudo,
   type ConteudoTipo,
 } from "@/lib/portal-conteudos.functions";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -144,8 +146,12 @@ export function PortalConteudosManager({ clienteId }: { clienteId: string }) {
     const m: Record<string, Conteudo[]> = {};
     for (const c of conteudos) (m[c.topico_id] ??= []).push(c);
     for (const c of globais) (m[c.topico_id] ??= []).push(c);
+    for (const k of Object.keys(m)) {
+      m[k].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
+    }
     return m;
   }, [conteudos, globais]);
+
 
   if (loading) return <div className="p-4 text-sm text-muted-foreground">Carregando…</div>;
 
@@ -202,6 +208,8 @@ function TopicoBlock({
   const remove = useServerFn(deleteConteudoCliente);
   const createGlob = useServerFn(createConteudoGlobal);
   const removeGlob = useServerFn(deleteConteudoGlobal);
+  const updateGlob = useServerFn(updateConteudoGlobal);
+
 
   const submit = async () => {
     if (!url.trim()) {
@@ -301,28 +309,48 @@ function TopicoBlock({
       ) : conteudos.length === 0 ? (
         <div className="text-xs text-muted-foreground mb-3">Nenhum conteúdo cadastrado para este tópico.</div>
       ) : (
-        <ul className="space-y-1.5 mb-3">
-          {conteudos.map((c) => (
-            <li key={c.id} className="flex items-center gap-2 text-sm min-w-0">
-              <span className="shrink-0"><TipoIcon tipo={c.tipo} /></span>
-              <span className="flex-1 truncate min-w-0">
-                {c.tipo === "audio"
-                  ? c.titulo || nomeDoArquivo(c.url) || nomeDoArquivo(c.storage_path) || "Áudio"
-                  : c.titulo || rotuloPadrao(c.tipo)}
-                {c.is_global && <span className="ml-1 text-[10px] font-bold uppercase text-primary">(global)</span>}
-                {c.descricao && <span className="text-muted-foreground"> — {c.descricao}</span>}
-              </span>
-              {c.url && (
-                <a href={c.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs text-primary underline">
-                  Abrir
-                </a>
-              )}
-              <Button variant="ghost" size="icon" className="shrink-0 h-7 w-7 text-destructive" onClick={() => handleDelete(c)}>
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            </li>
-          ))}
+        <ul className="space-y-2 mb-3">
+          {conteudos.map((c) => {
+            const pendingGlobal = !!c.is_global && !c.url && !c.storage_path;
+            return (
+              <li key={c.id} className="rounded-md border bg-background/60 p-2 min-w-0">
+                <div className="flex items-center gap-2 text-sm min-w-0">
+                  <span className="shrink-0"><TipoIcon tipo={c.tipo} /></span>
+                  <span className="flex-1 truncate min-w-0">
+                    {c.tipo === "audio"
+                      ? c.titulo || nomeDoArquivo(c.url) || nomeDoArquivo(c.storage_path) || "Áudio"
+                      : c.titulo || rotuloPadrao(c.tipo)}
+                    {c.is_global && <span className="ml-1 text-[10px] font-bold uppercase text-primary">(global)</span>}
+                    {c.descricao && <span className="text-muted-foreground"> — {c.descricao}</span>}
+                  </span>
+                  {pendingGlobal && (
+                    <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400">
+                      Pendente de upload
+                    </span>
+                  )}
+                  {c.url && (
+                    <a href={c.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs text-primary underline">
+                      Abrir
+                    </a>
+                  )}
+                  <Button variant="ghost" size="icon" className="shrink-0 h-7 w-7 text-destructive" onClick={() => handleDelete(c)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                {pendingGlobal && (
+                  <PendingGlobalAttach
+                    conteudo={c}
+                    onDone={onChanged}
+                    attach={async (payload) => {
+                      await updateGlob({ data: { id: c.id, ...payload } });
+                    }}
+                  />
+                )}
+              </li>
+            );
+          })}
         </ul>
+
       )}
 
       {podeGlobal && (
@@ -387,3 +415,76 @@ function TopicoBlock({
     </div>
   );
 }
+
+type AttachPayload = {
+  url?: string | null;
+  storagePath?: string | null;
+  storageBucket?: string | null;
+};
+
+function PendingGlobalAttach({
+  conteudo,
+  attach,
+  onDone,
+}: {
+  conteudo: Conteudo;
+  attach: (payload: AttachPayload) => Promise<void>;
+  onDone: () => void;
+}) {
+  const [link, setLink] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const bucket = BUCKET_BY_TIPO[conteudo.tipo];
+
+  const handleUploaded = async (arquivo: { url: string; nome: string; bucket: string; path: string }) => {
+    setBusy(true);
+    try {
+      await attach({ storagePath: arquivo.path, storageBucket: arquivo.bucket, url: null });
+      toast.success("Arquivo anexado");
+      onDone();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao anexar");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleLink = async () => {
+    if (!link.trim()) return;
+    setBusy(true);
+    try {
+      await attach({ url: link.trim(), storagePath: null, storageBucket: null });
+      toast.success("Link anexado");
+      setLink("");
+      onDone();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao anexar");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+      <FileUploader
+        bucket={bucket}
+        contexto="central_cliente"
+        visivelCliente={true}
+        label={`Anexar ${conteudo.tipo}`}
+        onUploaded={handleUploaded}
+      />
+      <div className="flex gap-2">
+        <Input
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+          placeholder="Ou cole um link (Drive / Loom / YouTube)"
+          className="h-9"
+        />
+        <Button onClick={handleLink} disabled={busy || !link.trim()} size="sm">
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Anexar"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+

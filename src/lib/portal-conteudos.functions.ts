@@ -15,8 +15,10 @@ export type Conteudo = {
   storage_path: string | null;
   storage_bucket: string | null;
   created_at: string;
+  ordem?: number;
   is_global?: boolean;
 };
+
 
 async function requireAdmin(context: {
   supabase: import("@supabase/supabase-js").SupabaseClient;
@@ -72,8 +74,10 @@ export const listConteudosGlobais = createServerFn({ method: "GET" })
     await requireAdmin(context);
     const { data: rows, error } = await context.supabase
       .from("conteudos_globais")
-      .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, created_at")
-      .order("created_at", { ascending: false });
+      .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, ordem, created_at")
+      .order("topico_id")
+      .order("ordem")
+      .order("created_at");
     if (error) throw error;
     return (rows ?? []).map((r) => ({
       ...r,
@@ -81,6 +85,38 @@ export const listConteudosGlobais = createServerFn({ method: "GET" })
       is_global: true as const,
     })) as Conteudo[];
   });
+
+// Atualiza arquivo/link de um conteúdo global existente (admin)
+export const updateConteudoGlobal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: {
+    id: string;
+    url?: string | null;
+    storagePath?: string | null;
+    storageBucket?: string | null;
+  }) => {
+    const id = input.id?.trim();
+    if (!id) throw new Error("id é obrigatório");
+    const url = input.url?.trim() || null;
+    const storagePath = input.storagePath?.trim() || null;
+    const storageBucket = input.storageBucket?.trim() || null;
+    if (!url && !storagePath) throw new Error("Informe uma URL ou faça upload de um arquivo");
+    return { id, url, storagePath, storageBucket };
+  })
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const { error } = await context.supabase
+      .from("conteudos_globais")
+      .update({
+        url: data.url,
+        storage_path: data.storagePath,
+        storage_bucket: data.storageBucket,
+      })
+      .eq("id", data.id);
+    if (error) throw error;
+    return { ok: true as const };
+  });
+
 
 // Cria conteúdo (admin)
 export const createConteudoCliente = createServerFn({ method: "POST" })
@@ -264,6 +300,7 @@ type RawConteudoRow = {
   storage_path: string | null;
   storage_bucket: string | null;
   created_at?: string;
+  ordem?: number | null;
   topicos_fase?: { nome: string; fase_id: number } | null;
 };
 
@@ -289,6 +326,7 @@ async function assinarConteudo(
     url: signedUrl,
     storage_path: c.storage_path ?? null,
     storage_bucket: c.storage_bucket ?? null,
+    ordem: c.ordem ?? 0,
     fase_id: topicoFase?.fase_id,
     topicos_fase: topicoFase ? { nome: topicoFase.nome } : null,
     is_global: extra.is_global ?? false,
@@ -304,12 +342,14 @@ async function fetchGlobaisMerge(
   const ids = topicosGlobais.map((t) => t.id);
   const { data, error } = await supabaseAdmin
     .from("conteudos_globais")
-    .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, created_at, topicos_fase(nome, fase_id)")
+    .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, ordem, created_at, topicos_fase(nome, fase_id)")
     .in("topico_id", ids)
+    .order("ordem")
     .order("created_at");
   if (error) throw error;
   return Promise.all((data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as unknown as RawConteudoRow, { is_global: true })));
 }
+
 
 // Público: resolve slug → dados do portal.
 export const getPortalBySlug = createServerFn({ method: "GET" })
