@@ -15,8 +15,10 @@ export type Conteudo = {
   storage_path: string | null;
   storage_bucket: string | null;
   created_at: string;
+  ordem?: number;
   is_global?: boolean;
 };
+
 
 async function requireAdmin(context: {
   supabase: import("@supabase/supabase-js").SupabaseClient;
