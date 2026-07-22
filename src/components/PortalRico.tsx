@@ -514,7 +514,11 @@ export function PortalRico({
   const openMediaFor = (c: Conteudo) => {
     if (!c.url) return;
     if (c.tipo === "video" || c.tipo === "audio") {
-      setMediaModal({ tipo: c.tipo, url: c.url, titulo: c.titulo || rotuloPadrao(c.tipo) });
+      const titulo =
+        c.tipo === "audio"
+          ? c.titulo || nomeDoArquivo(c.url) || nomeDoArquivo(c.storage_path) || "Áudio"
+          : c.titulo || rotuloPadrao(c.tipo);
+      setMediaModal({ tipo: c.tipo, url: c.url, titulo });
     }
   };
 
