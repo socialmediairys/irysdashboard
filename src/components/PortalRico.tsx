@@ -13,6 +13,8 @@ import {
   Circle,
   ExternalLink,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 /* ---------- design tokens (Notion-like, mesmo do Painel360) ---------- */
 const C = {
@@ -62,11 +64,11 @@ const ETAPAS_TIMELINE = [
 
 const BLOQUEADORES = [
   { n: 1, t: "Panfletagem digital", sub: "Excesso de posts de venda direta", por: "O algoritmo penaliza perfis que só vendem. Sem entregar valor, o feed perde alcance e o público se desconecta — vira ruído comercial." },
-  { n: 2, t: "Uso de linguagem muito técnica", sub: "Explicar termos clínicos sem traduzir para benefícios reais", por: "A paciente não compra procedimento, compra transformação. Termos técnicos afastam quem ainda não entende o que precisa." },
+  { n: 2, t: "Uso de linguagem muito técnica", sub: "Explicar termos clínicos sem traduzir para benefícios reais", por: "O cliente não compra procedimento, compra transformação. Termos técnicos afastam quem ainda não entende o que precisa." },
   { n: 3, t: "Perfil 'fantasma'", sub: "Falta de humanização e bastidores reais nos stories", por: "Sem rosto, sem voz e sem rotina, o perfil vira catálogo. A conexão humana é o que gera desejo e confiança para agendar." },
   { n: 4, t: "Falta de consistência e ritmo", sub: "Postagens instáveis e quebra de algoritmo", por: "O algoritmo recompensa frequência. Sumir por semanas zera o aquecimento da conta e força recomeçar do zero." },
   { n: 5, t: "Atração de público errado", sub: "Trends sem nexo ou puramente por curtidas vazias", por: "Viralizar com público que nunca vai te contratar infla vaidade, mas não gera agenda. Métrica que importa é qualificação." },
-  { n: 6, t: "Link da bio quebrado ou complexo", sub: "Falta de canal direto facilitado para WhatsApp", por: "Cada clique a mais é uma paciente perdida. Link direto, sem intermediários, é o que converte interesse em agendamento." },
+  { n: 6, t: "Link da bio quebrado ou complexo", sub: "Falta de canal direto facilitado para WhatsApp", por: "Cada clique a mais é um cliente perdido. Link direto, sem intermediários, é o que converte interesse em agendamento." },
 ];
 
 const JORNADA = [
@@ -211,9 +213,93 @@ function iconeConteudo(tipo: ConteudoTipo) {
 }
 
 function rotuloPadrao(tipo: ConteudoTipo) {
-  if (tipo === "video") return "Vídeo";
-  if (tipo === "audio") return "Áudio";
-  return "Documento";
+  if (tipo === "video") return "Assistir vídeo";
+  if (tipo === "audio") return "Ouvir áudio";
+  return "Ver documento";
+}
+
+/* ---------- Detecção de origem do vídeo → URL embed ---------- */
+function toEmbedUrl(rawUrl: string): { kind: "iframe" | "video"; src: string } {
+  try {
+    const u = new URL(rawUrl);
+    const host = u.hostname.replace(/^www\./, "");
+    // YouTube
+    if (host === "youtu.be") {
+      return { kind: "iframe", src: `https://www.youtube.com/embed/${u.pathname.replace(/^\//, "")}` };
+    }
+    if (host.endsWith("youtube.com")) {
+      const v = u.searchParams.get("v");
+      if (v) return { kind: "iframe", src: `https://www.youtube.com/embed/${v}` };
+      const m = u.pathname.match(/^\/(embed|shorts)\/([^/]+)/);
+      if (m) return { kind: "iframe", src: `https://www.youtube.com/embed/${m[2]}` };
+    }
+    // Loom
+    if (host.endsWith("loom.com")) {
+      const m = u.pathname.match(/\/(share|embed)\/([^/?]+)/);
+      if (m) return { kind: "iframe", src: `https://www.loom.com/embed/${m[2]}` };
+    }
+    // Vimeo
+    if (host.endsWith("vimeo.com")) {
+      const m = u.pathname.match(/\/(\d+)/);
+      if (m) return { kind: "iframe", src: `https://player.vimeo.com/video/${m[1]}` };
+    }
+    // Google Drive
+    if (host.endsWith("drive.google.com")) {
+      const m = u.pathname.match(/\/file\/d\/([^/]+)/);
+      const id = m?.[1] || u.searchParams.get("id");
+      if (id) return { kind: "iframe", src: `https://drive.google.com/file/d/${id}/preview` };
+    }
+  } catch {
+    // não é URL válida — trata como arquivo direto
+  }
+  return { kind: "video", src: rawUrl };
+}
+
+/* ---------- Modal para vídeo/áudio inline ---------- */
+function MediaModal({
+  open,
+  onOpenChange,
+  tipo,
+  url,
+  titulo,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  tipo: "video" | "audio";
+  url: string | null;
+  titulo: string;
+}) {
+  if (!url) return null;
+  const embed = tipo === "video" ? toEmbedUrl(url) : null;
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black border-0">
+        <VisuallyHidden>
+          <DialogTitle>{titulo}</DialogTitle>
+        </VisuallyHidden>
+        {tipo === "video" && embed?.kind === "iframe" && (
+          <div className="relative w-full" style={{ aspectRatio: "16 / 9" }}>
+            <iframe
+              src={embed.src}
+              title={titulo}
+              className="absolute inset-0 h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+              allowFullScreen
+            />
+          </div>
+        )}
+        {tipo === "video" && embed?.kind === "video" && (
+          <video src={embed.src} controls autoPlay className="w-full h-auto max-h-[80vh] bg-black" />
+        )}
+        {tipo === "audio" && (
+          <div className="bg-[#2C1505] p-6 flex flex-col gap-3">
+            <div className="text-sm font-semibold text-white truncate">{titulo}</div>
+            <audio src={url} controls autoPlay className="w-full" />
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 /* ---------- Fase accordion ---------- */
@@ -226,6 +312,7 @@ function FaseAccordion({
   ativa,
   open,
   onToggle,
+  onOpenMedia,
 }: {
   fase: number;
   nome: string;
@@ -235,6 +322,7 @@ function FaseAccordion({
   ativa: boolean;
   open: boolean;
   onToggle: () => void;
+  onOpenMedia: (c: Conteudo) => void;
 }) {
   const count = useMemo(() => {
     return topicos.reduce((acc: number, t: Topico) => {
@@ -294,6 +382,23 @@ function FaseAccordion({
                       <div className="flex flex-wrap items-center gap-2 shrink-0">
                         {itens.map((c) => {
                           const Icon = iconeConteudo(c.tipo);
+                          const isMedia = c.tipo === "video" || c.tipo === "audio";
+                          const label = c.titulo || rotuloPadrao(c.tipo);
+                          if (isMedia && c.url) {
+                            return (
+                              <button
+                                key={c.id}
+                                type="button"
+                                onClick={() => onOpenMedia(c)}
+                                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-transform hover:scale-[1.02]"
+                                style={{ background: "#fff", color: C.mid, border: `1px solid ${C.beige}` }}
+                              >
+                                <Icon size={12} />
+                                {label}
+                                <Play size={11} />
+                              </button>
+                            );
+                          }
                           return c.url ? (
                             <a
                               key={c.id}
@@ -304,7 +409,7 @@ function FaseAccordion({
                               style={{ background: "#fff", color: C.mid, border: `1px solid ${C.beige}` }}
                             >
                               <Icon size={12} />
-                              {c.titulo || rotuloPadrao(c.tipo)}
+                              {label}
                               <ExternalLink size={11} />
                             </a>
                           ) : (
@@ -314,7 +419,7 @@ function FaseAccordion({
                               style={{ background: "#fff", color: C.textMuted, border: `1px solid ${C.beige}` }}
                             >
                               <Icon size={12} />
-                              {c.titulo || rotuloPadrao(c.tipo)}
+                              {label}
                             </span>
                           );
                         })}
@@ -381,10 +486,17 @@ export function PortalRico({
   conteudos: Conteudo[];
   variant?: "admin" | "cliente";
 }) {
-  const [videoPlaying, setVideoPlaying] = useState(false);
   const [activeAudioId, setActiveAudioId] = useState<string | null>(null);
   const [openFase, setOpenFase] = useState<number | null>(1);
   const [openBloq, setOpenBloq] = useState<number | null>(null);
+  const [mediaModal, setMediaModal] = useState<{ tipo: "video" | "audio"; url: string; titulo: string } | null>(null);
+
+  const openMediaFor = (c: Conteudo) => {
+    if (!c.url) return;
+    if (c.tipo === "video" || c.tipo === "audio") {
+      setMediaModal({ tipo: c.tipo, url: c.url, titulo: c.titulo || rotuloPadrao(c.tipo) });
+    }
+  };
 
   const normalizarNome = (txt: string | null | undefined): string => {
     if (!txt) return "";
@@ -515,23 +627,23 @@ export function PortalRico({
 
       {/* Vídeo de boas-vindas + guia */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 items-center">
-        <div
-          className="aspect-video rounded-[18px] overflow-hidden relative flex items-center justify-center cursor-pointer group"
+        <button
+          type="button"
+          className="aspect-video rounded-[18px] overflow-hidden relative flex items-center justify-center cursor-pointer group text-left"
           style={{ background: `linear-gradient(135deg, ${C.dark}, #4A2510)`, boxShadow: SHADOW }}
           onClick={() => {
             if (videoBoasVindas && videoBoasVindas.url) {
-              window.open(videoBoasVindas.url, "_blank", "noopener,noreferrer");
-              return;
+              openMediaFor(videoBoasVindas);
             }
-            setVideoPlaying((v) => !v);
           }}
+          disabled={!videoBoasVindas?.url}
         >
           <div className="absolute inset-0 flex items-center justify-center">
             <div
               className="h-16 w-16 sm:h-20 sm:w-20 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
               style={{ background: C.gold, color: C.dark }}
             >
-              {videoPlaying ? <Pause size={24} /> : <Play size={24} className="ml-1" />}
+              <Play size={24} className="ml-1" />
             </div>
           </div>
           <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 flex items-center gap-2 text-[11px] sm:text-xs font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
@@ -542,7 +654,7 @@ export function PortalRico({
               Placeholder
             </div>
           )}
-        </div>
+        </button>
         <div>
           <Eyebrow>Guia de navegação</Eyebrow>
           <h3 className="text-lg sm:text-2xl font-extrabold mt-2 mb-2 sm:mb-3" style={{ color: C.text, letterSpacing: "-0.02em" }}>
@@ -573,6 +685,7 @@ export function PortalRico({
               conteudosPorTopico={conteudosPorTopico}
               open={openFase === f.fase}
               onToggle={() => setOpenFase(openFase === f.fase ? null : f.fase)}
+              onOpenMedia={openMediaFor}
             />
           ))}
         </div>
@@ -653,14 +766,14 @@ export function PortalRico({
       <section>
         <Eyebrow>Bloco 5 · Insights & jornada</Eyebrow>
         <h2 className="text-lg sm:text-2xl font-extrabold mt-2 mb-4 sm:mb-5" style={{ color: C.text, letterSpacing: "-0.02em" }}>
-          Onde você deposita ideias e como sua paciente decide comprar.
+          Onde você deposita ideias e como seu cliente decide comprar.
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
           <Card className="flex flex-col justify-between">
             <div>
               <SectionLabel>Banco de Insights</SectionLabel>
               <p className="text-sm mb-4" style={{ color: C.textMid }}>
-                Envie aqui ideias espontâneas, dúvidas de balcão, prints de conversas com pacientes
+                Envie aqui ideias espontâneas, dúvidas de balcão, prints de conversas com clientes
                 e qualquer faísca que possa virar conteúdo. Nada se perde — tudo entra no radar editorial.
               </p>
               
@@ -705,7 +818,7 @@ export function PortalRico({
           </Card>
           
           <Card>
-            <SectionLabel>Jornada de compra da paciente</SectionLabel>
+            <SectionLabel>Jornada de compra do cliente</SectionLabel>
             <div className="space-y-3">
               {JORNADA.map((x, i) => (
                 <div key={i} className="p-3 rounded-[12px] flex items-center gap-3" style={{ background: x.c }}>
@@ -750,6 +863,14 @@ export function PortalRico({
       <footer className="pt-2 pb-2 text-center text-[11px]" style={{ color: C.textMuted }}>
         Portal exclusivo {cliente?.nome || ""} · gerido por Thamirys · Painel 360°
       </footer>
+
+      <MediaModal
+        open={!!mediaModal}
+        onOpenChange={(v) => { if (!v) setMediaModal(null); }}
+        tipo={mediaModal?.tipo ?? "video"}
+        url={mediaModal?.url ?? null}
+        titulo={mediaModal?.titulo ?? ""}
+      />
     </div>
   );
 }

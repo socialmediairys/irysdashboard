@@ -15,6 +15,7 @@ export type Conteudo = {
   storage_path: string | null;
   storage_bucket: string | null;
   created_at: string;
+  is_global?: boolean;
 };
 
 async function requireAdmin(context: {
@@ -62,6 +63,23 @@ export const listConteudosCliente = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     if (error) throw error;
     return (rows ?? []) as Conteudo[];
+  });
+
+// Lista conteúdos globais (todos os clientes) — admin
+export const listConteudosGlobais = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireAdmin(context);
+    const { data: rows, error } = await context.supabase
+      .from("conteudos_globais")
+      .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, created_at")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return (rows ?? []).map((r) => ({
+      ...r,
+      cliente_id: "",
+      is_global: true as const,
+    })) as Conteudo[];
   });
 
 // Cria conteúdo (admin)
@@ -117,6 +135,54 @@ export const createConteudoCliente = createServerFn({ method: "POST" })
     return row as Conteudo;
   });
 
+// Cria conteúdo GLOBAL (visível para todos os clientes) — admin
+export const createConteudoGlobal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: {
+    topicoId: string;
+    tipo: ConteudoTipo;
+    titulo?: string | null;
+    descricao?: string | null;
+    url?: string | null;
+    storagePath?: string | null;
+    storageBucket?: string | null;
+  }) => {
+    const topicoId = input.topicoId?.trim();
+    if (!topicoId) throw new Error("topicoId é obrigatório");
+    if (!["video", "audio", "documento"].includes(input.tipo)) throw new Error("tipo inválido");
+    const url = input.url?.trim() || null;
+    const storagePath = input.storagePath?.trim() || null;
+    if (!url && !storagePath) throw new Error("Informe uma URL ou faça upload de um arquivo");
+    return {
+      topicoId,
+      tipo: input.tipo,
+      titulo: input.titulo?.trim() || null,
+      descricao: input.descricao?.trim() || null,
+      url,
+      storagePath,
+      storageBucket: input.storageBucket?.trim() || null,
+    };
+  })
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const { data: row, error } = await context.supabase
+      .from("conteudos_globais")
+      .insert({
+        topico_id: data.topicoId,
+        tipo: data.tipo,
+        titulo: data.titulo,
+        descricao: data.descricao,
+        url: data.url,
+        storage_path: data.storagePath,
+        storage_bucket: data.storageBucket,
+        created_by: context.userId,
+      })
+      .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, created_at")
+      .single();
+    if (error) throw error;
+    return { ...row, cliente_id: "", is_global: true } as Conteudo;
+  });
+
 export const deleteConteudoCliente = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string }) => {
@@ -128,6 +194,23 @@ export const deleteConteudoCliente = createServerFn({ method: "POST" })
     await requireAdmin(context);
     const { error } = await context.supabase
       .from("conteudos_cliente")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw error;
+    return { ok: true as const };
+  });
+
+export const deleteConteudoGlobal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => {
+    const id = input.id?.trim();
+    if (!id) throw new Error("id é obrigatório");
+    return { id };
+  })
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const { error } = await context.supabase
+      .from("conteudos_globais")
       .delete()
       .eq("id", data.id);
     if (error) throw error;
@@ -162,9 +245,73 @@ export const regenerarSlugCliente = createServerFn({ method: "POST" })
     return { slug: (row?.slug as string) ?? novo };
   });
 
-// Público: resolve slug → dados do portal. Usa client publishable/anon com policies.
-// As tabelas fases e topicos_fase têm SELECT público. Para conteudos e cliente,
-// usamos supabaseAdmin dentro do handler apenas para projetar campos seguros.
+// Nomes normalizados dos tópicos que aceitam conteúdo GLOBAL (mesmo item vale
+// para todos os clientes). Mantido em sync com PortalRico.tsx.
+const GLOBAL_TOPICO_NAMES = new Set(["video de boas-vindas", "audios da dinamica"]);
+
+function normalizarNome(txt: string | null | undefined): string {
+  if (!txt) return "";
+  return String(txt).toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+type RawConteudoRow = {
+  id: string;
+  topico_id: string;
+  tipo: ConteudoTipo;
+  titulo: string | null;
+  descricao: string | null;
+  url: string | null;
+  storage_path: string | null;
+  storage_bucket: string | null;
+  created_at?: string;
+  topicos_fase?: { nome: string; fase_id: number } | null;
+};
+
+async function assinarConteudo(
+  supabaseAdmin: import("@supabase/supabase-js").SupabaseClient,
+  c: RawConteudoRow,
+  extra: { is_global?: boolean } = {},
+) {
+  let signedUrl = c.url;
+  if (c.storage_bucket && c.storage_path) {
+    const { data: signed } = await supabaseAdmin.storage
+      .from(c.storage_bucket)
+      .createSignedUrl(c.storage_path, 60 * 60 * 6);
+    if (signed?.signedUrl) signedUrl = signed.signedUrl;
+  }
+  const topicoFase = c.topicos_fase ?? null;
+  return {
+    id: c.id,
+    topico_id: c.topico_id,
+    tipo: c.tipo,
+    titulo: c.titulo ?? null,
+    descricao: c.descricao ?? null,
+    url: signedUrl,
+    storage_path: c.storage_path ?? null,
+    storage_bucket: c.storage_bucket ?? null,
+    fase_id: topicoFase?.fase_id,
+    topicos_fase: topicoFase ? { nome: topicoFase.nome } : null,
+    is_global: extra.is_global ?? false,
+  };
+}
+
+async function fetchGlobaisMerge(
+  supabaseAdmin: import("@supabase/supabase-js").SupabaseClient,
+  topicos: Topico[],
+) {
+  const topicosGlobais = topicos.filter((t) => GLOBAL_TOPICO_NAMES.has(normalizarNome(t.nome)));
+  if (topicosGlobais.length === 0) return [] as Awaited<ReturnType<typeof assinarConteudo>>[];
+  const ids = topicosGlobais.map((t) => t.id);
+  const { data, error } = await supabaseAdmin
+    .from("conteudos_globais")
+    .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, created_at, topicos_fase(nome, fase_id)")
+    .in("topico_id", ids)
+    .order("created_at");
+  if (error) throw error;
+  return Promise.all((data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as unknown as RawConteudoRow, { is_global: true })));
+}
+
+// Público: resolve slug → dados do portal.
 export const getPortalBySlug = createServerFn({ method: "GET" })
   .inputValidator((input: { slug: string }) => {
     const slug = input.slug?.trim().toLowerCase();
@@ -194,32 +341,11 @@ export const getPortalBySlug = createServerFn({ method: "GET" })
     if (topicosRes.error) throw topicosRes.error;
     if (conteudosRes.error) throw conteudosRes.error;
 
-    // Gera signed URLs para conteúdos armazenados em buckets privados
-    const conteudos = await Promise.all(
-      (conteudosRes.data ?? []).map(async (c) => {
-        let signedUrl = c.url as string | null;
-        // Buckets são privados: sempre que houver arquivo no storage,
-        // preferimos o link assinado (temporário e seguro) em vez da
-        // URL pública salva anteriormente, que não funciona em bucket privado.
-        if (c.storage_bucket && c.storage_path) {
-          const { data: signed } = await supabaseAdmin.storage
-            .from(c.storage_bucket as string)
-            .createSignedUrl(c.storage_path as string, 60 * 60 * 6); // 6 horas
-          if (signed?.signedUrl) signedUrl = signed.signedUrl;
-        }
-        const topicoFase = (c as { topicos_fase?: { nome: string; fase_id: number } | null }).topicos_fase ?? null;
-        return {
-          id: c.id as string,
-          topico_id: c.topico_id as string,
-          tipo: c.tipo as ConteudoTipo,
-          titulo: (c.titulo as string) ?? null,
-          descricao: (c.descricao as string) ?? null,
-          url: signedUrl,
-          fase_id: topicoFase?.fase_id,
-          topicos_fase: topicoFase ? { nome: topicoFase.nome } : null,
-        };
-      }),
+    const topicos = (topicosRes.data ?? []) as Topico[];
+    const conteudosCliente = await Promise.all(
+      (conteudosRes.data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as unknown as RawConteudoRow)),
     );
+    const conteudosGlobais = await fetchGlobaisMerge(supabaseAdmin, topicos);
 
     return {
       cliente: {
@@ -230,14 +356,11 @@ export const getPortalBySlug = createServerFn({ method: "GET" })
         slug: cliente.slug as string,
       },
       fases: (fasesRes.data ?? []) as Fase[],
-      topicos: (topicosRes.data ?? []) as Topico[],
-      conteudos,
+      topicos,
+      conteudos: [...conteudosCliente, ...conteudosGlobais],
     };
   });
 
-// Cliente autenticado: busca o PRÓPRIO portal (mesmos dados/formato do preview do admin).
-// Usa supabaseAdmin internamente só para projetar campos seguros e gerar signed URLs —
-// a segurança vem de filtrar sempre por auth_user_id = context.userId (nunca por um id recebido do cliente).
 export const getMeuPortal = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -267,31 +390,11 @@ export const getMeuPortal = createServerFn({ method: "GET" })
     if (topicosRes.error) throw topicosRes.error;
     if (conteudosRes.error) throw conteudosRes.error;
 
-    const conteudos = await Promise.all(
-      (conteudosRes.data ?? []).map(async (c) => {
-        let signedUrl = c.url as string | null;
-        // Buckets são privados: sempre que houver arquivo no storage,
-        // preferimos o link assinado (temporário e seguro) em vez da
-        // URL pública salva anteriormente, que não funciona em bucket privado.
-        if (c.storage_bucket && c.storage_path) {
-          const { data: signed } = await supabaseAdmin.storage
-            .from(c.storage_bucket as string)
-            .createSignedUrl(c.storage_path as string, 60 * 60 * 6); // 6 horas
-          if (signed?.signedUrl) signedUrl = signed.signedUrl;
-        }
-        const topicoFase = (c as { topicos_fase?: { nome: string; fase_id: number } | null }).topicos_fase ?? null;
-        return {
-          id: c.id as string,
-          topico_id: c.topico_id as string,
-          tipo: c.tipo as ConteudoTipo,
-          titulo: (c.titulo as string) ?? null,
-          descricao: (c.descricao as string) ?? null,
-          url: signedUrl,
-          fase_id: topicoFase?.fase_id,
-          topicos_fase: topicoFase ? { nome: topicoFase.nome } : null,
-        };
-      }),
+    const topicos = (topicosRes.data ?? []) as Topico[];
+    const conteudosCliente = await Promise.all(
+      (conteudosRes.data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as unknown as RawConteudoRow)),
     );
+    const conteudosGlobais = await fetchGlobaisMerge(supabaseAdmin, topicos);
 
     return {
       cliente: {
@@ -302,12 +405,11 @@ export const getMeuPortal = createServerFn({ method: "GET" })
         status_cadastro: cliente.status_cadastro as string,
       },
       fases: (fasesRes.data ?? []) as Fase[],
-      topicos: (topicosRes.data ?? []) as Topico[],
-      conteudos,
+      topicos,
+      conteudos: [...conteudosCliente, ...conteudosGlobais],
     };
   });
 
-// Admin: preview do portal de um cliente específico (mesmos dados que o cliente vê).
 export const getPortalPreviewByClienteId = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { clienteId: string }) => {
@@ -340,31 +442,11 @@ export const getPortalPreviewByClienteId = createServerFn({ method: "GET" })
     if (topicosRes.error) throw topicosRes.error;
     if (conteudosRes.error) throw conteudosRes.error;
 
-    const conteudos = await Promise.all(
-      (conteudosRes.data ?? []).map(async (c) => {
-        let signedUrl = (c.url as string | null) ?? null;
-        // Buckets são privados: sempre que houver arquivo no storage,
-        // preferimos o link assinado (temporário e seguro) em vez da
-        // URL pública salva anteriormente, que não funciona em bucket privado.
-        if (c.storage_bucket && c.storage_path) {
-          const { data: signed } = await supabaseAdmin.storage
-            .from(c.storage_bucket as string)
-            .createSignedUrl(c.storage_path as string, 60 * 60 * 6);
-          if (signed?.signedUrl) signedUrl = signed.signedUrl;
-        }
-        const topicoFase = (c as { topicos_fase?: { nome: string; fase_id: number } | null }).topicos_fase ?? null;
-        return {
-          id: c.id as string,
-          topico_id: c.topico_id as string,
-          tipo: c.tipo as ConteudoTipo,
-          titulo: (c.titulo as string) ?? null,
-          descricao: (c.descricao as string) ?? null,
-          url: signedUrl,
-          fase_id: topicoFase?.fase_id,
-          topicos_fase: topicoFase ? { nome: topicoFase.nome } : null,
-        };
-      }),
+    const topicos = (topicosRes.data ?? []) as Topico[];
+    const conteudosCliente = await Promise.all(
+      (conteudosRes.data ?? []).map((c) => assinarConteudo(supabaseAdmin, c as unknown as RawConteudoRow)),
     );
+    const conteudosGlobais = await fetchGlobaisMerge(supabaseAdmin, topicos);
 
     return {
       cliente: {
@@ -375,7 +457,7 @@ export const getPortalPreviewByClienteId = createServerFn({ method: "GET" })
         status_cadastro: (cliente.status_cadastro as string) ?? null,
       },
       fases: (fasesRes.data ?? []) as Fase[],
-      topicos: (topicosRes.data ?? []) as Topico[],
-      conteudos,
+      topicos,
+      conteudos: [...conteudosCliente, ...conteudosGlobais],
     };
   });

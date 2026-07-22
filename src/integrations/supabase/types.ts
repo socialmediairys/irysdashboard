@@ -339,6 +339,56 @@ export type Database = {
           },
         ]
       }
+      conteudos_globais: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          descricao: string | null
+          id: string
+          storage_bucket: string | null
+          storage_path: string | null
+          tipo: string
+          titulo: string | null
+          topico_id: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          storage_bucket?: string | null
+          storage_path?: string | null
+          tipo: string
+          titulo?: string | null
+          topico_id: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          descricao?: string | null
+          id?: string
+          storage_bucket?: string | null
+          storage_path?: string | null
+          tipo?: string
+          titulo?: string | null
+          topico_id?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conteudos_globais_topico_id_fkey"
+            columns: ["topico_id"]
+            isOneToOne: false
+            referencedRelation: "topicos_fase"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documentos_juridicos: {
         Row: {
           cliente_id: string | null
