@@ -205,7 +205,15 @@ function AudioItem({
         >
           Abrir
         </a>
-      ) : null}
+      ) : (
+        <span
+          className="shrink-0 text-[10px] font-bold uppercase tracking-wider rounded-full px-2.5 py-1"
+          style={{ color: C.textMid, border: `1px solid ${C.beige}` }}
+        >
+          Pendente de upload
+        </span>
+      )}
+
     </div>
   );
 }
