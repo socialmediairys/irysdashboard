@@ -59,7 +59,7 @@ function MetricasSociaisPage() {
     setClientes((data as Cliente[] | null) ?? []);
   };
   const loadAccounts = async () => {
-    const { data, error } = await supabase.from("social_accounts").select("*").order("created_at");
+    const { data, error } = await supabase.from("social_accounts").select("id, client_id, platform, username, connection_type, created_at").order("created_at");
     if (error) toast.error(error.message);
     setAccounts((data as Account[] | null) ?? []);
   };
