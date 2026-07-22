@@ -43,6 +43,8 @@ export type Conteudo = {
   descricao?: string | null;
   fase_id?: number;
   topicos_fase?: { nome: string } | null;
+  storage_path?: string | null;
+  storage_bucket?: string | null;
 };
 export type ClientePortal = {
   id: string;
