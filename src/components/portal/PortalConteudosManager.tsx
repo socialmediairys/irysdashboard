@@ -146,8 +146,12 @@ export function PortalConteudosManager({ clienteId }: { clienteId: string }) {
     const m: Record<string, Conteudo[]> = {};
     for (const c of conteudos) (m[c.topico_id] ??= []).push(c);
     for (const c of globais) (m[c.topico_id] ??= []).push(c);
+    for (const k of Object.keys(m)) {
+      m[k].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
+    }
     return m;
   }, [conteudos, globais]);
+
 
   if (loading) return <div className="p-4 text-sm text-muted-foreground">Carregando…</div>;
 
