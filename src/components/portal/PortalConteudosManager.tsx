@@ -7,6 +7,7 @@ import {
   listConteudosGlobais,
   createConteudoCliente,
   createConteudoGlobal,
+  updateConteudoGlobal,
   deleteConteudoCliente,
   deleteConteudoGlobal,
   type Fase,
@@ -14,6 +15,7 @@ import {
   type Conteudo,
   type ConteudoTipo,
 } from "@/lib/portal-conteudos.functions";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
