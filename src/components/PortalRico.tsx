@@ -220,6 +220,21 @@ function rotuloPadrao(tipo: ConteudoTipo) {
   return "Ver documento";
 }
 
+function nomeDoArquivo(src: string | null | undefined): string | null {
+  if (!src) return null;
+  try {
+    const u = new URL(src);
+    const pathname = u.pathname;
+    const last = pathname.split("/").pop();
+    if (last && last.includes(".")) return decodeURIComponent(last);
+  } catch {
+    // não é URL — trata como path
+    const last = src.split("/").pop();
+    if (last && last.includes(".")) return decodeURIComponent(last);
+  }
+  return null;
+}
+
 /* ---------- Detecção de origem do vídeo → URL embed ---------- */
 function toEmbedUrl(rawUrl: string): { kind: "iframe" | "video"; src: string } {
   try {
