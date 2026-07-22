@@ -486,10 +486,17 @@ export function PortalRico({
   conteudos: Conteudo[];
   variant?: "admin" | "cliente";
 }) {
-  const [videoPlaying, setVideoPlaying] = useState(false);
   const [activeAudioId, setActiveAudioId] = useState<string | null>(null);
   const [openFase, setOpenFase] = useState<number | null>(1);
   const [openBloq, setOpenBloq] = useState<number | null>(null);
+  const [mediaModal, setMediaModal] = useState<{ tipo: "video" | "audio"; url: string; titulo: string } | null>(null);
+
+  const openMediaFor = (c: Conteudo) => {
+    if (!c.url) return;
+    if (c.tipo === "video" || c.tipo === "audio") {
+      setMediaModal({ tipo: c.tipo, url: c.url, titulo: c.titulo || rotuloPadrao(c.tipo) });
+    }
+  };
 
   const normalizarNome = (txt: string | null | undefined): string => {
     if (!txt) return "";
