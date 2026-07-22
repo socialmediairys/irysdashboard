@@ -382,6 +382,23 @@ function FaseAccordion({
                       <div className="flex flex-wrap items-center gap-2 shrink-0">
                         {itens.map((c) => {
                           const Icon = iconeConteudo(c.tipo);
+                          const isMedia = c.tipo === "video" || c.tipo === "audio";
+                          const label = c.titulo || rotuloPadrao(c.tipo);
+                          if (isMedia && c.url) {
+                            return (
+                              <button
+                                key={c.id}
+                                type="button"
+                                onClick={() => onOpenMedia(c)}
+                                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-transform hover:scale-[1.02]"
+                                style={{ background: "#fff", color: C.mid, border: `1px solid ${C.beige}` }}
+                              >
+                                <Icon size={12} />
+                                {label}
+                                <Play size={11} />
+                              </button>
+                            );
+                          }
                           return c.url ? (
                             <a
                               key={c.id}
@@ -392,7 +409,7 @@ function FaseAccordion({
                               style={{ background: "#fff", color: C.mid, border: `1px solid ${C.beige}` }}
                             >
                               <Icon size={12} />
-                              {c.titulo || rotuloPadrao(c.tipo)}
+                              {label}
                               <ExternalLink size={11} />
                             </a>
                           ) : (
@@ -402,7 +419,7 @@ function FaseAccordion({
                               style={{ background: "#fff", color: C.textMuted, border: `1px solid ${C.beige}` }}
                             >
                               <Icon size={12} />
-                              {c.titulo || rotuloPadrao(c.tipo)}
+                              {label}
                             </span>
                           );
                         })}
