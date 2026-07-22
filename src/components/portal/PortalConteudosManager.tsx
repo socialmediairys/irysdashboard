@@ -4,8 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   listFasesComTopicos,
   listConteudosCliente,
+  listConteudosGlobais,
   createConteudoCliente,
+  createConteudoGlobal,
   deleteConteudoCliente,
+  deleteConteudoGlobal,
   type Fase,
   type Topico,
   type Conteudo,
@@ -16,15 +19,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { FileUploader } from "@/components/FileUploader";
 import { toast } from "sonner";
-import { Loader2, Trash2, Video, FileText, Headphones } from "lucide-react";
+import { Loader2, Trash2, Video, FileText, Headphones, Globe } from "lucide-react";
 
 const BUCKET_BY_TIPO: Record<ConteudoTipo, "videos-cliente" | "audios-cliente" | "documentos"> = {
   video: "videos-cliente",
   audio: "audios-cliente",
   documento: "documentos",
 };
+
+// Tópicos que aceitam conteúdo global (mesmo item vale pra todos os clientes).
+// Mantido em sync com PortalRico.tsx e portal-conteudos.functions.ts.
+function normalizarNome(txt: string): string {
+  return txt.toLowerCase().trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+const GLOBAL_TOPICO_NAMES = new Set(["video de boas-vindas", "audios da dinamica"]);
+function topicoAceitaGlobal(t: Topico) {
+  return GLOBAL_TOPICO_NAMES.has(normalizarNome(t.nome));
+}
 
 function TipoIcon({ tipo }: { tipo: ConteudoTipo }) {
   if (tipo === "video") return <Video className="h-4 w-4" />;
