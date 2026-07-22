@@ -13,6 +13,8 @@ import {
   Circle,
   ExternalLink,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 /* ---------- design tokens (Notion-like, mesmo do Painel360) ---------- */
 const C = {
