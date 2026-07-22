@@ -53,7 +53,7 @@ export function SocialMetricsDashboardCard() {
     (async () => {
       setLoading(true);
       const [a, s, g, c] = await Promise.all([
-        supabase.from("social_accounts").select("*"),
+        supabase.from("social_accounts").select("id, client_id, platform, username, connection_type, created_at"),
         supabase.from("social_metrics_snapshots").select("*").order("snapshot_date", { ascending: false }),
         supabase.from("social_goals").select("*"),
         supabase.from("clientes").select("id,nome"),
