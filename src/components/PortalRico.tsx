@@ -766,14 +766,14 @@ export function PortalRico({
       <section>
         <Eyebrow>Bloco 5 · Insights & jornada</Eyebrow>
         <h2 className="text-lg sm:text-2xl font-extrabold mt-2 mb-4 sm:mb-5" style={{ color: C.text, letterSpacing: "-0.02em" }}>
-          Onde você deposita ideias e como sua paciente decide comprar.
+          Onde você deposita ideias e como seu cliente decide comprar.
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
           <Card className="flex flex-col justify-between">
             <div>
               <SectionLabel>Banco de Insights</SectionLabel>
               <p className="text-sm mb-4" style={{ color: C.textMid }}>
-                Envie aqui ideias espontâneas, dúvidas de balcão, prints de conversas com pacientes
+                Envie aqui ideias espontâneas, dúvidas de balcão, prints de conversas com clientes
                 e qualquer faísca que possa virar conteúdo. Nada se perde — tudo entra no radar editorial.
               </p>
               
