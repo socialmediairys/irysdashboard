@@ -312,6 +312,7 @@ function FaseAccordion({
   ativa,
   open,
   onToggle,
+  onOpenMedia,
 }: {
   fase: number;
   nome: string;
@@ -321,6 +322,7 @@ function FaseAccordion({
   ativa: boolean;
   open: boolean;
   onToggle: () => void;
+  onOpenMedia: (c: Conteudo) => void;
 }) {
   const count = useMemo(() => {
     return topicos.reduce((acc: number, t: Topico) => {
