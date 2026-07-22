@@ -74,8 +74,10 @@ export const listConteudosGlobais = createServerFn({ method: "GET" })
     await requireAdmin(context);
     const { data: rows, error } = await context.supabase
       .from("conteudos_globais")
-      .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, created_at")
-      .order("created_at", { ascending: false });
+      .select("id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, ordem, created_at")
+      .order("topico_id")
+      .order("ordem")
+      .order("created_at");
     if (error) throw error;
     return (rows ?? []).map((r) => ({
       ...r,
@@ -83,6 +85,38 @@ export const listConteudosGlobais = createServerFn({ method: "GET" })
       is_global: true as const,
     })) as Conteudo[];
   });
+
+// Atualiza arquivo/link de um conteúdo global existente (admin)
+export const updateConteudoGlobal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: {
+    id: string;
+    url?: string | null;
+    storagePath?: string | null;
+    storageBucket?: string | null;
+  }) => {
+    const id = input.id?.trim();
+    if (!id) throw new Error("id é obrigatório");
+    const url = input.url?.trim() || null;
+    const storagePath = input.storagePath?.trim() || null;
+    const storageBucket = input.storageBucket?.trim() || null;
+    if (!url && !storagePath) throw new Error("Informe uma URL ou faça upload de um arquivo");
+    return { id, url, storagePath, storageBucket };
+  })
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const { error } = await context.supabase
+      .from("conteudos_globais")
+      .update({
+        url: data.url,
+        storage_path: data.storagePath,
+        storage_bucket: data.storageBucket,
+      })
+      .eq("id", data.id);
+    if (error) throw error;
+    return { ok: true as const };
+  });
+
 
 // Cria conteúdo (admin)
 export const createConteudoCliente = createServerFn({ method: "POST" })
