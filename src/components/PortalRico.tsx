@@ -213,9 +213,93 @@ function iconeConteudo(tipo: ConteudoTipo) {
 }
 
 function rotuloPadrao(tipo: ConteudoTipo) {
-  if (tipo === "video") return "Vídeo";
-  if (tipo === "audio") return "Áudio";
-  return "Documento";
+  if (tipo === "video") return "Assistir vídeo";
+  if (tipo === "audio") return "Ouvir áudio";
+  return "Ver documento";
+}
+
+/* ---------- Detecção de origem do vídeo → URL embed ---------- */
+function toEmbedUrl(rawUrl: string): { kind: "iframe" | "video"; src: string } {
+  try {
+    const u = new URL(rawUrl);
+    const host = u.hostname.replace(/^www\./, "");
+    // YouTube
+    if (host === "youtu.be") {
+      return { kind: "iframe", src: `https://www.youtube.com/embed/${u.pathname.replace(/^\//, "")}` };
+    }
+    if (host.endsWith("youtube.com")) {
+      const v = u.searchParams.get("v");
+      if (v) return { kind: "iframe", src: `https://www.youtube.com/embed/${v}` };
+      const m = u.pathname.match(/^\/(embed|shorts)\/([^/]+)/);
+      if (m) return { kind: "iframe", src: `https://www.youtube.com/embed/${m[2]}` };
+    }
+    // Loom
+    if (host.endsWith("loom.com")) {
+      const m = u.pathname.match(/\/(share|embed)\/([^/?]+)/);
+      if (m) return { kind: "iframe", src: `https://www.loom.com/embed/${m[2]}` };
+    }
+    // Vimeo
+    if (host.endsWith("vimeo.com")) {
+      const m = u.pathname.match(/\/(\d+)/);
+      if (m) return { kind: "iframe", src: `https://player.vimeo.com/video/${m[1]}` };
+    }
+    // Google Drive
+    if (host.endsWith("drive.google.com")) {
+      const m = u.pathname.match(/\/file\/d\/([^/]+)/);
+      const id = m?.[1] || u.searchParams.get("id");
+      if (id) return { kind: "iframe", src: `https://drive.google.com/file/d/${id}/preview` };
+    }
+  } catch {
+    // não é URL válida — trata como arquivo direto
+  }
+  return { kind: "video", src: rawUrl };
+}
+
+/* ---------- Modal para vídeo/áudio inline ---------- */
+function MediaModal({
+  open,
+  onOpenChange,
+  tipo,
+  url,
+  titulo,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  tipo: "video" | "audio";
+  url: string | null;
+  titulo: string;
+}) {
+  if (!url) return null;
+  const embed = tipo === "video" ? toEmbedUrl(url) : null;
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black border-0">
+        <VisuallyHidden>
+          <DialogTitle>{titulo}</DialogTitle>
+        </VisuallyHidden>
+        {tipo === "video" && embed?.kind === "iframe" && (
+          <div className="relative w-full" style={{ aspectRatio: "16 / 9" }}>
+            <iframe
+              src={embed.src}
+              title={titulo}
+              className="absolute inset-0 h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+              allowFullScreen
+            />
+          </div>
+        )}
+        {tipo === "video" && embed?.kind === "video" && (
+          <video src={embed.src} controls autoPlay className="w-full h-auto max-h-[80vh] bg-black" />
+        )}
+        {tipo === "audio" && (
+          <div className="bg-[#2C1505] p-6 flex flex-col gap-3">
+            <div className="text-sm font-semibold text-white truncate">{titulo}</div>
+            <audio src={url} controls autoPlay className="w-full" />
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 /* ---------- Fase accordion ---------- */
