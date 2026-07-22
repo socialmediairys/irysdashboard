@@ -309,28 +309,48 @@ function TopicoBlock({
       ) : conteudos.length === 0 ? (
         <div className="text-xs text-muted-foreground mb-3">Nenhum conteúdo cadastrado para este tópico.</div>
       ) : (
-        <ul className="space-y-1.5 mb-3">
-          {conteudos.map((c) => (
-            <li key={c.id} className="flex items-center gap-2 text-sm min-w-0">
-              <span className="shrink-0"><TipoIcon tipo={c.tipo} /></span>
-              <span className="flex-1 truncate min-w-0">
-                {c.tipo === "audio"
-                  ? c.titulo || nomeDoArquivo(c.url) || nomeDoArquivo(c.storage_path) || "Áudio"
-                  : c.titulo || rotuloPadrao(c.tipo)}
-                {c.is_global && <span className="ml-1 text-[10px] font-bold uppercase text-primary">(global)</span>}
-                {c.descricao && <span className="text-muted-foreground"> — {c.descricao}</span>}
-              </span>
-              {c.url && (
-                <a href={c.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs text-primary underline">
-                  Abrir
-                </a>
-              )}
-              <Button variant="ghost" size="icon" className="shrink-0 h-7 w-7 text-destructive" onClick={() => handleDelete(c)}>
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            </li>
-          ))}
+        <ul className="space-y-2 mb-3">
+          {conteudos.map((c) => {
+            const pendingGlobal = !!c.is_global && !c.url && !c.storage_path;
+            return (
+              <li key={c.id} className="rounded-md border bg-background/60 p-2 min-w-0">
+                <div className="flex items-center gap-2 text-sm min-w-0">
+                  <span className="shrink-0"><TipoIcon tipo={c.tipo} /></span>
+                  <span className="flex-1 truncate min-w-0">
+                    {c.tipo === "audio"
+                      ? c.titulo || nomeDoArquivo(c.url) || nomeDoArquivo(c.storage_path) || "Áudio"
+                      : c.titulo || rotuloPadrao(c.tipo)}
+                    {c.is_global && <span className="ml-1 text-[10px] font-bold uppercase text-primary">(global)</span>}
+                    {c.descricao && <span className="text-muted-foreground"> — {c.descricao}</span>}
+                  </span>
+                  {pendingGlobal && (
+                    <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400">
+                      Pendente de upload
+                    </span>
+                  )}
+                  {c.url && (
+                    <a href={c.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs text-primary underline">
+                      Abrir
+                    </a>
+                  )}
+                  <Button variant="ghost" size="icon" className="shrink-0 h-7 w-7 text-destructive" onClick={() => handleDelete(c)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+                {pendingGlobal && (
+                  <PendingGlobalAttach
+                    conteudo={c}
+                    onDone={onChanged}
+                    attach={async (payload) => {
+                      await updateGlob({ data: { id: c.id, ...payload } });
+                    }}
+                  />
+                )}
+              </li>
+            );
+          })}
         </ul>
+
       )}
 
       {podeGlobal && (
