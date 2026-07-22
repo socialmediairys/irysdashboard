@@ -415,3 +415,76 @@ function TopicoBlock({
     </div>
   );
 }
+
+type AttachPayload = {
+  url?: string | null;
+  storagePath?: string | null;
+  storageBucket?: string | null;
+};
+
+function PendingGlobalAttach({
+  conteudo,
+  attach,
+  onDone,
+}: {
+  conteudo: Conteudo;
+  attach: (payload: AttachPayload) => Promise<void>;
+  onDone: () => void;
+}) {
+  const [link, setLink] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const bucket = BUCKET_BY_TIPO[conteudo.tipo];
+
+  const handleUploaded = async (arquivo: { url: string; nome: string; bucket: string; path: string }) => {
+    setBusy(true);
+    try {
+      await attach({ storagePath: arquivo.path, storageBucket: arquivo.bucket, url: null });
+      toast.success("Arquivo anexado");
+      onDone();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao anexar");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleLink = async () => {
+    if (!link.trim()) return;
+    setBusy(true);
+    try {
+      await attach({ url: link.trim(), storagePath: null, storageBucket: null });
+      toast.success("Link anexado");
+      setLink("");
+      onDone();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao anexar");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+      <FileUploader
+        bucket={bucket}
+        contexto="central_cliente"
+        visivelCliente={true}
+        label={`Anexar ${conteudo.tipo}`}
+        onUploaded={handleUploaded}
+      />
+      <div className="flex gap-2">
+        <Input
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+          placeholder="Ou cole um link (Drive / Loom / YouTube)"
+          className="h-9"
+        />
+        <Button onClick={handleLink} disabled={busy || !link.trim()} size="sm">
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Anexar"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
