@@ -1469,6 +1469,7 @@ function ClientesPage() {
                 <Link
                   to="/admin/clientes/$clienteId"
                   params={{ clienteId: c.id }}
+                  search={{ tab: "dados" as const }}
                   className="flex items-center gap-3 flex-1 min-w-0 group"
                   aria-label={`Abrir perfil de ${c.nome}`}
                 >
@@ -1508,6 +1509,7 @@ function ClientesPage() {
                 <Link
                   to="/admin/clientes/$clienteId"
                   params={{ clienteId: c.id }}
+                  search={{ tab: "dados" as const }}
                   className="inline-flex items-center gap-1 text-xs font-bold hover:underline"
                   style={{ color: C.mid }}
                 >
