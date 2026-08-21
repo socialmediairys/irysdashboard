@@ -427,7 +427,7 @@ function Sidebar({
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                     }`}
                   >
-                    <Icon size={18} strokeWidth={2} className="shrink-0" />
+                    <Icon size={18} strokeWidth={1.6} className="shrink-0" />
                     <span className={`text-sm font-semibold ${collapsed ? "md:hidden" : ""}`}>{n.label}</span>
                   </button>
                 );
