@@ -172,13 +172,24 @@ const DB = {
 
 
 /* ---------- tokens ---------- */
+/**
+ * Legacy palette object, kept because 8 modules import it. The keys are the
+ * old brown/gold names but the values now resolve to the indigo design system
+ * tokens, so the gold is gone from the whole app at once.
+ */
 export const C = {
-  dark: "#2C1505", mid: "#7A4A18", gold: "#C9A46E",
-  beige: "#E8D8C0", beigeLight: "#F5EEE5", bg: "#EDEAE5",
-  text: "#1A0A02", textMid: "#7A6050", textMuted: "#BBA898",
+  dark: "var(--primary)",
+  mid: "var(--muted-foreground)",
+  gold: "var(--primary)",
+  beige: "var(--border)",
+  beigeLight: "var(--secondary)",
+  bg: "var(--background)",
+  text: "var(--foreground)",
+  textMid: "var(--muted-foreground)",
+  textMuted: "var(--muted-foreground)",
 };
-const SHADOW = "0 2px 16px rgba(44,21,5,0.09)";
-const SHADOW_HOVER = "0 6px 28px rgba(44,21,5,0.16)";
+const SHADOW = "var(--shadow-card)";
+const SHADOW_HOVER = "var(--shadow-card-hover)";
 
 export const brl = (n: number) => "R$ " + n.toLocaleString("pt-BR");
 
@@ -1469,6 +1480,7 @@ function ClientesPage() {
                 <Link
                   to="/admin/clientes/$clienteId"
                   params={{ clienteId: c.id }}
+                  search={{ tab: "dados" as const }}
                   className="flex items-center gap-3 flex-1 min-w-0 group"
                   aria-label={`Abrir perfil de ${c.nome}`}
                 >
@@ -1508,6 +1520,7 @@ function ClientesPage() {
                 <Link
                   to="/admin/clientes/$clienteId"
                   params={{ clienteId: c.id }}
+                  search={{ tab: "dados" as const }}
                   className="inline-flex items-center gap-1 text-xs font-bold hover:underline"
                   style={{ color: C.mid }}
                 >
