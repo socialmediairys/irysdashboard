@@ -630,7 +630,7 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
         <div className="lg:col-span-2">
           <Card dark>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-extrabold text-lg">📅 Agenda — Hoje</h3>
+              <h3 className="font-extrabold text-lg flex items-center gap-2"><Calendar size={16} strokeWidth={1.6} /> Agenda — Hoje</h3>
               <button onClick={() => go("agenda")} className="text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.72)" }}>agenda →</button>
             </div>
             {(agendaQ.loading || gcalLoading) && hoje.length === 0 ? (
@@ -700,17 +700,17 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
             <h3 className="font-extrabold text-lg mb-4">Acesso rápido</h3>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { e:"📅", n:"Agenda", s:"Hoje", k:"agenda" as PageKey },
-                { e:"👥", n:"Clientes", s:`${clientesAtivos} ativos`, k:"clientes" as PageKey },
-                { e:"📈", n:"CRM", s:`${leads.length} leads`, k:"crm" as PageKey },
-                { e:"💳", n:"Finanças", s:"Junho", k:"financas" as PageKey },
-                { e:"📝", n:"Conteúdo", s:"Calendário", k:"conteudo" as PageKey },
-                { e:"📚", n:"Biblioteca", s:"Refs & prompts", k:"biblioteca" as PageKey },
+                { I: Calendar, n:"Agenda", s:"Hoje", k:"agenda" as PageKey },
+                { I: Users, n:"Clientes", s:`${clientesAtivos} ativos`, k:"clientes" as PageKey },
+                { I: TrendingUp, n:"CRM", s:`${leads.length} leads`, k:"crm" as PageKey },
+                { I: CreditCard, n:"Finanças", s:"Junho", k:"financas" as PageKey },
+                { I: FileText, n:"Conteúdo", s:"Calendário", k:"conteudo" as PageKey },
+                { I: Library, n:"Biblioteca", s:"Refs & prompts", k:"biblioteca" as PageKey },
               ].map((c) => (
                 <button key={c.n} onClick={() => go(c.k)}
                   className="rounded-[10px] p-3 text-left transition-all hover:-translate-y-0.5 min-h-11"
                   style={{ background: C.beigeLight }}>
-                  <div className="text-xl">{c.e}</div>
+                  <c.I size={18} strokeWidth={1.6} className="text-muted-foreground" />
                   <div className="text-sm font-bold mt-1">{c.n}</div>
                   <div className="text-[11px]" style={{ color: C.textMid }}>{c.s}</div>
                 </button>
