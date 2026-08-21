@@ -22,7 +22,7 @@ function IndexRedirect() {
 
   }, [navigate]);
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#EDEAE5] text-[#7A4A18]">
+    <div className="flex min-h-screen items-center justify-center bg-background text-muted-foreground">
       Carregando...
     </div>
   );

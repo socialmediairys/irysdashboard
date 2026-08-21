@@ -59,10 +59,10 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#EDEAE5] p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-[#E8D8C0]">
-        <h1 className="text-2xl font-bold text-[#2C1505] mb-1">Portal do cliente</h1>
-        <p className="text-sm text-[#7A6050] mb-6">Entre com seu e-mail e senha.</p>
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8">
+        <h1 className="text-2xl font-bold text-foreground mb-1">Portal do cliente</h1>
+        <p className="text-sm text-muted-foreground mb-6">Entre com seu e-mail e senha.</p>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
@@ -82,21 +82,21 @@ function LoginPage() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#2C1505] hover:bg-[#7A4A18] text-white"
+            className="w-full"
           >
             {loading ? "Entrando..." : "Entrar"}
           </Button>
         </form>
 
-        {msg && <p className="mt-4 text-sm text-[#7A4A18]">{msg}</p>}
+        {msg && <p className="mt-4 text-sm text-primary">{msg}</p>}
 
-        <p className="mt-6 text-sm text-[#7A4A18] text-center">
+        <p className="mt-6 text-sm text-primary text-center">
           Não tem conta?{" "}
           <Link to="/cadastro" className="underline font-semibold">
             Solicitar acesso
           </Link>
         </p>
-        <p className="mt-2 text-xs text-[#BBA898] text-center">
+        <p className="mt-2 text-xs text-muted-foreground text-center">
           Administradores da equipe:{" "}
           <Link to="/auth" className="underline">
             entrar por aqui
