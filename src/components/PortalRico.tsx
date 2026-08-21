@@ -18,14 +18,14 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 /* ---------- design tokens (Notion-like, mesmo do Painel360) ---------- */
 const C = {
-  dark: "#2C1505",
-  mid: "#7A4A18",
-  gold: "#C9A46E",
-  beige: "#E8D8C0",
-  beigeLight: "#F5EEE5",
-  bg: "#EDEAE5",
+  dark: "var(--primary)",
+  mid: "var(--muted-foreground)",
+  gold: "var(--muted-foreground)",
+  beige: "var(--border)",
+  beigeLight: "var(--secondary)",
+  bg: "var(--background)",
   text: "#1A0A02",
-  textMid: "#7A6050",
+  textMid: "var(--muted-foreground)",
   textMuted: "#BBA898",
 };
 const SHADOW = "0 2px 16px rgba(44,21,5,0.09)";
@@ -319,7 +319,7 @@ function MediaModal({
           <video src={embed.src} controls autoPlay className="w-full h-auto max-h-[80vh] bg-black" />
         )}
         {tipo === "audio" && (
-          <div className="bg-[#2C1505] p-6 flex flex-col gap-3">
+          <div className="bg-primary p-6 flex flex-col gap-3">
             <div className="text-sm font-semibold text-white truncate">{titulo}</div>
             <audio src={url} controls autoPlay className="w-full" />
           </div>

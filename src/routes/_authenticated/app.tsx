@@ -66,41 +66,41 @@ function AppDispatch() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#EDEAE5] p-6">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-[#E8D8C0] text-center space-y-3">
-        {state.kind === "loading" && <p className="text-[#7A4A18]">Carregando...</p>}
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-border text-center space-y-3">
+        {state.kind === "loading" && <p className="text-muted-foreground">Carregando...</p>}
         {state.kind === "pendente" && (
           <>
-            <h1 className="text-xl font-bold text-[#2C1505]">Seu cadastro está em análise</h1>
-            <p className="text-sm text-[#7A6050]">
+            <h1 className="text-xl font-bold text-foreground">Seu cadastro está em análise</h1>
+            <p className="text-sm text-muted-foreground">
               Assim que a equipe Irys aprovar seu acesso, você será liberado para ver seu portal.
             </p>
           </>
         )}
         {state.kind === "rejeitado" && (
           <>
-            <h1 className="text-xl font-bold text-[#2C1505]">Cadastro não aprovado</h1>
-            <p className="text-sm text-[#7A6050]">
+            <h1 className="text-xl font-bold text-foreground">Cadastro não aprovado</h1>
+            <p className="text-sm text-muted-foreground">
               Sua solicitação foi rejeitada. Entre em contato com a equipe Irys para mais informações.
             </p>
             {state.obs && (
-              <p className="text-xs text-[#7A6050] italic">Observação: {state.obs}</p>
+              <p className="text-xs text-muted-foreground italic">Observação: {state.obs}</p>
             )}
           </>
         )}
         {state.kind === "sem_cadastro" && (
           <>
-            <h1 className="text-xl font-bold text-[#2C1505]">Solicite seu acesso</h1>
-            <p className="text-sm text-[#7A6050]">
+            <h1 className="text-xl font-bold text-foreground">Solicite seu acesso</h1>
+            <p className="text-sm text-muted-foreground">
               Você está logado, mas ainda não há uma solicitação de acesso registrada.
             </p>
-            <Button onClick={criarPendente} className="w-full bg-[#2C1505] hover:bg-[#7A4A18] text-white">
+            <Button onClick={criarPendente} className="w-full bg-primary hover:bg-primary-hover text-white">
               Registrar solicitação agora
             </Button>
           </>
         )}
         {state.kind === "erro" && (
-          <p className="text-sm text-[#7A4A18]">Erro: {state.msg}</p>
+          <p className="text-sm text-muted-foreground">Erro: {state.msg}</p>
         )}
         <Button onClick={signOut} variant="outline" className="w-full">
           Sair

@@ -15,9 +15,9 @@ type Papel = "admin" | "gestor" | "editor" | "social" | "financeiro" | "juridico
 const PAPEIS: Papel[] = ["admin", "gestor", "editor", "social", "financeiro", "juridico", "cliente"];
 
 const CORES: Record<Papel, string> = {
-  admin: "bg-[#2C1505] text-white",
-  gestor: "bg-[#7A4A18] text-white",
-  editor: "bg-[#C9A46E] text-[#2C1505]",
+  admin: "bg-primary text-white",
+  gestor: "bg-primary-hover text-white",
+  editor: "bg-[#C9A46E] text-foreground",
   social: "bg-pink-600 text-white",
   financeiro: "bg-emerald-700 text-white",
   juridico: "bg-indigo-700 text-white",
@@ -60,22 +60,22 @@ function EquipePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#EDEAE5]">
-      <header className="bg-[#2C1505] text-white px-6 py-4 flex items-center gap-3">
-        <Link to="/admin/visao-geral" className="text-[#C9A46E] hover:text-white flex items-center gap-1 text-sm">
+    <div className="min-h-screen bg-background">
+      <header className="bg-primary text-white px-6 py-4 flex items-center gap-3">
+        <Link to="/admin/visao-geral" className="text-primary-foreground/70 hover:text-white flex items-center gap-1 text-sm">
           <ArrowLeft className="w-4 h-4" /> Voltar
         </Link>
-        <span className="text-[#7A6050]">|</span>
-        <Users className="w-5 h-5 text-[#C9A46E]" />
+        <span className="text-muted-foreground">|</span>
+        <Users className="w-5 h-5 text-primary-foreground/70" />
         <div>
           <h1 className="text-lg font-bold">Equipe & Papéis</h1>
-          <p className="text-xs text-[#C9A46E]">{membros.length} usuários no sistema</p>
+          <p className="text-xs text-primary-foreground/70">{membros.length} usuários no sistema</p>
         </div>
       </header>
 
       <div className="max-w-5xl mx-auto p-6 space-y-4">
-        <Card className="p-4 bg-white border-[#E8D8C0]">
-          <div className="flex items-start gap-2 text-sm text-[#7A4A18]">
+        <Card className="p-4 bg-white border-border">
+          <div className="flex items-start gap-2 text-sm text-muted-foreground">
             <Shield className="w-4 h-4 mt-0.5 shrink-0" />
             <p>
               Papéis controlam o acesso às áreas do sistema. Um usuário pode ter vários papéis.
@@ -85,20 +85,20 @@ function EquipePage() {
         </Card>
 
         {loading ? (
-          <Card className="p-8 text-center text-[#7A6050]">Carregando membros...</Card>
+          <Card className="p-8 text-center text-muted-foreground">Carregando membros...</Card>
         ) : (
           <div className="space-y-3">
             {membros.map((m) => (
-              <Card key={m.id} className="p-4 bg-white border-[#E8D8C0]">
+              <Card key={m.id} className="p-4 bg-white border-border">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="font-medium text-[#2C1505]">{m.nome || "(sem nome)"}</p>
-                    <p className="text-xs text-[#7A6050]">{m.email}</p>
+                    <p className="font-medium text-foreground">{m.nome || "(sem nome)"}</p>
+                    <p className="text-xs text-muted-foreground">{m.email}</p>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {m.papeis.length === 0 && (
-                    <span className="text-xs text-[#BBA898] italic">Sem papéis atribuídos</span>
+                    <span className="text-xs text-muted-foreground italic">Sem papéis atribuídos</span>
                   )}
                   {m.papeis.map((p) => (
                     <Badge
@@ -112,12 +112,12 @@ function EquipePage() {
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-1.5 border-t pt-3">
-                  <span className="text-xs text-[#7A6050] self-center mr-2">+ Atribuir:</span>
+                  <span className="text-xs text-muted-foreground self-center mr-2">+ Atribuir:</span>
                   {PAPEIS.filter((p) => !m.papeis.includes(p)).map((p) => (
                     <button
                       key={p}
                       onClick={() => adicionarPapel(m.id, p)}
-                      className="text-xs px-2 py-1 rounded border border-[#E8D8C0] text-[#7A4A18] hover:bg-[#F5EEE5] cursor-pointer"
+                      className="text-xs px-2 py-1 rounded border border-border text-muted-foreground hover:bg-secondary cursor-pointer"
                     >
                       {p}
                     </button>

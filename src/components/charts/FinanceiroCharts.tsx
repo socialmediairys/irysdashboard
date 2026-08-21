@@ -17,13 +17,13 @@ import {
 // the raw values here to avoid pulling the entire Painel360 module into this
 // standalone chart bundle.
 const C = {
-  dark: "#2C1505",
-  mid: "#7A4A18",
-  gold: "#C9A46E",
-  beige: "#E8D8C0",
-  beigeLight: "#F5EEE5",
+  dark: "var(--primary)",
+  mid: "var(--muted-foreground)",
+  gold: "var(--muted-foreground)",
+  beige: "var(--border)",
+  beigeLight: "var(--secondary)",
   text: "#1A0A02",
-  textMid: "#7A6050",
+  textMid: "var(--muted-foreground)",
 };
 const SHADOW = "0 2px 16px rgba(44,21,5,0.09)";
 const brl = (n: number) => "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });

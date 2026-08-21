@@ -184,13 +184,13 @@ export function FileUploader({
         }}
         className={`cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition ${
           dragging
-            ? "border-[#C9A46E] bg-[#F5EEE5]"
-            : "border-[#E8D8C0] bg-white hover:bg-[#FAF5EC]"
+            ? "border-primary bg-secondary"
+            : "border-border bg-white hover:bg-secondary"
         }`}
       >
-        <Upload className="w-8 h-8 mx-auto text-[#C9A46E] mb-2" />
-        <p className="text-sm font-medium text-[#2C1505]">{label}</p>
-        <p className="text-xs text-[#7A6050] mt-1">
+        <Upload className="w-8 h-8 mx-auto text-primary-foreground/70 mb-2" />
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        <p className="text-xs text-muted-foreground mt-1">
           Máx. {fmtBytes(max)} · {acc.replace(/\*\/\*/, "todos")}
         </p>
         <input
@@ -207,9 +207,9 @@ export function FileUploader({
       </div>
 
       {state === "uploading" && (
-        <div className="mt-3 flex items-center gap-2 text-sm text-[#7A4A18]">
+        <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="w-4 h-4 animate-spin" />
-          <div className="flex-1 h-2 bg-[#F0E5D5] rounded overflow-hidden">
+          <div className="flex-1 h-2 bg-secondary rounded overflow-hidden">
             <div className="h-full bg-[#C9A46E] transition-all" style={{ width: `${progress}%` }} />
           </div>
           <span className="text-xs">{progress}%</span>
@@ -217,11 +217,11 @@ export function FileUploader({
       )}
 
       {state === "done" && last && (
-        <div className="mt-3 flex items-center gap-2 p-3 bg-[#F5EEE5] rounded border border-[#E8D8C0] text-sm text-[#2C1505]">
-          <CheckCircle2 className="w-4 h-4 text-[#7A4A18]" />
-          <FileIcon className="w-4 h-4 text-[#7A6050]" />
+        <div className="mt-3 flex items-center gap-2 p-3 bg-secondary rounded border border-border text-sm text-foreground">
+          <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+          <FileIcon className="w-4 h-4 text-muted-foreground" />
           <span className="truncate flex-1">{last.nome}</span>
-          <span className="text-xs text-[#7A6050]">{fmtBytes(last.tamanho)}</span>
+          <span className="text-xs text-muted-foreground">{fmtBytes(last.tamanho)}</span>
         </div>
       )}
 
