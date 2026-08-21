@@ -245,9 +245,9 @@ function SectionLabel({ children }: { children: ReactNode }) {
 
 export const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
   quente:     { bg: "#FFE5D9", fg: "#A8431E" },
-  frio:       { bg: "#DDE9F2", fg: "#1E4F7A" },
+  frio:       { bg: "var(--secondary)", fg: "var(--muted-foreground)" },
   negociando: { bg: "#FFF3CD", fg: "#8A6914" },
-  proposta:   { bg: "#E8DAF5", fg: "#5C2D91" },
+  proposta:   { bg: "var(--primary-soft)", fg: "var(--foreground)" },
   ativo:      { bg: "#D4EDDA", fg: "#1B5E20" },
   atencao:    { bg: "#FFE0B2", fg: "#A8431E" },
   pendente:   { bg: C.beige, fg: C.dark },
