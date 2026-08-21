@@ -31,7 +31,7 @@ function AdminLayout() {
   }
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col md:flex-row" style={{ background: "#EDEAE5" }}>
+    <div className="flex h-screen flex-col overflow-hidden bg-background md:flex-row">
       <AdminSidebar />
       <main className="flex-1 overflow-y-auto md:ml-60 transition-[margin] duration-200">
         <div className="mx-auto max-w-[1400px] p-4 md:p-8">

@@ -65,10 +65,10 @@ function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#EDEAE5] p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-[#E8D8C0]">
-        <h1 className="text-2xl font-bold text-[#2C1505] mb-1">Painel 360°</h1>
-        <p className="text-sm text-[#7A6050] mb-6">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-lg">
+        <h1 className="text-2xl font-bold text-foreground mb-1">Painel 360°</h1>
+        <p className="text-sm text-muted-foreground mb-6">
           {mode === "login" ? "Entre para acessar seu painel" : "Crie sua conta"}
         </p>
 
@@ -96,33 +96,33 @@ function AuthPage() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#2C1505] hover:bg-[#7A4A18] text-white"
+            className="w-full"
           >
             {loading ? "Aguarde..." : mode === "login" ? "Entrar" : "Criar conta"}
           </Button>
         </form>
 
-        <div className="my-4 flex items-center gap-2 text-xs text-[#BBA898]">
-          <div className="h-px flex-1 bg-[#E8D8C0]" />
+        <div className="my-4 flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="h-px flex-1 bg-border" />
           <span>ou</span>
-          <div className="h-px flex-1 bg-[#E8D8C0]" />
+          <div className="h-px flex-1 bg-border" />
         </div>
 
         <Button
           type="button"
           variant="outline"
           onClick={handleGoogle}
-          className="w-full border-[#E8D8C0]"
+          className="w-full"
         >
           Continuar com Google
         </Button>
 
-        {msg && <p className="mt-4 text-sm text-[#7A4A18]">{msg}</p>}
+        {msg && <p className="mt-4 text-sm text-primary">{msg}</p>}
 
         <button
           type="button"
           onClick={() => setMode(mode === "login" ? "signup" : "login")}
-          className="mt-6 text-sm text-[#7A4A18] hover:underline w-full text-center cursor-pointer"
+          className="mt-6 text-sm text-primary hover:underline w-full text-center cursor-pointer"
         >
           {mode === "login" ? "Não tem conta? Criar conta" : "Já tenho conta"}
         </button>

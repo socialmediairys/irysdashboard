@@ -13,7 +13,7 @@ import {
   KanbanSquare,
 } from "lucide-react";
 import { useState } from "react";
-import { C } from "@/components/Painel360";
+import { cn } from "@/lib/utils";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
 type NavGroup = { label: string; items: NavItem[] };
@@ -71,12 +71,11 @@ export function AdminSidebar() {
 
       {/* Mobile top bar */}
       <header
-        className="md:hidden sticky top-0 z-20 flex h-14 items-center justify-between px-4 shrink-0"
-        style={{ background: C.dark, color: "#fff" }}
+        className="md:hidden sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 text-sidebar-foreground"
       >
         <button
           onClick={() => setMobileOpen(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-white/10"
+          className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary"
           aria-label="Abrir menu"
         >
           <Menu size={22} />
@@ -86,13 +85,12 @@ export function AdminSidebar() {
       </header>
 
       <aside
-        className={`fixed left-0 top-0 z-40 flex h-screen w-60 ${width} flex-col justify-between py-3 transition-transform md:transition-[width,transform] duration-200 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
-        style={{ background: C.dark }}
+        className={`fixed left-0 top-0 z-40 flex h-screen w-60 ${width} flex-col justify-between border-r border-sidebar-border bg-sidebar py-3 transition-transform md:transition-[width,transform] duration-200 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       >
         <div className="flex flex-col gap-1 overflow-y-auto px-2">
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="mb-2 hidden md:flex h-10 items-center gap-2 rounded-lg px-2 text-white/80 hover:bg-white/5"
+            className="mb-2 hidden md:flex h-10 items-center gap-2 rounded-lg px-2 text-foreground hover:bg-secondary"
             title={collapsed ? "Expandir menu" : "Recolher menu"}
           >
             <Menu size={18} />
@@ -100,10 +98,10 @@ export function AdminSidebar() {
           </button>
 
           <div className="md:hidden mb-2 flex h-10 items-center justify-between px-2">
-            <span className="text-sm font-bold text-white">Irys OS — Admin</span>
+            <span className="text-sm font-bold text-foreground">Irys OS — Admin</span>
             <button
               onClick={() => setMobileOpen(false)}
-              className="rounded-lg p-1.5 text-white/80 hover:bg-white/5"
+              className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary"
               aria-label="Fechar menu"
             >
               <ArrowLeft size={18} />
@@ -112,7 +110,7 @@ export function AdminSidebar() {
 
           <Link
             to="/app"
-            className="mb-2 flex min-h-9 items-center gap-2 rounded-lg px-2.5 text-sm font-semibold text-white/70 hover:bg-white/5"
+            className="mb-2 flex min-h-9 items-center gap-2 rounded-lg px-2.5 text-sm font-semibold text-muted-foreground hover:bg-secondary"
           >
             <ArrowLeft size={16} />
             {!collapsed && "Voltar ao painel"}
@@ -121,27 +119,26 @@ export function AdminSidebar() {
           {ADMIN_NAV_GROUPS.map((g) => (
             <div key={g.label} className="mt-2">
               {!collapsed && (
-                <div
-                  className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider"
-                  style={{ color: "rgba(255,255,255,0.4)" }}
-                >
+                <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   {g.label}
                 </div>
               )}
               {g.items.map((n) => {
                 const Icon = n.icon;
-                const isActive = pathname.startsWith(n.to);
+                const isActive = pathname === n.to || pathname.startsWith(`${n.to}/`);
                 return (
                   <Link
                     key={n.to}
                     to={n.to}
                     onClick={() => setMobileOpen(false)}
                     title={collapsed ? n.label : undefined}
-                    className={`group relative flex min-h-11 w-full items-center gap-3 rounded-lg px-2.5 text-left transition-colors md:${collapsed ? "justify-center" : ""}`}
-                    style={{
-                      background: isActive ? C.gold : "transparent",
-                      color: isActive ? C.dark : "rgba(255,255,255,0.85)",
-                    }}
+                    className={cn(
+                      "group relative flex min-h-11 w-full items-center gap-3 rounded-lg px-2.5 text-left transition-colors",
+                      isActive
+                        ? "bg-primary-soft font-semibold text-sidebar-accent-foreground"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                      collapsed && "md:justify-center",
+                    )}
                   >
                     <Icon size={18} strokeWidth={2} className="shrink-0" />
                     <span className={`text-sm font-semibold ${collapsed ? "md:hidden" : ""}`}>
