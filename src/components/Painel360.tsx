@@ -386,13 +386,12 @@ function Sidebar({
         />
       )}
       <aside
-        className={`fixed left-0 top-0 z-40 flex h-screen w-60 ${width} flex-col justify-between py-3 transition-transform md:transition-[width,transform] duration-200 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
-        style={{ background: C.dark }}
+        className={`fixed left-0 top-0 z-40 flex h-screen w-60 ${width} flex-col justify-between border-r border-sidebar-border bg-sidebar py-3 text-sidebar-foreground transition-transform md:transition-[width,transform] duration-200 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
       >
         <div className="flex flex-col gap-1 overflow-y-auto px-2">
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="mb-2 hidden md:flex h-10 items-center gap-2 rounded-lg px-2 text-white/80 hover:bg-white/5"
+            className="mb-2 hidden md:flex h-10 items-center gap-2 rounded-lg px-2 text-foreground hover:bg-secondary"
             title={collapsed ? "Expandir menu" : "Recolher menu"}
           >
             <Menu size={18} />
@@ -401,10 +400,10 @@ function Sidebar({
 
           {/* Mobile header inside drawer */}
           <div className="md:hidden mb-2 flex h-10 items-center justify-between px-2">
-            <span className="text-sm font-bold text-white">Irys OS</span>
+            <span className="text-sm font-bold text-foreground">Irys OS</span>
             <button
               onClick={() => setMobileOpen(false)}
-              className="rounded-lg p-1.5 text-white/80 hover:bg-white/5"
+              className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary"
               aria-label="Fechar menu"
             >
               <ArrowLeft size={18} />
@@ -414,7 +413,7 @@ function Sidebar({
           {NAV_GROUPS.map((g) => (
             <div key={g.label} className="mt-2">
               {(!collapsed || mobileOpen) && (
-                <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.4)" }}>
+                <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                   {g.label}
                 </div>
               )}
@@ -426,11 +425,11 @@ function Sidebar({
                     key={n.key}
                     onClick={() => handleNav(n.key)}
                     title={collapsed ? n.label : undefined}
-                    className={`group relative flex min-h-11 w-full items-center gap-3 rounded-lg px-2.5 text-left transition-colors md:${collapsed ? "justify-center" : ""}`}
-                    style={{
-                      background: isActive ? C.gold : "transparent",
-                      color: isActive ? C.dark : "rgba(255,255,255,0.85)",
-                    }}
+                    className={`group relative flex min-h-11 w-full items-center gap-3 rounded-lg px-2.5 text-left transition-colors md:${collapsed ? "justify-center" : ""} ${
+                      isActive
+                        ? "bg-primary-soft font-semibold text-sidebar-accent-foreground"
+                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    }`}
                   >
                     <Icon size={18} strokeWidth={2} className="shrink-0" />
                     <span className={`text-sm font-semibold ${collapsed ? "md:hidden" : ""}`}>{n.label}</span>
@@ -441,26 +440,25 @@ function Sidebar({
           ))}
         </div>
 
-        <div className="px-2 pt-2 border-t border-white/10">
+        <div className="px-2 pt-2 border-t border-sidebar-border">
           <button
             onClick={() => handleNav("config")}
             title="Configurações"
-            className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-2.5 transition-colors md:${collapsed ? "justify-center" : ""}`}
-            style={{
-              background: active === "config" ? C.gold : "transparent",
-              color: active === "config" ? C.dark : "rgba(255,255,255,0.85)",
-            }}
+            className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-2.5 transition-colors md:${collapsed ? "justify-center" : ""} ${
+              active === "config"
+                ? "bg-primary-soft font-semibold text-sidebar-accent-foreground"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+            }`}
           >
             <Settings size={18} className="shrink-0" />
             <span className={`text-sm font-semibold ${collapsed ? "md:hidden" : ""}`}>Configurações</span>
           </button>
           <div className={`mt-2 flex items-center gap-2 rounded-lg px-2 py-2 md:${collapsed ? "justify-center" : ""}`}>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-extrabold shrink-0"
-              style={{ background: `linear-gradient(135deg, ${C.mid}, ${C.gold})`, color: "#fff" }}>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-extrabold shrink-0 bg-primary text-primary-foreground">
               T
             </div>
-            <div className={`text-xs text-white/70 min-w-0 ${collapsed ? "md:hidden" : ""}`}>
-              <div className="font-bold text-white truncate">{DB.user.name}</div>
+            <div className={`text-xs text-muted-foreground min-w-0 ${collapsed ? "md:hidden" : ""}`}>
+              <div className="font-bold text-foreground truncate">{DB.user.name}</div>
               <div className="text-[10px] truncate">{DB.user.role}</div>
             </div>
           </div>
