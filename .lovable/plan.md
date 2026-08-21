@@ -10,11 +10,17 @@
 
 Proposta: **manter `organizations`** (não criar `organizacoes`, para não duplicar e não quebrar o que já roda) e terminar o trabalho nas 28 tabelas restantes.
 
-## Etapa A — Backfill da organização padrão
+## Etapa A — Consolidação da organização da agência (confirmado)
 
-1. Definir a organização principal (a que já tem membros) como padrão.
-2. Preencher `org_id` nos 3 clientes e 2 perfis órfãos.
-3. Criar `membership` para qualquer usuário com papel de equipe que ainda não tenha vínculo.
+Organização da agência: **`iryssocialmedia@gmail.com — Org`** (`1c6d3cbc-1e65-4f3f-be49-f3fb95fd189b`), renomeada para **Irys**.
+
+1. Renomear essa organização para "Irys".
+2. Mover **todos os 4 clientes** para ela: Fl Contabilidade, Beatriz Abel, Unaessential e Irys Modelo (que hoje está em `Thamirys — Org`).
+3. Preencher `org_id` = Irys em todos os perfis (Irys Aguiar, Thamirys, Beatriz, Laura) e em todas as linhas legadas das tabelas que ganharem `org_id`.
+4. Migrar o membership admin de Thamirys? **Não** — a conta aguiarthaamy@gmail.com continua como cliente de teste vinculada a "Irys Modelo"; removo o membership `admin` dela e o vínculo com a org duplicada.
+5. Remover a organização `Thamirys — Org` depois que nada mais aponte para ela.
+6. Único admin da organização: iryssocialmedia@gmail.com.
+
 
 ## Etapa B — Classificação das tabelas
 
