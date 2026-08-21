@@ -2899,7 +2899,7 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
               <SectionLabel>Jornada de compra da paciente</SectionLabel>
               <div className="space-y-3">
                 {[
-                  { t: "Topo de Funil", s: "Atração · Público Frio", c: "#DDE9F2", fg: "#1E4F7A" },
+                  { t: "Topo de Funil", s: "Atração · Público Frio", c: "var(--secondary)", fg: "var(--muted-foreground)" },
                   { t: "Meio de Funil", s: "Conexão/Consideração · Público Morno", c: "#FFF3CD", fg: "#8A6914" },
                   { t: "Base de Funil", s: "Conversão · Público Quente", c: "#FFE5D9", fg: "#A8431E" },
                 ].map((x, i) => (
