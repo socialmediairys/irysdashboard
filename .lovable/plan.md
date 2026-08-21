@@ -1,63 +1,96 @@
-# Evolução do Painel 360° → Sistema Multi-Perfil (Admin + Cliente)
+# Multi-tenancy completo + Fase 3 parcial + Fase 4 (Estratégia)
 
-Hoje o projeto é um **mock estático em memória** (`DB` dentro de `src/components/Painel360.tsx`) — sem banco, sem auth, sem RLS. O que você pediu é, na prática, **transformar o protótipo em um SaaS real**. Vou entregar em fases para não quebrar o que já funciona.
+## O que já existe hoje (auditoria do banco)
 
-## Escopo em fases
+- Tabela de organizações **já existe**, com o nome `organizations` (2 organizações cadastradas) e `memberships` (2 vínculos, com papel por organização).
+- Funções auxiliares já existem no schema privado: `is_org_member(org)` e `has_org_role(org, papel)`.
+- 12 tabelas já têm `org_id`: `clientes`, `profiles`, `agenda_itens`, `tarefas`, `sprints`, `financeiro`, `google_calendar_tokens`, `meta_business_pages`, `whatsapp_connections`, `whatsapp_envios`, `memberships`.
+- 28 tabelas **ainda não** têm `org_id` e suas policies filtram só por papel (admin/financeiro/cliente) — é aí que está o vazamento entre organizações.
+- Dados a corrigir: 3 de 4 clientes e 2 de 4 perfis estão sem organização.
 
-### Fase 1 — Backend + Auth + RLS (fundação)
-1. **Ativar Lovable Cloud** (Supabase gerenciado).
-2. **Criar schema completo** via migration:
-   - `profiles` (id, cliente_id, nome, email) — vinculado a `auth.users`
-   - `user_roles` + enum `app_role` (`admin`, `cliente`) + função `has_role()` (padrão seguro anti-recursão)
-   - `clientes` (com `status_contrato`, `data_inicio_contrato`, `data_vencimento_contrato`, `link_contrato_assinado`, `plano_atual`, `valor_mensal`, `forma_pagamento`, `versao_contrato`)
-   - `financas_administrativas`, `suporte_tickets`, `suporte_comentarios`, `onboarding_checklist`, `documentos_juridicos`
-   - Enums para todos os campos categóricos
-   - GRANTs + RLS em todas as tabelas (admin vê tudo via `has_role`; cliente vê só onde `cliente_id = seu próprio cliente_id`)
-3. **Trigger `handle_new_user`** para criar `profiles` no signup.
-4. **Seed inicial** com um admin de exemplo e os clientes do mock atual migrados.
+Proposta: **manter `organizations`** (não criar `organizacoes`, para não duplicar e não quebrar o que já roda) e terminar o trabalho nas 28 tabelas restantes.
 
-### Fase 2 — Autenticação
-- Rota pública `/auth` (email+senha + Google via broker Lovable).
-- Layout `_authenticated/route.tsx` gerenciado pela integração.
-- Redirect pós-login: admin → `/admin/visao-geral`; cliente → `/portal`.
+## Etapa A — Backfill da organização padrão
 
-### Fase 3 — Área Admin (`/admin/*`)
-Reorganiza o Painel 360° atual em rotas separadas mantendo a paleta marrom/dourado:
-- `/admin/visao-geral` — Dashboard 360° + **novos cards**: contratos vencendo em 30d, pagamentos pendentes do mês, gráfico gasto-em-ferramentas × faturamento
-- `/admin/clientes` — CRM + Pipeline + Documentos (já existe, plugado no banco)
-- `/admin/conteudo` — Calendário + Aprovação
-- `/admin/financeiro` — Fluxo de caixa + `financas_administrativas`
-- `/admin/biblioteca` — IA + Referências
-- `/admin/juridico` — **novo**: repositório de documentos, contratos por cliente
-- `/admin/suporte` — **novo**: tickets com filtros por status/prioridade, comentários
-- `/admin/onboarding` — **novo**: tabela consolidada de progresso de todos os clientes
+1. Definir a organização principal (a que já tem membros) como padrão.
+2. Preencher `org_id` nos 3 clientes e 2 perfis órfãos.
+3. Criar `membership` para qualquer usuário com papel de equipe que ainda não tenha vínculo.
 
-### Fase 4 — Portal do Cliente (`/portal`)
-Reaproveita o `PortalCliente` já implementado, agora **plugado no banco** e filtrado por `cliente_id` do usuário logado. Sub-abas:
-- **Conteúdos** (áudios, timeline, bloqueadores — já existe)
-- **Contrato** — download do contrato, dados do plano, botão "Solicitar Renovação" (aparece se vencimento < 30d; cria ticket com prioridade `alta_urgente`)
-- **Checklist** — marca tarefas concluídas (`onboarding_checklist`)
-- **Suporte** — lista tickets próprios + formulário de abertura + comentários
+## Etapa B — Classificação das tabelas
 
-### Fase 5 — Automações
-Edge function agendada (pg_cron diário) que:
-- Enfileira e-mail via Lovable Emails quando `data_vencimento_contrato` estiver a 15 dias
-- Idem para `financas_administrativas` com pagamento pendente próximo do vencimento
-Requer setup de email domain (vou pedir na hora se você aprovar essa fase).
+**B1. Recebem coluna `org_id` própria (escopo direto da organização)**
+`leads`, `entradas_financeiras`, `saidas_financeiras`, `contas_fixas`, `financas_administrativas`, `ferramentas`, `prompts`, `referencias`, `tags`, `solicitacoes_cadastro`, `arquivos`, `estrategias`, `conteudos_cliente`, `documentos_juridicos`, `onboarding_checklist`, `progresso_audio`, `suporte_tickets`, `social_accounts` + as duas novas de estratégia.
 
-## Detalhes técnicos
+- `org_id uuid references organizations(id)`, backfill a partir do `cliente_id` quando existir (senão organização padrão), depois `NOT NULL`.
+- Trigger `BEFORE INSERT` genérico preenchendo `org_id` pelo perfil do usuário logado (mesmo padrão já usado em `agenda_itens`).
+- Índice em `org_id`.
 
-- **Stack**: TanStack Start + Supabase (Lovable Cloud). Server functions com `requireSupabaseAuth` para leituras/escritas autenticadas; admin usa `has_role(auth.uid(), 'admin')` nas policies.
-- **Segurança**: papéis em tabela separada (`user_roles`) — nunca em `profiles` — para prevenir escalonamento de privilégio.
-- **Migração dos mocks**: os arrays `DB.clientes`, `DB.financeiro`, `DB.portalCliente.*` viram seeds SQL. O componente `Painel360.tsx` atual é desmontado em rotas menores, cada uma consumindo TanStack Query + server functions.
-- **Design**: mantém `--color-p-dark/mid/gold/beige` e Montserrat em todas as telas novas.
+**B2. Sem coluna própria — policy herda do pai**
+`task_tags`, `task_comments`, `tarefa_comentarios` (herdam de `tarefas`), `social_goals`, `social_metrics_snapshots` (herdam de `social_accounts`). Evita coluna redundante e risco de divergência.
 
-## O que preciso confirmar antes de começar
+**B3. Catálogo global da plataforma (permanecem sem `org_id`)**
+`fases`, `topicos_fase`, `conteudos_globais` — conteúdo do método, igual para todas as organizações. Leitura para autenticados, escrita só admin.
 
-Isso é uma reescrita grande (10+ tabelas, ~20 server functions, ~10 rotas novas, migração de todo o mock). Sugiro fazer **fase por fase** com sua validação entre elas, ao invés de tudo de uma vez.
+**B4. `user_roles`**
+Recomendo **não** adicionar `org_id` aqui: `memberships.role` já é o papel por organização. `user_roles` fica como papel global de plataforma (super admin). Se você preferir, adiciono `org_id` e passo tudo para `memberships` — mas seria duplicar a mesma informação em dois lugares.
 
-**Duas perguntas:**
-1. Posso ativar o **Lovable Cloud** agora e começar pela Fase 1 (schema + auth + RLS)?
-2. Você quer manter os **dados mock atuais** como seed inicial (Fernando Luchesi, Julia Torres, etc.), ou começar com banco vazio e você mesmo cadastra?
+## Etapa C — Reescrita das policies
 
-Se preferir, também posso entregar tudo de uma vez em um único turno grande — só é mais arriscado de revisar.
+Padrão único, substituindo as checagens só-por-papel:
+
+- **admin_only por organização** (financeiro, jurídico, comercial, estratégia, ferramentas, prompts):
+  `USING (private.has_org_role(org_id, 'admin') OR private.has_org_role(org_id, 'financeiro'...))` conforme o módulo.
+- **staff da organização** (tarefas, sprints, agenda, clientes, arquivos):
+  `USING (private.is_org_member(org_id) AND NOT é_cliente)`.
+- **cliente_scoped**: cliente vê apenas as linhas do próprio `cliente_id` (`current_cliente_id()`), dentro da própria organização.
+- **derivadas (B2)**: `EXISTS (select 1 from pai where pai.id = ... and private.is_org_member(pai.org_id))`.
+- `GRANT` explícito em toda tabela nova/alterada; `anon` só onde há política pública.
+
+## Etapa D — Tabelas do módulo Estratégia (Fase 4)
+
+```sql
+estrategia_briefing (
+  cliente_id uuid primary key references clientes(id) on delete cascade,
+  org_id     uuid not null references organizations(id),
+  mapa       jsonb not null default '{}',
+  scores     jsonb not null default '{}',
+  lacunas    text,
+  updated_at timestamptz not null default now()
+)
+
+estrategia_evidencias (
+  id            uuid primary key default gen_random_uuid(),
+  cliente_id    uuid not null references clientes(id) on delete cascade,
+  org_id        uuid not null references organizations(id),
+  informacao    text not null,
+  classificacao text not null default 'Fato',
+  muda          text,
+  evidencia     text,
+  validar       text,
+  created_at    timestamptz not null default now()
+)
+```
+RLS: só membros da organização com papel `admin` ou `gestor`.
+
+## Etapa E — Aplicação no código
+
+Depois da migration, ajustar as consultas que passam a exigir `org_id` (financeiro, comercial, biblioteca, jurídico, estratégia) e o cadastro de cliente para gravar a organização do usuário logado.
+
+## Fase 3 parcial (já aprovada, roda em paralelo ao passo E)
+
+- Remover `admin.sprint.tsx` + `components/Sprint.tsx`; deixar só `/admin/sprints` no menu, rotulado "Sprints".
+- Mover contrato/suporte de `portal.tsx` para dentro da Central do Cliente (`meu-portal`), remover `portal.tsx` e apontar o redirect de `admin.tsx` para `/meu-portal`.
+- Aplicar o design system (AppShell, PageHeader, MetricCard, StatusBadge, DataTable, EmptyState) em `admin.visao-geral.tsx` e na tela de login.
+
+## Ordem de execução
+
+1. Aprovação deste plano.
+2. Migration multi-tenant (Etapas A–D), em uma migration revisável.
+3. Ajustes de código (Etapa E) + limpeza de duplicados.
+4. Design system no dashboard e login.
+5. Módulo Estratégia na rota `/admin/clientes/$clienteId/estrategia`.
+
+## Riscos
+
+- Tornar `org_id` `NOT NULL` falha se o backfill deixar linhas órfãs — o backfill usa a organização padrão como rede de segurança.
+- Policies mais restritas podem esconder dados legados sem organização; a Etapa A resolve isso antes.
