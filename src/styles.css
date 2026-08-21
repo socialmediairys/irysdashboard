@@ -198,15 +198,19 @@
 }
 
 
+/*
+ * Legacy aliases (p-*) kept so older screens keep compiling during the
+ * migration. They now point at the indigo system — no gold anywhere.
+ */
 @theme inline {
-  --color-p-dark: #2C1505;
-  --color-p-mid: #7A4A18;
-  --color-p-gold: #C9A46E;
-  --color-p-beige: #E8D8C0;
-  --color-p-beige-light: #F5EEE5;
-  --color-p-bg: #EDEAE5;
-  --color-p-text: #1A0A02;
-  --color-p-text-mid: #7A6050;
-  --color-p-text-muted: #BBA898;
+  --color-p-dark: var(--primary);
+  --color-p-mid: var(--muted-foreground);
+  --color-p-gold: var(--primary);
+  --color-p-beige: var(--border);
+  --color-p-beige-light: var(--secondary);
+  --color-p-bg: var(--background);
+  --color-p-text: var(--foreground);
+  --color-p-text-mid: var(--muted-foreground);
+  --color-p-text-muted: var(--muted-foreground);
 }
 
