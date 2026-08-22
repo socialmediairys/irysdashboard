@@ -368,7 +368,7 @@ function JuridicoPage() {
             </p>
           </div>
         </div>
-        <Badge className="bg-[#C9A46E] text-foreground">v{EMPRESA.versao}</Badge>
+        <Badge className="bg-secondary text-foreground">v{EMPRESA.versao}</Badge>
       </header>
 
       <div className="max-w-6xl mx-auto p-6 grid gap-6 md:grid-cols-[260px_1fr]">
@@ -439,7 +439,7 @@ function JuridicoPage() {
 
         <main>
           <Card className="p-8 bg-white border-border">
-            <div className="flex items-start justify-between gap-4 pb-6 border-b border-[#F0E5D5] print:border-none">
+            <div className="flex items-start justify-between gap-4 pb-6 border-b border-[var(--border)] print:border-none">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded bg-secondary flex items-center justify-center">
                   <Icon className="w-5 h-5 text-muted-foreground" />
@@ -491,15 +491,15 @@ function JuridicoPage() {
       </div>
 
       <style>{`
-        .doc-prose h1 { font-size: 1.5rem; font-weight: 800; color: #2C1505; margin: 1.5rem 0 0.75rem; }
-        .doc-prose h2 { font-size: 1.15rem; font-weight: 700; color: #7A4A18; margin: 1.5rem 0 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #F0E5D5; }
-        .doc-prose h3 { font-size: 0.95rem; font-weight: 700; color: #2C1505; margin: 1rem 0 0.35rem; }
+        .doc-prose h1 { font-size: 1.5rem; font-weight: 800; color: var(--foreground); margin: 1.5rem 0 0.75rem; }
+        .doc-prose h2 { font-size: 1.15rem; font-weight: 700; color: var(--muted-foreground); margin: 1.5rem 0 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--border); }
+        .doc-prose h3 { font-size: 0.95rem; font-weight: 700; color: var(--foreground); margin: 1rem 0 0.35rem; }
         .doc-prose p { margin: 0.5rem 0; font-size: 0.9rem; }
         .doc-prose ul { list-style: disc; padding-left: 1.25rem; margin: 0.5rem 0; }
         .doc-prose li { font-size: 0.9rem; margin: 0.2rem 0; }
         .doc-prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
         .doc-prose th, .doc-prose td { border: 1px solid #E8D8C0; padding: 0.5rem 0.75rem; text-align: left; }
-        .doc-prose th { background: #F5EEE5; color: #2C1505; font-weight: 700; }
+        .doc-prose th { background: var(--secondary); color: var(--foreground); font-weight: 700; }
         .doc-prose hr { border: none; border-top: 1px solid #E8D8C0; margin: 1.5rem 0; }
         @media print {
           body { background: white; }

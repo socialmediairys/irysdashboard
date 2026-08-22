@@ -17,7 +17,7 @@ const PAPEIS: Papel[] = ["admin", "gestor", "editor", "social", "financeiro", "j
 const CORES: Record<Papel, string> = {
   admin: "bg-primary text-white",
   gestor: "bg-primary-hover text-white",
-  editor: "bg-[#C9A46E] text-foreground",
+  editor: "bg-secondary text-foreground",
   social: "bg-pink-600 text-white",
   financeiro: "bg-emerald-700 text-white",
   juridico: "bg-indigo-700 text-white",

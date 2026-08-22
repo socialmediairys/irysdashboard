@@ -252,7 +252,7 @@ function PortalPage() {
               {diasAteVencimento !== null && diasAteVencimento < 30 && (
                 <Button
                   onClick={solicitarRenovacao}
-                  className="mt-4 w-full bg-[#C9A46E] hover:bg-primary-hover text-foreground hover:text-white"
+                  className="mt-4 w-full bg-secondary hover:bg-primary-hover text-foreground hover:text-white"
                 >
                   Solicitar Renovação
                 </Button>

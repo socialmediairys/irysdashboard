@@ -154,7 +154,7 @@ function BibliotecaMidiaPage() {
         </div>
         <Button
           onClick={() => setMostraUpload((v) => !v)}
-          className="bg-[#C9A46E] hover:bg-[#A87F3E] text-foreground"
+          className="bg-secondary hover:bg-primary-hover text-foreground"
         >
           {mostraUpload ? "Fechar" : "+ Novo arquivo"}
         </Button>

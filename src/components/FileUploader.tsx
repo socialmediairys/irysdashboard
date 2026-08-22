@@ -210,7 +210,7 @@ export function FileUploader({
         <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="w-4 h-4 animate-spin" />
           <div className="flex-1 h-2 bg-secondary rounded overflow-hidden">
-            <div className="h-full bg-[#C9A46E] transition-all" style={{ width: `${progress}%` }} />
+            <div className="h-full bg-secondary transition-all" style={{ width: `${progress}%` }} />
           </div>
           <span className="text-xs">{progress}%</span>
         </div>
