@@ -351,29 +351,29 @@ function JuridicoPage() {
   const imprimir = () => window.print();
 
   return (
-    <div className="min-h-screen bg-[#EDEAE5]">
-      <header className="bg-[#2C1505] text-white px-6 py-4 flex items-center justify-between print:hidden">
+    <div className="min-h-screen bg-background">
+      <header className="bg-primary text-white px-6 py-4 flex items-center justify-between print:hidden">
         <div className="flex items-center gap-3">
           <Link
             to="/admin/visao-geral"
-            className="text-[#C9A46E] hover:text-white flex items-center gap-1 text-sm"
+            className="text-primary-foreground/70 hover:text-white flex items-center gap-1 text-sm"
           >
             <ArrowLeft className="w-4 h-4" /> Voltar
           </Link>
-          <span className="text-[#7A6050]">|</span>
+          <span className="text-muted-foreground">|</span>
           <div>
             <h1 className="text-lg font-bold">Jurídico</h1>
-            <p className="text-xs text-[#C9A46E]">
+            <p className="text-xs text-primary-foreground/70">
               {EMPRESA.marca} · CNPJ {EMPRESA.cnpj}
             </p>
           </div>
         </div>
-        <Badge className="bg-[#C9A46E] text-[#2C1505]">v{EMPRESA.versao}</Badge>
+        <Badge className="bg-secondary text-foreground">v{EMPRESA.versao}</Badge>
       </header>
 
       <div className="max-w-6xl mx-auto p-6 grid gap-6 md:grid-cols-[260px_1fr]">
         <aside className="print:hidden">
-          <Card className="p-2 bg-white border-[#E8D8C0]">
+          <Card className="p-2 bg-white border-border">
             {(Object.keys(DOCS) as DocKey[]).map((k) => {
               const D = DOCS[k];
               const I = D.icon;
@@ -384,51 +384,51 @@ function JuridicoPage() {
                   onClick={() => setAtivo(k)}
                   className={`w-full flex items-start gap-3 px-3 py-3 rounded text-left transition ${
                     on
-                      ? "bg-[#F5EEE5] border-l-4 border-[#C9A46E]"
-                      : "hover:bg-[#F5EEE5] border-l-4 border-transparent"
+                      ? "bg-secondary border-l-4 border-primary"
+                      : "hover:bg-secondary border-l-4 border-transparent"
                   }`}
                 >
                   <I
-                    className={`w-4 h-4 mt-0.5 shrink-0 ${on ? "text-[#7A4A18]" : "text-[#BBA898]"}`}
+                    className={`w-4 h-4 mt-0.5 shrink-0 ${on ? "text-muted-foreground" : "text-muted-foreground"}`}
                   />
                   <div className="min-w-0">
                     <p
-                      className={`text-sm font-medium ${on ? "text-[#2C1505]" : "text-[#7A6050]"}`}
+                      className={`text-sm font-medium ${on ? "text-foreground" : "text-muted-foreground"}`}
                     >
                       {D.titulo}
                     </p>
-                    <p className="text-[11px] text-[#BBA898] leading-snug">{D.subtitulo}</p>
+                    <p className="text-[11px] text-muted-foreground leading-snug">{D.subtitulo}</p>
                   </div>
                 </button>
               );
             })}
           </Card>
 
-          <Card className="p-4 mt-4 bg-white border-[#E8D8C0]">
-            <h3 className="text-xs font-bold text-[#7A4A18] uppercase tracking-wide mb-2">
+          <Card className="p-4 mt-4 bg-white border-border">
+            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">
               Dados da empresa
             </h3>
-            <dl className="text-xs space-y-1 text-[#2C1505]">
+            <dl className="text-xs space-y-1 text-foreground">
               <div>
-                <dt className="text-[#BBA898]">Razão social</dt>
+                <dt className="text-muted-foreground">Razão social</dt>
                 <dd>{EMPRESA.razao}</dd>
               </div>
               <div>
-                <dt className="text-[#BBA898]">CNPJ</dt>
+                <dt className="text-muted-foreground">CNPJ</dt>
                 <dd>{EMPRESA.cnpj}</dd>
               </div>
               <div>
-                <dt className="text-[#BBA898]">E-mail</dt>
+                <dt className="text-muted-foreground">E-mail</dt>
                 <dd>{EMPRESA.email}</dd>
               </div>
               <div>
-                <dt className="text-[#BBA898]">Sede</dt>
+                <dt className="text-muted-foreground">Sede</dt>
                 <dd>
                   {EMPRESA.cidade}/{EMPRESA.uf} — {EMPRESA.pais}
                 </dd>
               </div>
               <div>
-                <dt className="text-[#BBA898]">Versão vigente</dt>
+                <dt className="text-muted-foreground">Versão vigente</dt>
                 <dd>
                   v{EMPRESA.versao} — {EMPRESA.atualizado}
                 </dd>
@@ -438,15 +438,15 @@ function JuridicoPage() {
         </aside>
 
         <main>
-          <Card className="p-8 bg-white border-[#E8D8C0]">
-            <div className="flex items-start justify-between gap-4 pb-6 border-b border-[#F0E5D5] print:border-none">
+          <Card className="p-8 bg-white border-border">
+            <div className="flex items-start justify-between gap-4 pb-6 border-b border-[var(--border)] print:border-none">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded bg-[#F5EEE5] flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-[#7A4A18]" />
+                <div className="w-10 h-10 rounded bg-secondary flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-[#2C1505]">{doc.titulo}</h2>
-                  <p className="text-sm text-[#7A6050]">{doc.subtitulo}</p>
+                  <h2 className="text-2xl font-bold text-foreground">{doc.titulo}</h2>
+                  <p className="text-sm text-muted-foreground">{doc.subtitulo}</p>
                 </div>
               </div>
               <div className="flex gap-2 print:hidden">
@@ -454,7 +454,7 @@ function JuridicoPage() {
                   onClick={copiar}
                   variant="outline"
                   size="sm"
-                  className="border-[#C9A46E] text-[#7A4A18] hover:bg-[#F5EEE5]"
+                  className="border-primary text-muted-foreground hover:bg-secondary"
                 >
                   {copiado ? (
                     <Check className="w-4 h-4 mr-1" />
@@ -467,7 +467,7 @@ function JuridicoPage() {
                   onClick={baixar}
                   variant="outline"
                   size="sm"
-                  className="border-[#C9A46E] text-[#7A4A18] hover:bg-[#F5EEE5]"
+                  className="border-primary text-muted-foreground hover:bg-secondary"
                 >
                   <Download className="w-4 h-4 mr-1" />
                   .md
@@ -475,7 +475,7 @@ function JuridicoPage() {
                 <Button
                   onClick={imprimir}
                   size="sm"
-                  className="bg-[#2C1505] hover:bg-[#7A4A18] text-white"
+                  className="bg-primary hover:bg-primary-hover text-white"
                 >
                   Imprimir / PDF
                 </Button>
@@ -483,7 +483,7 @@ function JuridicoPage() {
             </div>
 
             <article
-              className="doc-prose mt-6 text-[#2C1505] leading-relaxed"
+              className="doc-prose mt-6 text-foreground leading-relaxed"
               dangerouslySetInnerHTML={{ __html: html }}
             />
           </Card>
@@ -491,15 +491,15 @@ function JuridicoPage() {
       </div>
 
       <style>{`
-        .doc-prose h1 { font-size: 1.5rem; font-weight: 800; color: #2C1505; margin: 1.5rem 0 0.75rem; }
-        .doc-prose h2 { font-size: 1.15rem; font-weight: 700; color: #7A4A18; margin: 1.5rem 0 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #F0E5D5; }
-        .doc-prose h3 { font-size: 0.95rem; font-weight: 700; color: #2C1505; margin: 1rem 0 0.35rem; }
+        .doc-prose h1 { font-size: 1.5rem; font-weight: 800; color: var(--foreground); margin: 1.5rem 0 0.75rem; }
+        .doc-prose h2 { font-size: 1.15rem; font-weight: 700; color: var(--muted-foreground); margin: 1.5rem 0 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--border); }
+        .doc-prose h3 { font-size: 0.95rem; font-weight: 700; color: var(--foreground); margin: 1rem 0 0.35rem; }
         .doc-prose p { margin: 0.5rem 0; font-size: 0.9rem; }
         .doc-prose ul { list-style: disc; padding-left: 1.25rem; margin: 0.5rem 0; }
         .doc-prose li { font-size: 0.9rem; margin: 0.2rem 0; }
         .doc-prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
         .doc-prose th, .doc-prose td { border: 1px solid #E8D8C0; padding: 0.5rem 0.75rem; text-align: left; }
-        .doc-prose th { background: #F5EEE5; color: #2C1505; font-weight: 700; }
+        .doc-prose th { background: var(--secondary); color: var(--foreground); font-weight: 700; }
         .doc-prose hr { border: none; border-top: 1px solid #E8D8C0; margin: 1.5rem 0; }
         @media print {
           body { background: white; }

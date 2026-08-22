@@ -21,9 +21,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 const TAG_PALETTE = [
   "#EF4444",
   "#F59E0B",
-  "#10B981",
-  "#3B82F6",
-  "#8B5CF6",
+  "var(--success)",
+  "#6B7280",
+  "#374151",
   "#EC4899",
 ];
 
@@ -507,8 +507,8 @@ function TimerSection({
       <div className="flex items-center gap-3">
         {running && (
           <span className="relative flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "#10B981" }} />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full" style={{ background: "#10B981" }} />
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75" style={{ background: "var(--success)" }} />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full" style={{ background: "var(--success)" }} />
           </span>
         )}
         <div>

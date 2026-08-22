@@ -81,16 +81,16 @@ function CadastroPage() {
 
   if (enviado) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#EDEAE5] p-4">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-[#E8D8C0] text-center space-y-3">
-          <h1 className="text-2xl font-bold text-[#2C1505]">Cadastro enviado!</h1>
-          <p className="text-sm text-[#7A6050]">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-border text-center space-y-3">
+          <h1 className="text-2xl font-bold text-foreground">Cadastro enviado!</h1>
+          <p className="text-sm text-muted-foreground">
             {msg ??
               "Recebemos sua solicitação. Aguarde a aprovação da nossa equipe para acessar seu portal — você será avisado por e-mail."}
           </p>
           <Button
             onClick={() => navigate({ to: "/login" })}
-            className="w-full bg-[#2C1505] hover:bg-[#7A4A18] text-white"
+            className="w-full bg-primary hover:bg-primary-hover text-white"
           >
             Ir para o login
           </Button>
@@ -100,10 +100,10 @@ function CadastroPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#EDEAE5] p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-[#E8D8C0]">
-        <h1 className="text-2xl font-bold text-[#2C1505] mb-1">Solicitar acesso</h1>
-        <p className="text-sm text-[#7A6050] mb-6">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-border">
+        <h1 className="text-2xl font-bold text-foreground mb-1">Solicitar acesso</h1>
+        <p className="text-sm text-muted-foreground mb-6">
           Preencha para pedir acesso ao seu portal do cliente. A liberação é feita manualmente pela
           equipe Irys.
         </p>
@@ -129,15 +129,15 @@ function CadastroPage() {
           <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#2C1505] hover:bg-[#7A4A18] text-white"
+            className="w-full bg-primary hover:bg-primary-hover text-white"
           >
             {loading ? "Enviando..." : "Enviar cadastro"}
           </Button>
         </form>
 
-        {msg && <p className="mt-4 text-sm text-[#7A4A18]">{msg}</p>}
+        {msg && <p className="mt-4 text-sm text-muted-foreground">{msg}</p>}
 
-        <p className="mt-6 text-sm text-[#7A4A18] text-center">
+        <p className="mt-6 text-sm text-muted-foreground text-center">
           Já tem conta?{" "}
           <Link to="/login" className="underline font-semibold">
             Entrar

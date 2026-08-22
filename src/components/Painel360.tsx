@@ -180,7 +180,7 @@ const DB = {
 export const C = {
   dark: "var(--primary)",
   mid: "var(--muted-foreground)",
-  gold: "var(--primary)",
+  gold: "var(--secondary)",
   beige: "var(--border)",
   beigeLight: "var(--secondary)",
   bg: "var(--background)",
@@ -205,7 +205,7 @@ export function Card({ children, dark = false, className = "", style }: { childr
     <div
       className={`rounded-[18px] p-6 transition-all duration-150 ${className}`}
       style={{
-        background: dark ? `linear-gradient(135deg, ${C.dark}, #4A2510)` : "#fff",
+        background: dark ? C.dark : "#fff",
         color: dark ? "#fff" : C.text,
         boxShadow: SHADOW,
         ...style,
@@ -221,7 +221,7 @@ export function PillBtn({ children, variant = "dark", onClick }: { children: Rea
   const styles: Record<string, CSSProperties> = {
     dark:  { background: C.dark, color: "#fff" },
     ghost: { background: "transparent", color: C.text, border: `1px solid ${C.beige}` },
-    gold:  { background: C.gold, color: C.dark },
+    gold:  { background: C.gold, color: C.text, border: `1px solid ${C.beige}` },
   };
   return (
     <button onClick={onClick} className="rounded-[30px] px-5 py-2.5 text-sm font-semibold transition-all hover:-translate-y-0.5"
@@ -245,9 +245,9 @@ function SectionLabel({ children }: { children: ReactNode }) {
 
 export const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
   quente:     { bg: "#FFE5D9", fg: "#A8431E" },
-  frio:       { bg: "#DDE9F2", fg: "#1E4F7A" },
+  frio:       { bg: "var(--secondary)", fg: "var(--muted-foreground)" },
   negociando: { bg: "#FFF3CD", fg: "#8A6914" },
-  proposta:   { bg: "#E8DAF5", fg: "#5C2D91" },
+  proposta:   { bg: "var(--primary-soft)", fg: "var(--foreground)" },
   ativo:      { bg: "#D4EDDA", fg: "#1B5E20" },
   atencao:    { bg: "#FFE0B2", fg: "#A8431E" },
   pendente:   { bg: C.beige, fg: C.dark },
@@ -261,8 +261,8 @@ export function TagBadge({ label, variant }: { label: string; variant: string })
 }
 
 const DOT_COLORS: Record<string, string> = {
-  green: "#2E7D32", amber: "#E8A11C", red: "#C8351A",
-  blue: "#1E5FA8", purple: "#7B3FB3", gold: C.gold,
+  green: "var(--success)", amber: "var(--warning)", red: "var(--destructive)",
+  blue: "var(--muted-foreground)", purple: "var(--foreground)", gold: "var(--muted-foreground)",
 };
 function Dot({ color = "gold" }: { color?: string }) {
   return <span className="h-2.5 w-2.5 rounded-full inline-block" style={{ background: DOT_COLORS[color] ?? C.gold }} />;
@@ -271,7 +271,7 @@ function Dot({ color = "gold" }: { color?: string }) {
 function ProgressBar({ value, max, colorByPercent = false }: { value: number; max: number; colorByPercent?: boolean }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   let color = C.dark;
-  if (colorByPercent) color = pct < 40 ? "#C8351A" : pct < 70 ? "#E8A11C" : C.dark;
+  if (colorByPercent) color = pct < 40 ? "var(--destructive)" : pct < 70 ? "var(--warning)" : C.dark;
   return (
     <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: C.beigeLight }}>
       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
@@ -281,7 +281,7 @@ function ProgressBar({ value, max, colorByPercent = false }: { value: number; ma
 function GoldProgress({ pct }: { pct: number }) {
   return (
     <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.15)" }}>
-      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${C.mid}, ${C.gold})` }} />
+      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: C.dark }} />
     </div>
   );
 }
@@ -292,14 +292,10 @@ export function MetricCard({ variant = "default", value, label, delta, deltaType
 }) {
   const dark = variant === "hero";
   const accent = variant === "accent";
-  const bg = dark
-    ? `linear-gradient(135deg, ${C.dark}, #4A2510)`
-    : accent
-    ? `linear-gradient(135deg, ${C.gold}, ${C.beige})`
-    : "#fff";
+  const bg = dark ? C.dark : accent ? C.beigeLight : "#fff";
   const fg = dark ? "#fff" : C.text;
-  const labelColor = dark ? "rgba(255,255,255,0.7)" : accent ? C.dark : C.textMid;
-  const deltaColor = deltaType === "down" ? "#C8351A" : deltaType === "up" ? "#2E7D32" : labelColor;
+  const labelColor = dark ? "rgba(255,255,255,0.7)" : C.textMid;
+  const deltaColor = deltaType === "down" ? "var(--destructive)" : deltaType === "up" ? "var(--success)" : labelColor;
   return (
     <div className="rounded-[18px] p-4 sm:p-6 transition-all duration-150 hover:-translate-y-0.5 min-w-0"
       style={{ background: bg, color: fg, boxShadow: SHADOW }}>
@@ -431,7 +427,7 @@ function Sidebar({
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                     }`}
                   >
-                    <Icon size={18} strokeWidth={2} className="shrink-0" />
+                    <Icon size={18} strokeWidth={1.6} className="shrink-0" />
                     <span className={`text-sm font-semibold ${collapsed ? "md:hidden" : ""}`}>{n.label}</span>
                   </button>
                 );
@@ -634,8 +630,8 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
         <div className="lg:col-span-2">
           <Card dark>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-extrabold text-lg">📅 Agenda — Hoje</h3>
-              <button onClick={() => go("agenda")} className="text-xs font-bold uppercase tracking-wider" style={{ color: C.gold }}>agenda →</button>
+              <h3 className="font-extrabold text-lg flex items-center gap-2"><Calendar size={16} strokeWidth={1.6} /> Agenda — Hoje</h3>
+              <button onClick={() => go("agenda")} className="text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.72)" }}>agenda →</button>
             </div>
             {(agendaQ.loading || gcalLoading) && hoje.length === 0 ? (
               <div className="space-y-2">
@@ -658,7 +654,7 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
                       </div>
                     </div>
                     <span className="rounded-full px-2.5 py-1 text-[11px] font-bold uppercase"
-                      style={{ background: e.prioridade === "alta" ? "#C8351A" : "rgba(255,255,255,0.15)", color: "#fff" }}>
+                      style={{ background: e.prioridade === "alta" ? "var(--destructive)" : "rgba(255,255,255,0.15)", color: "#fff" }}>
                       {e.prioridade === "alta" ? "Urgente" : "Hoje"}
                     </span>
                   </div>
@@ -704,17 +700,17 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
             <h3 className="font-extrabold text-lg mb-4">Acesso rápido</h3>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { e:"📅", n:"Agenda", s:"Hoje", k:"agenda" as PageKey },
-                { e:"👥", n:"Clientes", s:`${clientesAtivos} ativos`, k:"clientes" as PageKey },
-                { e:"📈", n:"CRM", s:`${leads.length} leads`, k:"crm" as PageKey },
-                { e:"💳", n:"Finanças", s:"Junho", k:"financas" as PageKey },
-                { e:"📝", n:"Conteúdo", s:"Calendário", k:"conteudo" as PageKey },
-                { e:"📚", n:"Biblioteca", s:"Refs & prompts", k:"biblioteca" as PageKey },
+                { I: Calendar, n:"Agenda", s:"Hoje", k:"agenda" as PageKey },
+                { I: Users, n:"Clientes", s:`${clientesAtivos} ativos`, k:"clientes" as PageKey },
+                { I: TrendingUp, n:"CRM", s:`${leads.length} leads`, k:"crm" as PageKey },
+                { I: CreditCard, n:"Finanças", s:"Junho", k:"financas" as PageKey },
+                { I: FileText, n:"Conteúdo", s:"Calendário", k:"conteudo" as PageKey },
+                { I: Library, n:"Biblioteca", s:"Refs & prompts", k:"biblioteca" as PageKey },
               ].map((c) => (
                 <button key={c.n} onClick={() => go(c.k)}
                   className="rounded-[10px] p-3 text-left transition-all hover:-translate-y-0.5 min-h-11"
                   style={{ background: C.beigeLight }}>
-                  <div className="text-xl">{c.e}</div>
+                  <c.I size={18} strokeWidth={1.6} className="text-muted-foreground" />
                   <div className="text-sm font-bold mt-1">{c.n}</div>
                   <div className="text-[11px]" style={{ color: C.textMid }}>{c.s}</div>
                 </button>
@@ -1894,7 +1890,7 @@ function FinancasPage() {
                     <div className="text-xs" style={{ color: C.textMid }}>{catLabel(e)} · {e.status_pagamento}</div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <div className="font-extrabold" style={{ color: "#2E7D32" }}>+{brl(Number(e.valor))}</div>
+                    <div className="font-extrabold" style={{ color: "var(--success)" }}>+{brl(Number(e.valor))}</div>
                     <RowActions onEdit={() => openEdit("lancamento", e)} onDelete={() => openDelete("lancamento", e)} />
                   </div>
                 </div>
@@ -1912,7 +1908,7 @@ function FinancasPage() {
                     <div className="text-xs" style={{ color: C.textMid }}>{catLabel(e)} · {e.status_pagamento}</div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <div className="font-extrabold" style={{ color: "#C8351A" }}>-{brl(Number(e.valor))}</div>
+                    <div className="font-extrabold" style={{ color: "var(--destructive)" }}>-{brl(Number(e.valor))}</div>
                     <RowActions onEdit={() => openEdit("lancamento", e)} onDelete={() => openDelete("lancamento", e)} />
                   </div>
                 </div>
@@ -2321,7 +2317,7 @@ function OficinaPage() {
               const dark = i % 2 === 0;
               return (
                 <Card key={t.id} dark={dark}>
-                  <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: dark ? C.gold : C.mid }}>
+                  <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: dark ? "rgba(255,255,255,0.72)" : C.mid }}>
                     {t.tipo}{cli ? ` · ${cli.nome}` : ""}
                   </div>
                   <div className="mt-2 font-extrabold text-lg leading-snug break-words">{t.titulo}</div>
@@ -2674,7 +2670,7 @@ function AudioPlayer({ id, title, desc, duration, activeId, setActiveId }: {
     <div className="rounded-[14px] p-4 flex items-center gap-4" style={{ background: "#fff", boxShadow: SHADOW }}>
       <button onClick={() => setActiveId(isPlaying ? null : id)}
         className="h-12 w-12 rounded-full flex items-center justify-center shrink-0 transition-transform hover:scale-105"
-        style={{ background: isPlaying ? C.gold : C.dark, color: isPlaying ? C.dark : "#fff" }}>
+        style={{ background: C.dark, color: "#fff" }}>
         {isPlaying ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
       </button>
       <div className="flex-1 min-w-0">
@@ -2684,7 +2680,7 @@ function AudioPlayer({ id, title, desc, duration, activeId, setActiveId }: {
         </div>
         <div className="text-xs mt-0.5 mb-2 line-clamp-1" style={{ color: C.textMid }}>{desc}</div>
         <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: C.beigeLight }}>
-          <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: `linear-gradient(90deg, ${C.mid}, ${C.gold})` }} />
+          <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: C.dark }} />
         </div>
       </div>
     </div>
@@ -2766,7 +2762,7 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
         style={{ background: C.dark, color: "#fff", boxShadow: SHADOW }}>
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-extrabold"
-            style={{ background: `linear-gradient(135deg, ${C.mid}, ${C.gold})`, color: "#fff" }}>
+            style={{ background: C.mid, color: "#fff" }}>
             {cliente.init}
           </div>
           <div>
@@ -2798,7 +2794,7 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
 
         <section className="grid grid-cols-2 gap-6 items-center">
           <div className="aspect-video rounded-[18px] overflow-hidden relative flex items-center justify-center cursor-pointer group"
-            style={{ background: `linear-gradient(135deg, ${C.dark}, #4A2510)`, boxShadow: SHADOW }}
+            style={{ background: C.dark, boxShadow: SHADOW }}
             onClick={() => setVideoPlaying(v => !v)}>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="h-20 w-20 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
@@ -2903,7 +2899,7 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
               <SectionLabel>Jornada de compra da paciente</SectionLabel>
               <div className="space-y-3">
                 {[
-                  { t: "Topo de Funil", s: "Atração · Público Frio", c: "#DDE9F2", fg: "#1E4F7A" },
+                  { t: "Topo de Funil", s: "Atração · Público Frio", c: "var(--secondary)", fg: "var(--muted-foreground)" },
                   { t: "Meio de Funil", s: "Conexão/Consideração · Público Morno", c: "#FFF3CD", fg: "#8A6914" },
                   { t: "Base de Funil", s: "Conversão · Público Quente", c: "#FFE5D9", fg: "#A8431E" },
                 ].map((x, i) => (
@@ -2959,7 +2955,7 @@ function TabBar({ tabs, active, onChange }: { tabs: { key: string; label: string
             className="px-4 py-2 text-sm font-bold border-b-2 -mb-px transition-colors"
             style={{
               color: on ? C.dark : C.textMid,
-              borderColor: on ? C.gold : "transparent",
+              borderColor: on ? C.dark : "transparent",
             }}
           >
             {t.label}
@@ -3084,7 +3080,7 @@ function Painel360Inner() {
         <span className="font-extrabold tracking-tight">Irys OS</span>
         <div
           className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-extrabold"
-          style={{ background: `linear-gradient(135deg, ${C.mid}, ${C.gold})`, color: "#fff" }}
+          style={{ background: C.mid, color: "#fff" }}
         >
           T
         </div>

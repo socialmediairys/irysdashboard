@@ -18,17 +18,17 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 /* ---------- design tokens (Notion-like, mesmo do Painel360) ---------- */
 const C = {
-  dark: "#2C1505",
-  mid: "#7A4A18",
-  gold: "#C9A46E",
-  beige: "#E8D8C0",
-  beigeLight: "#F5EEE5",
-  bg: "#EDEAE5",
-  text: "#1A0A02",
-  textMid: "#7A6050",
+  dark: "var(--primary)",
+  mid: "var(--muted-foreground)",
+  gold: "var(--muted-foreground)",
+  beige: "var(--border)",
+  beigeLight: "var(--secondary)",
+  bg: "var(--background)",
+  text: "var(--foreground)",
+  textMid: "var(--muted-foreground)",
   textMuted: "#BBA898",
 };
-const SHADOW = "0 2px 16px rgba(44,21,5,0.09)";
+const SHADOW = "var(--shadow-card)";
 
 /* ---------- tipos ---------- */
 export type Fase = { id: number; nome: string; descricao: string | null };
@@ -76,7 +76,7 @@ const BLOQUEADORES = [
 ];
 
 const JORNADA = [
-  { t: "Topo de Funil", s: "Atração · Público Frio", c: "#DDE9F2", fg: "#1E4F7A" },
+  { t: "Topo de Funil", s: "Atração · Público Frio", c: "var(--secondary)", fg: "var(--muted-foreground)" },
   { t: "Meio de Funil", s: "Conexão/Consideração · Público Morno", c: "#FFF3CD", fg: "#8A6914" },
   { t: "Base de Funil", s: "Conversão · Público Quente", c: "#FFE5D9", fg: "#A8431E" },
 ];
@@ -319,7 +319,7 @@ function MediaModal({
           <video src={embed.src} controls autoPlay className="w-full h-auto max-h-[80vh] bg-black" />
         )}
         {tipo === "audio" && (
-          <div className="bg-[#2C1505] p-6 flex flex-col gap-3">
+          <div className="bg-primary p-6 flex flex-col gap-3">
             <div className="text-sm font-semibold text-white truncate">{titulo}</div>
             <audio src={url} controls autoPlay className="w-full" />
           </div>

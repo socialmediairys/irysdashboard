@@ -39,7 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const SHADOW = "0 2px 16px rgba(44,21,5,0.09)";
+const SHADOW = "var(--shadow-card)";
 
 type SprintRow = {
   id: string;

@@ -135,26 +135,26 @@ function BibliotecaMidiaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#EDEAE5]">
-      <header className="bg-[#2C1505] text-white px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-background">
+      <header className="bg-primary text-white px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
             to="/admin/visao-geral"
-            className="text-[#C9A46E] hover:text-white flex items-center gap-1 text-sm"
+            className="text-primary-foreground/70 hover:text-white flex items-center gap-1 text-sm"
           >
             <ArrowLeft className="w-4 h-4" /> Voltar
           </Link>
-          <span className="text-[#7A6050]">|</span>
+          <span className="text-muted-foreground">|</span>
           <div>
             <h1 className="text-lg font-bold">Biblioteca de Mídia</h1>
-            <p className="text-xs text-[#C9A46E]">
+            <p className="text-xs text-primary-foreground/70">
               {arquivos.length} arquivos · {fmtBytes(totalBytes)} usados
             </p>
           </div>
         </div>
         <Button
           onClick={() => setMostraUpload((v) => !v)}
-          className="bg-[#C9A46E] hover:bg-[#A87F3E] text-[#2C1505]"
+          className="bg-secondary hover:bg-primary-hover text-foreground"
         >
           {mostraUpload ? "Fechar" : "+ Novo arquivo"}
         </Button>
@@ -162,13 +162,13 @@ function BibliotecaMidiaPage() {
 
       <div className="max-w-7xl mx-auto p-6 space-y-4">
         {mostraUpload && (
-          <Card className="p-5 bg-white border-[#E8D8C0]">
+          <Card className="p-5 bg-white border-border">
             <div className="flex items-center gap-3 mb-3">
-              <label className="text-sm text-[#7A4A18] font-medium">Bucket:</label>
+              <label className="text-sm text-muted-foreground font-medium">Bucket:</label>
               <select
                 value={bucketUpload}
                 onChange={(e) => setBucketUpload(e.target.value)}
-                className="text-sm border border-[#E8D8C0] rounded px-3 py-1.5 bg-white text-[#2C1505]"
+                className="text-sm border border-border rounded px-3 py-1.5 bg-white text-foreground"
               >
                 {BUCKETS.filter((b) => b.id !== "todos").map((b) => (
                   <option key={b.id} value={b.id}>
@@ -187,14 +187,14 @@ function BibliotecaMidiaPage() {
           </Card>
         )}
 
-        <Card className="p-4 bg-white border-[#E8D8C0] flex flex-wrap items-center gap-3">
+        <Card className="p-4 bg-white border-border flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#BBA898]" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Buscar por nome..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              className="pl-9 border-[#E8D8C0]"
+              className="pl-9 border-border"
             />
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -204,8 +204,8 @@ function BibliotecaMidiaPage() {
                 onClick={() => setBucketFiltro(b.id)}
                 className={`text-xs px-3 py-1.5 rounded-full transition ${
                   bucketFiltro === b.id
-                    ? "bg-[#2C1505] text-white"
-                    : "bg-[#F5EEE5] text-[#7A4A18] hover:bg-[#EBDFCB]"
+                    ? "bg-primary text-white"
+                    : "bg-secondary text-muted-foreground hover:bg-[#EBDFCB]"
                 }`}
               >
                 {b.label}
@@ -215,9 +215,9 @@ function BibliotecaMidiaPage() {
         </Card>
 
         {loading ? (
-          <Card className="p-12 text-center text-[#7A6050]">Carregando arquivos...</Card>
+          <Card className="p-12 text-center text-muted-foreground">Carregando arquivos...</Card>
         ) : filtrados.length === 0 ? (
-          <Card className="p-12 text-center text-[#7A6050]">
+          <Card className="p-12 text-center text-muted-foreground">
             Nenhum arquivo encontrado. Envie o primeiro para começar.
           </Card>
         ) : (
@@ -226,8 +226,8 @@ function BibliotecaMidiaPage() {
               const Icon = iconFor(a.tipo_arquivo);
               const isImage = a.tipo_arquivo === "imagem" || a.tipo_arquivo === "design";
               return (
-                <Card key={a.id} className="p-4 bg-white border-[#E8D8C0] flex flex-col gap-3">
-                  <div className="aspect-video rounded bg-[#F5EEE5] flex items-center justify-center overflow-hidden">
+                <Card key={a.id} className="p-4 bg-white border-border flex flex-col gap-3">
+                  <div className="aspect-video rounded bg-secondary flex items-center justify-center overflow-hidden">
                     {isImage && a.url_publica ? (
                       <img src={a.url_publica} alt="" className="w-full h-full object-cover" />
                     ) : a.tipo_arquivo === "audio" && a.url_publica ? (
@@ -235,15 +235,15 @@ function BibliotecaMidiaPage() {
                     ) : a.tipo_arquivo === "video" && a.url_publica ? (
                       <video controls src={a.url_publica} className="w-full h-full object-cover" />
                     ) : (
-                      <Icon className="w-10 h-10 text-[#C9A46E]" />
+                      <Icon className="w-10 h-10 text-primary-foreground/70" />
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-[#2C1505] truncate" title={a.nome_original}>
+                    <p className="text-sm font-medium text-foreground truncate" title={a.nome_original}>
                       {a.titulo || a.nome_original}
                     </p>
-                    <div className="flex items-center gap-2 mt-1 text-[11px] text-[#7A6050]">
-                      <Badge className="bg-[#F5EEE5] text-[#7A4A18] hover:bg-[#F5EEE5]">
+                    <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
+                      <Badge className="bg-secondary text-muted-foreground hover:bg-secondary">
                         {a.bucket}
                       </Badge>
                       <span>{fmtBytes(a.tamanho_bytes)}</span>
@@ -255,7 +255,7 @@ function BibliotecaMidiaPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="flex-1 border-[#E8D8C0] text-[#7A4A18] hover:bg-[#F5EEE5] text-xs"
+                        className="flex-1 border-border text-muted-foreground hover:bg-secondary text-xs"
                         onClick={() => copiar(a.url_publica!, a.id)}
                       >
                         <Copy className="w-3 h-3 mr-1" />
@@ -265,7 +265,7 @@ function BibliotecaMidiaPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="flex-1 border-[#E8D8C0] text-[#7A4A18] hover:bg-[#F5EEE5] text-xs"
+                      className="flex-1 border-border text-muted-foreground hover:bg-secondary text-xs"
                       onClick={() => baixar(a)}
                     >
                       <Download className="w-3 h-3 mr-1" /> Baixar

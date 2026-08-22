@@ -17,15 +17,15 @@ import {
 // the raw values here to avoid pulling the entire Painel360 module into this
 // standalone chart bundle.
 const C = {
-  dark: "#2C1505",
-  mid: "#7A4A18",
-  gold: "#C9A46E",
-  beige: "#E8D8C0",
-  beigeLight: "#F5EEE5",
-  text: "#1A0A02",
-  textMid: "#7A6050",
+  dark: "var(--primary)",
+  mid: "var(--muted-foreground)",
+  gold: "var(--muted-foreground)",
+  beige: "var(--border)",
+  beigeLight: "var(--secondary)",
+  text: "var(--foreground)",
+  textMid: "var(--muted-foreground)",
 };
-const SHADOW = "0 2px 16px rgba(44,21,5,0.09)";
+const SHADOW = "var(--shadow-card)";
 const brl = (n: number) => "R$ " + n.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 
 type Mov = { valor: number; data_ref: string; categoria: string | null };
@@ -50,22 +50,10 @@ function monthLabel(d: Date) {
 }
 
 // Produce a series of ordered shades between two hex colors.
-function shadesBetween(from: string, to: string, count: number) {
-  const hexToRgb = (h: string) => {
-    const s = h.replace("#", "");
-    return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)];
-  };
-  const toHex = (n: number) => n.toString(16).padStart(2, "0");
-  const a = hexToRgb(from);
-  const b = hexToRgb(to);
-  const out: string[] = [];
-  const n = Math.max(1, count);
-  for (let i = 0; i < n; i++) {
-    const t = n === 1 ? 0 : i / (n - 1);
-    const rgb = a.map((v, idx) => Math.round(v + (b[idx] - v) * t));
-    out.push("#" + rgb.map(toHex).join(""));
-  }
-  return out;
+/** Neutral grey ramp from the design-system chart tokens. */
+const CHART_RAMP = ["var(--chart-1)","var(--chart-2)","var(--chart-3)","var(--chart-4)","var(--chart-5)"];
+function shadesBetween(_from: string, _to: string, count: number) {
+  return Array.from({ length: Math.max(1, count) }, (_, i) => CHART_RAMP[i % CHART_RAMP.length]);
 }
 
 export function FinanceiroCharts({ entradas, saidas }: { entradas: Mov[]; saidas: Mov[] }) {

@@ -5,12 +5,16 @@ import { cn } from "@/lib/utils";
 
 export type MetricTone = "primary" | "success" | "warning" | "danger" | "info";
 
+/**
+ * Icons are line art: monochrome outline, no colored fill or background.
+ * Tones only shift the neutral text weight so hierarchy stays readable.
+ */
 const TONES: Record<MetricTone, string> = {
-  primary: "bg-primary-soft text-accent-foreground",
-  success: "bg-success-soft text-success",
-  warning: "bg-warning-soft text-warning",
-  danger: "bg-destructive-soft text-destructive",
-  info: "bg-info-soft text-info",
+  primary: "text-foreground",
+  success: "text-muted-foreground",
+  warning: "text-muted-foreground",
+  danger: "text-muted-foreground",
+  info: "text-muted-foreground",
 };
 
 export function MetricCard({
@@ -45,11 +49,11 @@ export function MetricCard({
         {Icon && (
           <div
             className={cn(
-              "flex h-11 w-11 shrink-0 items-center justify-center rounded-full",
+              "flex h-11 w-11 shrink-0 items-center justify-center",
               TONES[tone],
             )}
           >
-            <Icon size={20} strokeWidth={2.2} />
+            <Icon size={20} strokeWidth={1.6} />
           </div>
         )}
         <div className="min-w-0 flex-1">

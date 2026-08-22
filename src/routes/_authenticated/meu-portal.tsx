@@ -90,17 +90,17 @@ function MeuPortalPage() {
 
   if (loading && !cliente) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#EDEAE5] text-[#7A4A18]">
+      <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">
         Carregando...
       </div>
     );
   }
   if (erro) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#EDEAE5] p-6">
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <div className="max-w-md text-center space-y-3">
-          <h1 className="text-xl font-bold text-[#2C1505]">Erro ao abrir seu portal</h1>
-          <p className="text-sm text-[#7A6050]">{erro}</p>
+          <h1 className="text-xl font-bold text-foreground">Erro ao abrir seu portal</h1>
+          <p className="text-sm text-muted-foreground">{erro}</p>
           <Button onClick={signOut} variant="outline">Sair</Button>
         </div>
       </div>
@@ -108,16 +108,16 @@ function MeuPortalPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#EDEAE5]">
-      <header className="bg-[#2C1505] text-white px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
+    <div className="min-h-screen bg-background">
+      <header className="bg-primary text-white px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[11px] uppercase tracking-widest text-[#C9A46E]">Portal exclusivo</div>
+          <div className="text-[11px] uppercase tracking-widest text-primary-foreground/70">Portal exclusivo</div>
           <h1 className="text-lg sm:text-xl font-extrabold break-words">{cliente?.nome}</h1>
           {cliente?.plano && (
-            <div className="text-xs text-[#C9A46E]">Plano: {cliente.plano}</div>
+            <div className="text-xs text-primary-foreground/70">Plano: {cliente.plano}</div>
           )}
         </div>
-        <Button onClick={signOut} variant="ghost" size="sm" className="text-white hover:bg-[#7A4A18] shrink-0">
+        <Button onClick={signOut} variant="ghost" size="sm" className="text-white hover:bg-primary-hover shrink-0">
           <LogOut className="w-4 h-4 mr-1" /> Sair
         </Button>
       </header>

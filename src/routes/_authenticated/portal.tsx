@@ -153,7 +153,7 @@ function PortalPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#EDEAE5] text-[#7A4A18]">
+      <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">
         Carregando portal...
       </div>
     );
@@ -161,10 +161,10 @@ function PortalPage() {
 
   if (!cliente) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#EDEAE5] p-6 gap-4">
-        <User className="w-12 h-12 text-[#7A4A18]" />
-        <h1 className="text-xl font-bold text-[#2C1505]">Portal não vinculado</h1>
-        <p className="text-sm text-[#7A6050] max-w-md text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-6 gap-4">
+        <User className="w-12 h-12 text-muted-foreground" />
+        <h1 className="text-xl font-bold text-foreground">Portal não vinculado</h1>
+        <p className="text-sm text-muted-foreground max-w-md text-center">
           Seu usuário ainda não está vinculado a um cliente. Peça ao administrador para associar seu
           e-mail a um cliente cadastrado.
         </p>
@@ -176,18 +176,18 @@ function PortalPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#EDEAE5]">
-      <header className="bg-[#2C1505] text-white px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-background">
+      <header className="bg-primary text-white px-6 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold">Portal do Cliente</h1>
-          <p className="text-xs text-[#C9A46E]">{cliente.nome}</p>
+          <p className="text-xs text-primary-foreground/70">{cliente.nome}</p>
         </div>
-        <Button onClick={signOut} variant="ghost" className="text-white hover:bg-[#7A4A18]">
+        <Button onClick={signOut} variant="ghost" className="text-white hover:bg-primary-hover">
           <LogOut className="w-4 h-4 mr-2" /> Sair
         </Button>
       </header>
 
-      <nav className="bg-white border-b border-[#E8D8C0] px-6 flex gap-1 overflow-x-auto">
+      <nav className="bg-white border-b border-border px-6 flex gap-1 overflow-x-auto">
         {(
           [
             { k: "contrato", label: "Contrato", icon: FileText },
@@ -200,8 +200,8 @@ function PortalPage() {
             onClick={() => setTab(k)}
             className={`px-4 py-3 text-sm font-medium border-b-2 flex items-center gap-2 cursor-pointer transition ${
               tab === k
-                ? "border-[#C9A46E] text-[#2C1505]"
-                : "border-transparent text-[#7A6050] hover:text-[#2C1505]"
+                ? "border-primary text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             <Icon className="w-4 h-4" />
@@ -212,7 +212,7 @@ function PortalPage() {
 
       <main className="max-w-5xl mx-auto p-6 space-y-4">
         {msg && (
-          <div className="bg-[#F5EEE5] border border-[#C9A46E] rounded p-3 text-sm text-[#2C1505]">
+          <div className="bg-secondary border border-primary rounded p-3 text-sm text-foreground">
             {msg}
           </div>
         )}
@@ -220,7 +220,7 @@ function PortalPage() {
         {tab === "contrato" && (
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="p-6">
-              <h2 className="font-bold text-[#2C1505] mb-4">Meu Contrato</h2>
+              <h2 className="font-bold text-foreground mb-4">Meu Contrato</h2>
               <dl className="space-y-2 text-sm">
                 <Row label="Status">
                   <Badge>{cliente.status_contrato}</Badge>
@@ -235,7 +235,7 @@ function PortalPage() {
                 <Row label="Vencimento">
                   {cliente.data_vencimento_contrato ?? "—"}
                   {diasAteVencimento !== null && diasAteVencimento < 30 && (
-                    <Badge className="ml-2 bg-[#7A4A18]">Vence em {diasAteVencimento}d</Badge>
+                    <Badge className="ml-2 bg-primary-hover">Vence em {diasAteVencimento}d</Badge>
                   )}
                 </Row>
               </dl>
@@ -244,7 +244,7 @@ function PortalPage() {
                   href={cliente.link_contrato_assinado}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block mt-4 text-sm text-[#7A4A18] underline"
+                  className="inline-block mt-4 text-sm text-muted-foreground underline"
                 >
                   Baixar contrato assinado
                 </a>
@@ -252,7 +252,7 @@ function PortalPage() {
               {diasAteVencimento !== null && diasAteVencimento < 30 && (
                 <Button
                   onClick={solicitarRenovacao}
-                  className="mt-4 w-full bg-[#C9A46E] hover:bg-[#7A4A18] text-[#2C1505] hover:text-white"
+                  className="mt-4 w-full bg-secondary hover:bg-primary-hover text-foreground hover:text-white"
                 >
                   Solicitar Renovação
                 </Button>
@@ -260,19 +260,19 @@ function PortalPage() {
             </Card>
 
             <Card className="p-6">
-              <h2 className="font-bold text-[#2C1505] mb-4">Documentos</h2>
+              <h2 className="font-bold text-foreground mb-4">Documentos</h2>
               {docs.length === 0 ? (
-                <p className="text-sm text-[#7A6050]">Nenhum documento disponível.</p>
+                <p className="text-sm text-muted-foreground">Nenhum documento disponível.</p>
               ) : (
                 <ul className="space-y-2">
                   {docs.map((d) => (
                     <li key={d.id} className="flex items-center justify-between text-sm">
-                      <span className="text-[#2C1505]">{d.nome}</span>
+                      <span className="text-foreground">{d.nome}</span>
                       <a
                         href={d.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[#7A4A18] underline"
+                        className="text-muted-foreground underline"
                       >
                         Baixar
                       </a>
@@ -286,15 +286,15 @@ function PortalPage() {
 
         {tab === "checklist" && (
           <Card className="p-6">
-            <h2 className="font-bold text-[#2C1505] mb-4">Checklist de Onboarding</h2>
+            <h2 className="font-bold text-foreground mb-4">Checklist de Onboarding</h2>
             {checklist.length === 0 ? (
-              <p className="text-sm text-[#7A6050]">Sem tarefas cadastradas.</p>
+              <p className="text-sm text-muted-foreground">Sem tarefas cadastradas.</p>
             ) : (
               <ul className="space-y-3">
                 {checklist.map((item) => (
                   <li
                     key={item.id}
-                    className="flex items-start gap-3 p-3 rounded border border-[#E8D8C0]"
+                    className="flex items-start gap-3 p-3 rounded border border-border"
                   >
                     <Checkbox
                       checked={item.concluido}
@@ -303,11 +303,11 @@ function PortalPage() {
                     />
                     <div className="flex-1">
                       <p
-                        className={`text-sm ${item.concluido ? "line-through text-[#BBA898]" : "text-[#2C1505]"}`}
+                        className={`text-sm ${item.concluido ? "line-through text-muted-foreground" : "text-foreground"}`}
                       >
                         {item.tarefa}
                       </p>
-                      <span className="text-xs text-[#7A6050]">
+                      <span className="text-xs text-muted-foreground">
                         Responsável: {item.responsavel}
                       </span>
                     </div>
@@ -321,21 +321,21 @@ function PortalPage() {
         {tab === "suporte" && (
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="p-6">
-              <h2 className="font-bold text-[#2C1505] mb-4">Meus Tickets</h2>
+              <h2 className="font-bold text-foreground mb-4">Meus Tickets</h2>
               {tickets.length === 0 ? (
-                <p className="text-sm text-[#7A6050]">Nenhum ticket ainda.</p>
+                <p className="text-sm text-muted-foreground">Nenhum ticket ainda.</p>
               ) : (
                 <ul className="space-y-2">
                   {tickets.map((t) => (
-                    <li key={t.id} className="p-3 rounded border border-[#E8D8C0]">
+                    <li key={t.id} className="p-3 rounded border border-border">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-[#2C1505]">{t.assunto}</span>
+                        <span className="text-sm font-medium text-foreground">{t.assunto}</span>
                         <Badge>{t.status}</Badge>
                       </div>
                       {t.descricao && (
-                        <p className="text-xs text-[#7A6050] mt-1">{t.descricao}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{t.descricao}</p>
                       )}
-                      <p className="text-xs text-[#BBA898] mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Prioridade: {t.prioridade} ·{" "}
                         {new Date(t.data_abertura).toLocaleDateString("pt-BR")}
                       </p>
@@ -345,7 +345,7 @@ function PortalPage() {
               )}
             </Card>
             <Card className="p-6">
-              <h2 className="font-bold text-[#2C1505] mb-4">Abrir novo ticket</h2>
+              <h2 className="font-bold text-foreground mb-4">Abrir novo ticket</h2>
               <form onSubmit={abrirTicket} className="space-y-3">
                 <Input
                   placeholder="Assunto"
@@ -361,7 +361,7 @@ function PortalPage() {
                 />
                 <Button
                   type="submit"
-                  className="w-full bg-[#2C1505] hover:bg-[#7A4A18] text-white"
+                  className="w-full bg-primary hover:bg-primary-hover text-white"
                 >
                   Enviar
                 </Button>
@@ -376,9 +376,9 @@ function PortalPage() {
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between border-b border-[#E8D8C0] pb-1">
-      <dt className="text-[#7A6050]">{label}</dt>
-      <dd className="text-[#2C1505]">{children}</dd>
+    <div className="flex items-center justify-between border-b border-border pb-1">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="text-foreground">{children}</dd>
     </div>
   );
 }

@@ -50,7 +50,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
-const SHADOW = "0 2px 16px rgba(44,21,5,0.09)";
+const SHADOW = "var(--shadow-card)";
 
 /* ================================================================
  * Tipos
@@ -93,10 +93,10 @@ type AnexoRow = {
  * Helpers
  * ================================================================ */
 const PRIORIDADE_COLORS: Record<string, { bg: string; fg: string }> = {
-  Baixa: { bg: "#DDE9F2", fg: "#1E4F7A" },
+  Baixa: { bg: "var(--secondary)", fg: "var(--muted-foreground)" },
   Média: { bg: "#FFF3CD", fg: "#8A6914" },
   Alta: { bg: "#FFE0B2", fg: "#A8431E" },
-  Urgente: { bg: "#FEE2E2", fg: "#B91C1C" },
+  Urgente: { bg: "#FEE2E2", fg: "var(--destructive)" },
 };
 
 function PrioridadeBadge({ prioridade }: { prioridade: string }) {
@@ -286,7 +286,7 @@ function TarefaCard({
             )}
             <span
               className="inline-flex items-center gap-1 font-bold"
-              style={{ color: running ? "#2E7D32" : C.textMid }}
+              style={{ color: running ? "var(--success)" : C.textMid }}
             >
               <Clock size={12} />
               {fmtDuration(liveSeconds(tarefa, tick))}
@@ -311,7 +311,7 @@ function TarefaCard({
             onClick={onDelete}
             aria-label="Excluir"
             className="text-[10px]"
-            style={{ color: "#B91C1C" }}
+            style={{ color: "var(--destructive)" }}
           >
             ✕
           </button>
@@ -360,7 +360,7 @@ function DroppableColumn({
     <div
       ref={setNodeRef}
       className="rounded-[12px] p-3 flex flex-col min-h-[280px]"
-      style={{ background: isOver ? "#F7F0E0" : C.beigeLight, transition: "background 120ms" }}
+      style={{ background: isOver ? "var(--primary-soft)" : C.beigeLight, transition: "background 120ms" }}
     >
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: C.textMid }}>
@@ -575,7 +575,7 @@ function AnexosTab({ tarefaId }: { tarefaId: string }) {
                 type="button"
                 onClick={() => apagar(a)}
                 className="p-2"
-                style={{ color: "#B91C1C" }}
+                style={{ color: "var(--destructive)" }}
                 aria-label="Remover"
               >
                 <Trash2 size={16} />
@@ -763,7 +763,7 @@ function TarefaDetailDialog({
               {clienteNome}
             </div>
             <div className="mt-1 flex items-center gap-2">
-              <Clock size={16} style={{ color: running ? "#2E7D32" : C.textMid }} />
+              <Clock size={16} style={{ color: running ? "var(--success)" : C.textMid }} />
               <span className="text-xl font-extrabold" style={{ color: C.dark }}>
                 {fmtDuration(liveSeconds(tarefa, tick))}
               </span>

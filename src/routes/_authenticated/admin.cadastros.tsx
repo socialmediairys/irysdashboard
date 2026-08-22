@@ -84,27 +84,27 @@ function CadastrosPage() {
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-4">
       <div>
-        <h1 className="text-2xl font-bold text-[#2C1505]">Cadastros pendentes</h1>
-        <p className="text-sm text-[#7A6050]">
+        <h1 className="text-2xl font-bold text-foreground">Cadastros pendentes</h1>
+        <p className="text-sm text-muted-foreground">
           Aprove os pedidos de acesso vinculando cada um a um cliente já existente.
         </p>
       </div>
 
       {loading ? (
-        <div className="flex items-center gap-2 text-[#7A4A18]">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
         </div>
       ) : pendentes.length === 0 ? (
-        <Card className="p-6 text-sm text-[#7A6050]">Nenhum cadastro aguardando aprovação.</Card>
+        <Card className="p-6 text-sm text-muted-foreground">Nenhum cadastro aguardando aprovação.</Card>
       ) : (
         <ul className="space-y-3">
           {pendentes.map((sol) => (
             <Card key={sol.id} className="p-4 sm:p-5">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="font-semibold text-[#2C1505] break-words">{sol.nome}</div>
-                  <div className="text-sm text-[#7A6050] break-all">{sol.email}</div>
-                  <div className="text-xs text-[#BBA898] mt-1">
+                  <div className="font-semibold text-foreground break-words">{sol.nome}</div>
+                  <div className="text-sm text-muted-foreground break-all">{sol.email}</div>
+                  <div className="text-xs text-muted-foreground mt-1">
                     Solicitado em {new Date(sol.created_at).toLocaleString("pt-BR")}
                   </div>
                 </div>
@@ -120,7 +120,7 @@ function CadastrosPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {clientes.length === 0 && (
-                      <div className="px-3 py-2 text-xs text-[#7A6050]">
+                      <div className="px-3 py-2 text-xs text-muted-foreground">
                         Nenhum cliente disponível — cadastre um cliente antes.
                       </div>
                     )}
@@ -135,7 +135,7 @@ function CadastrosPage() {
                 <Button
                   onClick={() => handleAprovar(sol)}
                   disabled={acting === sol.id || !selecoes[sol.id]}
-                  className="bg-[#2C1505] hover:bg-[#7A4A18] text-white"
+                  className="bg-primary hover:bg-primary-hover text-white"
                 >
                   <Check className="h-4 w-4 mr-1" /> Aprovar
                 </Button>
@@ -143,7 +143,7 @@ function CadastrosPage() {
                   variant="outline"
                   onClick={() => handleRejeitar(sol)}
                   disabled={acting === sol.id}
-                  className="border-[#E8D8C0] text-[#7A4A18]"
+                  className="border-border text-muted-foreground"
                 >
                   <X className="h-4 w-4 mr-1" /> Rejeitar
                 </Button>
