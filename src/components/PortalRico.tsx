@@ -24,11 +24,11 @@ const C = {
   beige: "var(--border)",
   beigeLight: "var(--secondary)",
   bg: "var(--background)",
-  text: "#1A0A02",
+  text: "var(--foreground)",
   textMid: "var(--muted-foreground)",
   textMuted: "#BBA898",
 };
-const SHADOW = "0 2px 16px rgba(44,21,5,0.09)";
+const SHADOW = "var(--shadow-card)";
 
 /* ---------- tipos ---------- */
 export type Fase = { id: number; nome: string; descricao: string | null };

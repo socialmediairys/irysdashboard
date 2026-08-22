@@ -101,7 +101,7 @@ export function SocialMetricsDashboardCard() {
   }, [accounts, snaps, goals, clientes]);
 
   return (
-    <div className="rounded-[14px] p-5" style={{ background: "#fff", boxShadow: "0 2px 16px rgba(44,21,5,0.09)" }}>
+    <div className="rounded-[14px] p-5" style={{ background: "#fff", boxShadow: "var(--shadow-card)" }}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-extrabold text-lg flex items-center gap-2">
           <TrendingUp size={18} style={{ color: C.mid }} /> Métricas sociais

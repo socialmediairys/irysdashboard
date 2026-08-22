@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { C, ETAPA_COLS, brl, type LeadRow } from "@/components/Painel360";
 
-const SHADOW = "0 2px 16px rgba(44,21,5,0.09)";
+const SHADOW = "var(--shadow-card)";
 
 function ChartCard({ title, children }: { title: string; children: ReactNode }) {
   return (

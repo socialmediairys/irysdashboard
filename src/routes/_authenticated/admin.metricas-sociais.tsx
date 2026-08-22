@@ -101,7 +101,7 @@ function MetricasSociaisPage() {
 
       <NewAccountForm clientes={clientes} onCreated={loadAccounts} />
 
-      <div className="rounded-[14px] p-5" style={{ background: "#fff", boxShadow: "0 2px 16px rgba(44,21,5,0.09)" }}>
+      <div className="rounded-[14px] p-5" style={{ background: "#fff", boxShadow: "var(--shadow-card)" }}>
         <h3 className="font-extrabold mb-3">Contas cadastradas</h3>
         {loading ? (
           <div className="text-sm" style={{ color: C.textMid }}>Carregando…</div>
@@ -167,7 +167,7 @@ function NewAccountForm({ clientes, onCreated }: { clientes: Cliente[]; onCreate
     <form
       onSubmit={submit}
       className="rounded-[14px] p-5 grid grid-cols-1 md:grid-cols-4 gap-3"
-      style={{ background: "#fff", boxShadow: "0 2px 16px rgba(44,21,5,0.09)" }}
+      style={{ background: "#fff", boxShadow: "var(--shadow-card)" }}
     >
       <div className="md:col-span-4">
         <h3 className="font-extrabold">Nova conta social</h3>
@@ -288,7 +288,7 @@ function AccountDetail({
 
       <NewSnapshotForm accountId={account.id} onCreated={load} />
 
-      <div className="rounded-[14px] p-5" style={{ background: "#fff", boxShadow: "0 2px 16px rgba(44,21,5,0.09)" }}>
+      <div className="rounded-[14px] p-5" style={{ background: "#fff", boxShadow: "var(--shadow-card)" }}>
         <h3 className="font-extrabold mb-3">Snapshots</h3>
         {loading ? (
           <div className="text-sm" style={{ color: C.textMid }}>Carregando…</div>
@@ -344,7 +344,7 @@ function AccountDetail({
 
       <NewGoalForm accountId={account.id} onCreated={load} />
 
-      <div className="rounded-[14px] p-5" style={{ background: "#fff", boxShadow: "0 2px 16px rgba(44,21,5,0.09)" }}>
+      <div className="rounded-[14px] p-5" style={{ background: "#fff", boxShadow: "var(--shadow-card)" }}>
         <h3 className="font-extrabold mb-3">Metas</h3>
         {goals.length === 0 ? (
           <div className="text-sm" style={{ color: C.textMid }}>Nenhuma meta definida.</div>
@@ -435,7 +435,7 @@ function NewSnapshotForm({ accountId, onCreated }: { accountId: string; onCreate
     <form
       onSubmit={submit}
       className="rounded-[14px] p-5 grid grid-cols-2 md:grid-cols-6 gap-3"
-      style={{ background: "#fff", boxShadow: "0 2px 16px rgba(44,21,5,0.09)" }}
+      style={{ background: "#fff", boxShadow: "var(--shadow-card)" }}
     >
       <div className="col-span-2 md:col-span-6">
         <h3 className="font-extrabold">Novo snapshot</h3>
@@ -488,7 +488,7 @@ function NewGoalForm({ accountId, onCreated }: { accountId: string; onCreated: (
     <form
       onSubmit={submit}
       className="rounded-[14px] p-5 grid grid-cols-2 md:grid-cols-4 gap-3"
-      style={{ background: "#fff", boxShadow: "0 2px 16px rgba(44,21,5,0.09)" }}
+      style={{ background: "#fff", boxShadow: "var(--shadow-card)" }}
     >
       <div className="col-span-2 md:col-span-4">
         <h3 className="font-extrabold">Nova meta</h3>

@@ -50,7 +50,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
-const SHADOW = "0 2px 16px rgba(44,21,5,0.09)";
+const SHADOW = "var(--shadow-card)";
 
 /* ================================================================
  * Tipos
