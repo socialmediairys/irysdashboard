@@ -1951,6 +1951,7 @@ function SocialPage() {
       saved: number | null;
       engagementRate: number | null;
     }>;
+    postsInsightsError?: string | null;
   } | null>(null);
   const [igLoading, setIgLoading] = useState(false);
   const [igError, setIgError] = useState<string | null>(null);
@@ -2101,6 +2102,8 @@ function SocialPage() {
               <div className="text-sm py-6 text-center" style={{ color: C.textMuted }}>Integração em breve</div>
             ) : igLoading ? (
               <div className="text-sm py-6 text-center" style={{ color: C.textMuted }}>Carregando...</div>
+            ) : insights?.postsInsightsError ? (
+              <div className="text-sm py-6 text-center text-destructive">{insights.postsInsightsError}</div>
             ) : topPosts.length === 0 ? (
               <div className="text-sm py-6 text-center" style={{ color: C.textMuted }}>Sem posts disponíveis no período.</div>
             ) : (
