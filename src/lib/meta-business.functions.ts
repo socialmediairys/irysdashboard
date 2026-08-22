@@ -168,20 +168,26 @@ export type InstagramAccountInsights = {
   followerGrowth: number | null;    // net delta in the selected period (days)
   periodDays: number;
   posts: InstagramPostMetrics[];
+  postsInsightsError: string | null;
 };
 
-async function fetchJson<T>(url: string): Promise<T | null> {
+type FetchResult<T> = { data: T | null; error: string | null };
+
+async function fetchJson<T>(url: string): Promise<FetchResult<T>> {
   try {
     const res = await fetch(url);
     const json = (await res.json()) as T & { error?: { message?: string } };
     if (!res.ok) {
-      console.warn("meta insights request failed", { status: res.status, error: (json as { error?: unknown }).error });
-      return null;
+      const message =
+        json?.error?.message || `Requisição à Graph API falhou (HTTP ${res.status}).`;
+      console.warn("meta insights request failed", { status: res.status, error: json?.error });
+      return { data: null, error: message };
     }
-    return json;
+    return { data: json, error: null };
   } catch (e) {
+    const message = e instanceof Error ? e.message : "Erro desconhecido na requisição à Graph API.";
     console.warn("meta insights request threw", e);
-    return null;
+    return { data: null, error: message };
   }
 }
 
@@ -218,12 +224,16 @@ export const getInstagramAccountInsights = createServerFn({ method: "GET" })
     const accountUrl = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${igId}`);
     accountUrl.searchParams.set("fields", "username,followers_count,follows_count,media_count");
     accountUrl.searchParams.set("access_token", token);
-    const account = await fetchJson<{
+    const accountRes = await fetchJson<{
       username?: string;
       followers_count?: number;
       follows_count?: number;
       media_count?: number;
     }>(accountUrl.toString());
+    if (accountRes.error || !accountRes.data) {
+      throw new Error(accountRes.error ?? "Não foi possível obter os dados da conta do Instagram.");
+    }
+    const account = accountRes.data;
 
     // 2) Crescimento de seguidores no período (métrica follower_count, period=day)
     let followerGrowth: number | null = null;
@@ -236,10 +246,11 @@ export const getInstagramAccountInsights = createServerFn({ method: "GET" })
       growthUrl.searchParams.set("since", String(since));
       growthUrl.searchParams.set("until", String(until));
       growthUrl.searchParams.set("access_token", token);
-      const growth = await fetchJson<{
+      const growthRes = await fetchJson<{
         data?: Array<{ values?: Array<{ value?: number }> }>;
       }>(growthUrl.toString());
-      const values = growth?.data?.[0]?.values ?? [];
+      if (growthRes.error) console.warn("follower_count insights error", growthRes.error);
+      const values = growthRes.data?.data?.[0]?.values ?? [];
       if (values.length > 0) {
         followerGrowth = values.reduce((acc, v) => acc + (typeof v.value === "number" ? v.value : 0), 0);
       }
@@ -250,6 +261,7 @@ export const getInstagramAccountInsights = createServerFn({ method: "GET" })
     // 3) Últimas publicações + insights (reach, saved) por post
     const posts: InstagramPostMetrics[] = [];
     let avgEngagementRate: number | null = null;
+    let postsInsightsError: string | null = null;
     try {
       const mediaUrl = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${igId}/media`);
       mediaUrl.searchParams.set(
@@ -258,7 +270,7 @@ export const getInstagramAccountInsights = createServerFn({ method: "GET" })
       );
       mediaUrl.searchParams.set("limit", "12");
       mediaUrl.searchParams.set("access_token", token);
-      const media = await fetchJson<{
+      const mediaRes = await fetchJson<{
         data?: Array<{
           id: string;
           caption?: string;
@@ -269,19 +281,20 @@ export const getInstagramAccountInsights = createServerFn({ method: "GET" })
           comments_count?: number;
         }>;
       }>(mediaUrl.toString());
-      const items = media?.data ?? [];
+      if (mediaRes.error) postsInsightsError = mediaRes.error;
+      const items = mediaRes.data?.data ?? [];
 
       const enriched = await Promise.all(
         items.map(async (m) => {
           const insightsUrl = new URL(`https://graph.facebook.com/${GRAPH_VERSION}/${m.id}/insights`);
           insightsUrl.searchParams.set("metric", "reach,saved");
           insightsUrl.searchParams.set("access_token", token);
-          const ins = await fetchJson<{
+          const insRes = await fetchJson<{
             data?: Array<{ name: string; values?: Array<{ value?: number }> }>;
           }>(insightsUrl.toString());
           let reach: number | null = null;
           let saved: number | null = null;
-          for (const row of ins?.data ?? []) {
+          for (const row of insRes.data?.data ?? []) {
             const v = typeof row.values?.[0]?.value === "number" ? row.values[0].value : null;
             if (row.name === "reach") reach = v;
             if (row.name === "saved") saved = v;
@@ -303,10 +316,20 @@ export const getInstagramAccountInsights = createServerFn({ method: "GET" })
             reach,
             saved,
             engagementRate,
-          } satisfies InstagramPostMetrics;
+            insightsError: insRes.error,
+          };
         }),
       );
-      posts.push(...enriched);
+      posts.push(...enriched.map(({ insightsError: _ignored, ...p }) => p satisfies InstagramPostMetrics));
+
+      const insightErrors = enriched.map((p) => p.insightsError);
+      if (
+        insightErrors.length > 0 &&
+        insightErrors.every((e) => e !== null) &&
+        new Set(insightErrors).size === 1
+      ) {
+        postsInsightsError = insightErrors[0] ?? postsInsightsError;
+      }
 
       const rates = enriched.map((p) => p.engagementRate).filter((r): r is number => typeof r === "number");
       if (rates.length > 0) {
@@ -314,6 +337,9 @@ export const getInstagramAccountInsights = createServerFn({ method: "GET" })
       }
     } catch (e) {
       console.warn("media insights failed", e);
+      if (!postsInsightsError) {
+        postsInsightsError = e instanceof Error ? e.message : "Falha ao carregar insights dos posts.";
+      }
     }
 
     return {
@@ -325,6 +351,7 @@ export const getInstagramAccountInsights = createServerFn({ method: "GET" })
       followerGrowth,
       periodDays: data.periodDays,
       posts,
+      postsInsightsError,
     };
   });
 
