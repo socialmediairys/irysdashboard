@@ -18,8 +18,7 @@ const SHADOW = "var(--shadow-card)";
 function ChartCard({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div
-      className="rounded-[18px] p-6 min-w-0"
-      style={{ background: "#fff", color: C.text, boxShadow: SHADOW }}
+      className="rounded-[18px] p-6 min-w-0 bg-card text-foreground shadow-card"
     >
       <h3 className="font-extrabold text-lg mb-4">{title}</h3>
       {children}
