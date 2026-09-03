@@ -611,33 +611,33 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
           </Card>
         </div>
         <div className="lg:col-span-2">
-          <Card dark>
+          <Card>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-extrabold text-lg flex items-center gap-2"><Calendar size={16} strokeWidth={1.6} /> Agenda — Hoje</h3>
-              <button onClick={() => go("agenda")} className="text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.72)" }}>agenda →</button>
+              <button onClick={() => go("agenda")} className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>agenda →</button>
             </div>
             {(agendaQ.loading || gcalLoading) && hoje.length === 0 ? (
               <div className="space-y-2">
                 {[0,1,2].map(i => (
-                  <div key={i} className="h-14 rounded-[10px] animate-pulse" style={{ background: "rgba(255,255,255,0.08)" }} />
+                  <div key={i} className="h-14 rounded-[10px] animate-pulse" style={{ background: "var(--muted)" }} />
                 ))}
               </div>
             ) : agendaQ.error ? (
-              <div className="text-sm opacity-80">Erro ao carregar agenda.</div>
+              <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>Erro ao carregar agenda.</div>
             ) : hoje.length === 0 ? (
-              <div className="text-sm opacity-70 py-4">Nenhum compromisso para hoje.</div>
+              <div className="text-sm py-4" style={{ color: "var(--muted-foreground)" }}>Nenhum compromisso para hoje.</div>
             ) : (
               <div className="space-y-3">
                 {hoje.map((e) => (
-                  <div key={e.id} className="flex items-center justify-between rounded-[10px] p-3" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <div key={e.id} className="flex items-center justify-between rounded-[10px] p-3" style={{ background: "var(--muted)" }}>
                     <div className="min-w-0">
                       <div className="font-semibold truncate">{e.titulo}</div>
-                      <div className="text-xs opacity-70">
+                      <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>
                         {fmtHour(e.iso)} · {e.source === "gcal" ? "Google Agenda" : "Painel"}
                       </div>
                     </div>
                     <span className="rounded-full px-2.5 py-1 text-[11px] font-bold uppercase"
-                      style={{ background: e.prioridade === "alta" ? "var(--destructive)" : "rgba(255,255,255,0.15)", color: "var(--primary-foreground)" }}>
+                      style={{ background: e.prioridade === "alta" ? "var(--destructive)" : "var(--secondary)", color: e.prioridade === "alta" ? "var(--destructive-foreground)" : "var(--foreground)" }}>
                       {e.prioridade === "alta" ? "Urgente" : "Hoje"}
                     </span>
                   </div>
