@@ -199,37 +199,35 @@ function FinanceiroPage() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-primary text-white px-6 py-4 flex items-center gap-3">
-        <Link to="/admin/visao-geral" className="text-primary-foreground/70 hover:text-white flex items-center gap-1 text-sm">
-          <ArrowLeft className="w-4 h-4" /> Voltar
-        </Link>
-        <span className="text-muted-foreground">|</span>
-        <CreditCard className="w-5 h-5 text-primary-foreground/70" />
-        <h1 className="text-lg font-bold">Financeiro</h1>
-      </header>
+    <>
+      <PageHeader
+        title="Financeiro"
+        description="Entradas, saídas e contas fixas da organização."
+      />
 
-      <div className="max-w-6xl mx-auto p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <Card className="p-4 bg-white border-border">
-            <div className="flex items-center gap-2 text-emerald-700 text-sm"><TrendingUp className="w-4 h-4" /> Entradas</div>
-            <p className="text-2xl font-bold text-foreground mt-1">R$ {totalE.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-          </Card>
-          <Card className="p-4 bg-white border-border">
-            <div className="flex items-center gap-2 text-red-700 text-sm"><TrendingDown className="w-4 h-4" /> Saídas</div>
-            <p className="text-2xl font-bold text-foreground mt-1">R$ {totalS.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
-          </Card>
-          <Card className={`p-4 border-border ${saldo >= 0 ? "bg-emerald-50" : "bg-red-50"}`}>
-            <div className="text-sm text-muted-foreground">Saldo</div>
-            <p className={`text-2xl font-bold mt-1 ${saldo >= 0 ? "text-emerald-800" : "text-red-800"}`}>
-              R$ {saldo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-            </p>
-          </Card>
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <MetricCard
+            label="Entradas"
+            icon={TrendingUp}
+            value={`R$ ${totalE.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+          />
+          <MetricCard
+            label="Saídas"
+            icon={TrendingDown}
+            value={`R$ ${totalS.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+          />
+          <MetricCard
+            label="Saldo"
+            icon={CreditCard}
+            value={`R$ ${saldo.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+            hint={saldo >= 0 ? "Saldo positivo" : "Saldo negativo"}
+          />
         </div>
 
         <FinanceiroCharts entradas={entradas} saidas={saidas} />
 
-        <div className="flex flex-wrap gap-2 items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex gap-2">
             {([
               ["entradas", "Entradas"],
@@ -239,8 +237,10 @@ function FinanceiroPage() {
               <button
                 key={a}
                 onClick={() => setAba(a)}
-                className={`px-4 py-2 rounded-full text-sm cursor-pointer ${
-                  aba === a ? "bg-primary text-white" : "bg-white text-muted-foreground border border-border"
+                className={`cursor-pointer rounded-full px-4 py-2 text-sm transition-colors ${
+                  aba === a
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border bg-card text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {label}
@@ -257,8 +257,10 @@ function FinanceiroPage() {
                 <button
                   key={k}
                   onClick={() => setFiltro(k)}
-                  className={`px-3 py-1.5 rounded-full text-xs cursor-pointer ${
-                    filtro === k ? "bg-primary-hover text-white" : "bg-white text-muted-foreground border border-border"
+                  className={`cursor-pointer rounded-full px-3 py-1.5 text-xs transition-colors ${
+                    filtro === k
+                      ? "bg-secondary font-semibold text-foreground"
+                      : "border border-border bg-card text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {label}
@@ -269,8 +271,8 @@ function FinanceiroPage() {
         </div>
 
         {aba !== "contas_fixas" && (
-          <Card className="p-5 bg-white border-border">
-            <form onSubmit={criar} className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="rounded-2xl bg-card p-5 shadow-card">
+            <form onSubmit={criar} className="grid grid-cols-1 gap-3 md:grid-cols-4">
               <div className="md:col-span-2">
                 <Label>Descrição</Label>
                 <Input value={form.descricao} onChange={(e) => setForm({ ...form, descricao: e.target.value })} />
@@ -284,14 +286,14 @@ function FinanceiroPage() {
                 <Input type="number" step="0.01" value={form.valor} onChange={(e) => setForm({ ...form, valor: e.target.value })} />
               </div>
 
-              <div className="md:col-span-2 flex items-center gap-3 pt-1">
+              <div className="flex items-center gap-3 pt-1 md:col-span-2">
                 <Switch
                   id="recorrente"
                   checked={form.recorrente}
                   onCheckedChange={(v) => setForm({ ...form, recorrente: v })}
                 />
-                <Label htmlFor="recorrente" className="cursor-pointer flex items-center gap-1">
-                  <Repeat className="w-4 h-4" /> Conta fixa (recorrente mensal)
+                <Label htmlFor="recorrente" className="flex cursor-pointer items-center gap-1">
+                  <Repeat size={16} strokeWidth={1.6} /> Conta fixa (recorrente mensal)
                 </Label>
               </div>
 
@@ -334,111 +336,115 @@ function FinanceiroPage() {
               )}
 
               <div className="md:col-span-4">
-                <Button className="bg-primary hover:bg-primary-hover text-white">
+                <Button>
                   {form.recorrente
                     ? `Criar conta fixa (${aba === "entradas" ? "entrada" : "saída"})`
                     : `Registrar ${aba === "entradas" ? "entrada" : "saída"}`}
                 </Button>
               </div>
             </form>
-          </Card>
+          </div>
         )}
 
         {aba === "contas_fixas" ? (
-          <Card className="bg-white border-border overflow-hidden">
-            {contasFixas.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">Nenhuma conta fixa cadastrada.</div>
-            ) : (
-              <table className="w-full text-sm">
-                <thead className="bg-secondary text-muted-foreground text-left">
-                  <tr>
-                    <th className="px-4 py-2">Descrição</th>
-                    <th className="px-4 py-2">Tipo</th>
-                    <th className="px-4 py-2">Categoria</th>
-                    <th className="px-4 py-2">Dia venc.</th>
-                    <th className="px-4 py-2">Início</th>
-                    <th className="px-4 py-2">Término</th>
-                    <th className="px-4 py-2 text-right">Valor</th>
-                    <th className="px-4 py-2"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contasFixas.map((c) => (
-                    <tr key={c.id} className="border-t border-border">
-                      <td className="px-4 py-2 text-foreground">{c.descricao}</td>
-                      <td className="px-4 py-2">
-                        <Badge variant="secondary" className={c.tipo === "receita" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}>
-                          {c.tipo}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-2 text-muted-foreground">{c.categoria || "—"}</td>
-                      <td className="px-4 py-2 text-muted-foreground">{c.dia_vencimento}</td>
-                      <td className="px-4 py-2 text-muted-foreground">{new Date(c.data_inicio).toLocaleDateString("pt-BR")}</td>
-                      <td className="px-4 py-2 text-muted-foreground">{c.data_fim ? new Date(c.data_fim).toLocaleDateString("pt-BR") : "—"}</td>
-                      <td className="px-4 py-2 text-right font-semibold text-foreground">
-                        R$ {Number(c.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="px-4 py-2 text-right">
-                        <button onClick={() => apagarContaFixa(c)} className="text-red-600 hover:text-red-800 cursor-pointer">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </Card>
+          contasFixas.length === 0 ? (
+            <EmptyState
+              icon={Repeat}
+              title="Nenhuma conta fixa cadastrada"
+              description="Crie um lançamento marcado como recorrente para gerar contas fixas."
+            />
+          ) : (
+            <DataTable>
+              <Thead>
+                <Th>Descrição</Th>
+                <Th>Tipo</Th>
+                <Th>Categoria</Th>
+                <Th>Dia venc.</Th>
+                <Th>Início</Th>
+                <Th>Término</Th>
+                <Th align="right">Valor</Th>
+                <Th />
+              </Thead>
+              <Tbody>
+                {contasFixas.map((c) => (
+                  <Tr key={c.id}>
+                    <Td className="font-medium text-foreground">{c.descricao}</Td>
+                    <Td>
+                      <StatusBadge variant={c.tipo === "receita" ? "success" : "neutral"}>
+                        {c.tipo === "receita" ? "Receita" : "Despesa"}
+                      </StatusBadge>
+                    </Td>
+                    <Td className="text-muted-foreground">{c.categoria || "—"}</Td>
+                    <Td className="text-muted-foreground">{c.dia_vencimento}</Td>
+                    <Td className="text-muted-foreground">{new Date(c.data_inicio).toLocaleDateString("pt-BR")}</Td>
+                    <Td className="text-muted-foreground">{c.data_fim ? new Date(c.data_fim).toLocaleDateString("pt-BR") : "—"}</Td>
+                    <Td align="right" className="font-semibold text-foreground">
+                      R$ {Number(c.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </Td>
+                    <Td align="right">
+                      <button
+                        onClick={() => apagarContaFixa(c)}
+                        aria-label="Excluir conta fixa"
+                        className="cursor-pointer text-muted-foreground transition-colors hover:text-destructive"
+                      >
+                        <Trash2 size={16} strokeWidth={1.6} />
+                      </button>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </DataTable>
+          )
+        ) : lista.length === 0 ? (
+          <EmptyState
+            icon={CreditCard}
+            title="Sem lançamentos"
+            description="Registre uma movimentação usando o formulário acima."
+          />
         ) : (
-          <Card className="bg-white border-border overflow-hidden">
-            {lista.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">Sem lançamentos.</div>
-            ) : (
-              <table className="w-full text-sm">
-                <thead className="bg-secondary text-muted-foreground text-left">
-                  <tr>
-                    <th className="px-4 py-2">Data</th>
-                    <th className="px-4 py-2">Descrição</th>
-                    <th className="px-4 py-2">Categoria</th>
-                    <th className="px-4 py-2 text-right">Valor</th>
-                    <th className="px-4 py-2"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lista.map((m) => {
-                    const isRec = !!m.conta_fixa_id || !!m.is_fixed;
-                    return (
-                      <tr key={m.id} className="border-t border-border">
-                        <td className="px-4 py-2 text-muted-foreground">{new Date(m.data_ref).toLocaleDateString("pt-BR")}</td>
-                        <td className="px-4 py-2 text-foreground">{m.descricao}</td>
-                        <td className="px-4 py-2 text-muted-foreground">{m.categoria || "—"}</td>
-                        <td className={`px-4 py-2 text-right font-semibold ${aba === "entradas" ? "text-emerald-700" : "text-red-700"}`}>
-                          <div className="flex items-center justify-end gap-2">
-                            <span>R$ {Number(m.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
-                            {isRec && (
-                              <Badge variant="secondary" className="gap-1 bg-secondary text-muted-foreground border-border">
-                                <Repeat className="w-3 h-3" /> Recorrente
-                              </Badge>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-2 text-right">
-                          <button
-                            onClick={() => apagarLancamento(aba === "entradas" ? "entradas_financeiras" : "saidas_financeiras", m.id)}
-                            className="text-red-600 hover:text-red-800 cursor-pointer"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </Card>
+          <DataTable>
+            <Thead>
+              <Th>Data</Th>
+              <Th>Descrição</Th>
+              <Th>Categoria</Th>
+              <Th align="right">Valor</Th>
+              <Th />
+            </Thead>
+            <Tbody>
+              {lista.map((m) => {
+                const isRec = !!m.conta_fixa_id || !!m.is_fixed;
+                return (
+                  <Tr key={m.id}>
+                    <Td className="text-muted-foreground">{new Date(m.data_ref).toLocaleDateString("pt-BR")}</Td>
+                    <Td className="font-medium text-foreground">{m.descricao}</Td>
+                    <Td className="text-muted-foreground">{m.categoria || "—"}</Td>
+                    <Td align="right" className="font-semibold text-foreground">
+                      <div className="flex items-center justify-end gap-2">
+                        <span>R$ {Number(m.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                        {isRec && (
+                          <StatusBadge variant="neutral" dot={false}>
+                            <Repeat size={12} strokeWidth={1.6} /> Recorrente
+                          </StatusBadge>
+                        )}
+                      </div>
+                    </Td>
+                    <Td align="right">
+                      <button
+                        onClick={() => apagarLancamento(aba === "entradas" ? "entradas_financeiras" : "saidas_financeiras", m.id)}
+                        aria-label="Apagar movimentação"
+                        className="cursor-pointer text-muted-foreground transition-colors hover:text-destructive"
+                      >
+                        <Trash2 size={16} strokeWidth={1.6} />
+                      </button>
+                    </Td>
+                  </Tr>
+                );
+              })}
+            </Tbody>
+          </DataTable>
         )}
       </div>
-    </div>
+    </>
   );
 }
+
