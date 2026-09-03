@@ -1,13 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { FileUploader } from "@/components/FileUploader";
 import {
-  ArrowLeft,
   Search,
   Copy,
   Download,
@@ -135,40 +135,26 @@ function BibliotecaMidiaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-primary text-white px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link
-            to="/admin/visao-geral"
-            className="text-primary-foreground/70 hover:text-white flex items-center gap-1 text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" /> Voltar
-          </Link>
-          <span className="text-muted-foreground">|</span>
-          <div>
-            <h1 className="text-lg font-bold">Biblioteca de Mídia</h1>
-            <p className="text-xs text-primary-foreground/70">
-              {arquivos.length} arquivos · {fmtBytes(totalBytes)} usados
-            </p>
-          </div>
-        </div>
-        <Button
-          onClick={() => setMostraUpload((v) => !v)}
-          className="bg-secondary hover:bg-primary-hover text-foreground"
-        >
-          {mostraUpload ? "Fechar" : "+ Novo arquivo"}
-        </Button>
-      </header>
+    <div>
+      <PageHeader
+        title="Biblioteca de Mídia"
+        description={`${arquivos.length} arquivos · ${fmtBytes(totalBytes)} usados`}
+        actions={
+          <Button variant={mostraUpload ? "outline" : "default"} onClick={() => setMostraUpload((v) => !v)}>
+            {mostraUpload ? "Fechar" : "+ Novo arquivo"}
+          </Button>
+        }
+      />
 
-      <div className="max-w-7xl mx-auto p-6 space-y-4">
+      <div className="space-y-4">
         {mostraUpload && (
-          <Card className="p-5 bg-white border-border">
-            <div className="flex items-center gap-3 mb-3">
-              <label className="text-sm text-muted-foreground font-medium">Bucket:</label>
+          <div className="rounded-2xl bg-card p-5 shadow-card">
+            <div className="mb-3 flex items-center gap-3">
+              <label className="text-sm font-medium text-muted-foreground">Bucket:</label>
               <select
                 value={bucketUpload}
                 onChange={(e) => setBucketUpload(e.target.value)}
-                className="text-sm border border-border rounded px-3 py-1.5 bg-white text-foreground"
+                className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm text-foreground"
               >
                 {BUCKETS.filter((b) => b.id !== "todos").map((b) => (
                   <option key={b.id} value={b.id}>
@@ -184,17 +170,20 @@ function BibliotecaMidiaPage() {
                 void carregar();
               }}
             />
-          </Card>
+          </div>
         )}
 
-        <Card className="p-4 bg-white border-border flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-card p-4 shadow-card">
+          <div className="relative min-w-[200px] flex-1">
+            <Search
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              strokeWidth={1.6}
+            />
             <Input
               placeholder="Buscar por nome..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              className="pl-9 border-border"
+              className="pl-9"
             />
           </div>
           <div className="flex flex-wrap gap-1.5">
@@ -202,84 +191,82 @@ function BibliotecaMidiaPage() {
               <button
                 key={b.id}
                 onClick={() => setBucketFiltro(b.id)}
-                className={`text-xs px-3 py-1.5 rounded-full transition ${
+                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                   bucketFiltro === b.id
-                    ? "bg-primary text-white"
-                    : "bg-secondary text-muted-foreground hover:bg-[#EBDFCB]"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {b.label}
               </button>
             ))}
           </div>
-        </Card>
+        </div>
 
         {loading ? (
-          <Card className="p-12 text-center text-muted-foreground">Carregando arquivos...</Card>
+          <div className="rounded-2xl bg-card p-12 text-center text-sm text-muted-foreground shadow-card">
+            Carregando arquivos…
+          </div>
         ) : filtrados.length === 0 ? (
-          <Card className="p-12 text-center text-muted-foreground">
-            Nenhum arquivo encontrado. Envie o primeiro para começar.
-          </Card>
+          <EmptyState
+            title="Nenhum arquivo encontrado"
+            description="Envie o primeiro arquivo para começar a montar a biblioteca."
+            icon={<Package size={24} strokeWidth={1.6} />}
+          />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {filtrados.map((a) => {
               const Icon = iconFor(a.tipo_arquivo);
               const isImage = a.tipo_arquivo === "imagem" || a.tipo_arquivo === "design";
               return (
-                <Card key={a.id} className="p-4 bg-white border-border flex flex-col gap-3">
-                  <div className="aspect-video rounded bg-secondary flex items-center justify-center overflow-hidden">
+                <div key={a.id} className="flex flex-col gap-3 rounded-2xl bg-card p-4 shadow-card">
+                  <div className="flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-secondary">
                     {isImage && a.url_publica ? (
-                      <img src={a.url_publica} alt="" className="w-full h-full object-cover" />
+                      <img src={a.url_publica} alt="" className="h-full w-full object-cover" loading="lazy" />
                     ) : a.tipo_arquivo === "audio" && a.url_publica ? (
                       <audio controls src={a.url_publica} className="w-full px-3" />
                     ) : a.tipo_arquivo === "video" && a.url_publica ? (
-                      <video controls src={a.url_publica} className="w-full h-full object-cover" />
+                      <video controls src={a.url_publica} className="h-full w-full object-cover" />
                     ) : (
-                      <Icon className="w-10 h-10 text-primary-foreground/70" />
+                      <Icon className="h-10 w-10 text-muted-foreground" strokeWidth={1.6} />
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-foreground truncate" title={a.nome_original}>
+                    <p className="truncate text-sm font-medium text-foreground" title={a.nome_original}>
                       {a.titulo || a.nome_original}
                     </p>
-                    <div className="flex items-center gap-2 mt-1 text-[11px] text-muted-foreground">
-                      <Badge className="bg-secondary text-muted-foreground hover:bg-secondary">
-                        {a.bucket}
-                      </Badge>
+                    <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <StatusBadge variant="neutral" dot={false}>{a.bucket}</StatusBadge>
                       <span>{fmtBytes(a.tamanho_bytes)}</span>
                       {a.duracao_segundos ? <span>· {fmtDur(a.duracao_segundos)}</span> : null}
                     </div>
                   </div>
-                  <div className="flex gap-1.5 mt-auto">
+                  <div className="mt-auto flex gap-1.5">
                     {a.url_publica && (
                       <Button
                         size="sm"
                         variant="outline"
-                        className="flex-1 border-border text-muted-foreground hover:bg-secondary text-xs"
+                        className="flex-1 text-xs"
                         onClick={() => copiar(a.url_publica!, a.id)}
                       >
-                        <Copy className="w-3 h-3 mr-1" />
+                        <Copy className="mr-1 h-3 w-3" strokeWidth={1.6} />
                         {copiado === a.id ? "Copiado" : "URL"}
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 border-border text-muted-foreground hover:bg-secondary text-xs"
-                      onClick={() => baixar(a)}
-                    >
-                      <Download className="w-3 h-3 mr-1" /> Baixar
+                    <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => baixar(a)}>
+                      <Download className="mr-1 h-3 w-3" strokeWidth={1.6} /> Baixar
                     </Button>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="border-red-200 text-red-700 hover:bg-red-50 text-xs"
+                      className="text-xs text-destructive hover:bg-destructive-soft"
                       onClick={() => apagar(a)}
+                      aria-label="Apagar arquivo"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="h-3 w-3" strokeWidth={1.6} />
                     </Button>
                   </div>
-                </Card>
+                </div>
               );
             })}
           </div>
