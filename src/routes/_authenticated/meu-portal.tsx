@@ -111,20 +111,22 @@ function MeuPortalPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-primary text-white px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
+      <header className="flex items-center justify-between gap-3 border-b border-border bg-card px-4 py-4 sm:px-6">
         <div className="min-w-0">
-          <div className="text-[11px] uppercase tracking-widest text-primary-foreground/70">Portal exclusivo</div>
-          <h1 className="text-lg sm:text-xl font-extrabold break-words">{cliente?.nome}</h1>
+          <div className="text-[11px] uppercase tracking-widest text-muted-foreground">Portal exclusivo</div>
+          <h1 className="break-words text-lg font-bold tracking-tight text-foreground sm:text-xl">
+            {cliente?.nome}
+          </h1>
           {cliente?.plano && (
-            <div className="text-xs text-primary-foreground/70">Plano: {cliente.plano}</div>
+            <div className="text-xs text-muted-foreground">Plano: {cliente.plano}</div>
           )}
         </div>
-        <Button onClick={signOut} variant="ghost" size="sm" className="text-white hover:bg-primary-hover shrink-0">
-          <LogOut className="w-4 h-4 mr-1" /> Sair
+        <Button onClick={signOut} variant="outline" size="sm" className="shrink-0">
+          <LogOut className="mr-1 h-4 w-4" strokeWidth={1.6} /> Sair
         </Button>
       </header>
 
-      <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-4 sm:px-6">
+      <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-4 sm:px-6" aria-label="Seções do portal">
         {(
           [
             { k: "jornada", label: "Minha jornada", icon: Route2 },
