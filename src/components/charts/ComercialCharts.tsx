@@ -11,9 +11,6 @@ import {
   Tooltip,
 } from "recharts";
 import { ETAPA_COLS, brl, type LeadRow } from "@/components/Painel360";
-import { C } from "@/lib/ui-tokens";
-
-const SHADOW = "var(--shadow-card)";
 
 function ChartCard({ title, children }: { title: string; children: ReactNode }) {
   return (
