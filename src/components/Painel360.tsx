@@ -681,6 +681,71 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
   );
 }
 
+function AtencaoNecessariaCard({
+  clientes,
+  pipeline,
+  loading,
+}: {
+  clientes: ClienteRow[];
+  pipeline: PipelineStatusRow[];
+  loading: boolean;
+}) {
+  const itens = useMemo(() => {
+    const nome = new Map(clientes.map((c) => [c.id, c.nome]));
+    return pipeline
+      .filter((p) => p.status === "travado" || p.status === "nao_iniciado")
+      .filter((p) => nome.has(p.cliente_id))
+      .sort((a, b) => (a.status === "travado" ? -1 : 1) - (b.status === "travado" ? -1 : 1))
+      .map((p) => ({ ...p, nome: nome.get(p.cliente_id)! }));
+  }, [clientes, pipeline]);
+
+  return (
+    <Card>
+      <h3 className="font-extrabold text-lg mb-4">Atenção necessária</h3>
+      {loading ? (
+        <div className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-12 rounded-[10px] animate-pulse" style={{ background: "var(--muted)" }} />
+          ))}
+        </div>
+      ) : itens.length === 0 ? (
+        <div className="py-6 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>
+          Nenhuma pendência agora
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {itens.map((p) => {
+            const st = STATUS_STYLE[p.status];
+            return (
+              <Link
+                key={p.id}
+                to="/admin/clientes/$clienteId"
+                params={{ clienteId: p.cliente_id }}
+                search={{ tab: "pipeline" as const }}
+                className="flex items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 transition-colors hover:bg-muted"
+                style={{ border: "1px solid var(--border)" }}
+              >
+                <div className="min-w-0">
+                  <div className="font-semibold truncate">{p.nome}</div>
+                  <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    {ETAPA_LABEL[p.etapa]}
+                  </div>
+                </div>
+                <span
+                  className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold"
+                  style={{ background: st.bg, color: st.fg, border: `1px solid ${st.border}` }}
+                >
+                  {STATUS_LABEL[p.status]}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 type GCalEvent = {
   id: string;
   title: string;
