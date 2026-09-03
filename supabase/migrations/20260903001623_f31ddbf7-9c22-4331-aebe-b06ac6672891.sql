@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS public.social_accounts_cliente_view;
