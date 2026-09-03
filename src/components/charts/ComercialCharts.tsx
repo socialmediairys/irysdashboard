@@ -11,15 +11,11 @@ import {
   Tooltip,
 } from "recharts";
 import { ETAPA_COLS, brl, type LeadRow } from "@/components/Painel360";
-import { C } from "@/lib/ui-tokens";
-
-const SHADOW = "var(--shadow-card)";
 
 function ChartCard({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div
-      className="rounded-[18px] p-6 min-w-0"
-      style={{ background: "#fff", color: C.text, boxShadow: SHADOW }}
+      className="rounded-[18px] p-6 min-w-0 bg-card text-foreground shadow-card"
     >
       <h3 className="font-extrabold text-lg mb-4">{title}</h3>
       {children}
@@ -72,19 +68,19 @@ export function ComercialCharts({ leads }: { leads: LeadRow[] }) {
             <AreaChart data={areaData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="cmcArea" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={C.dark} stopOpacity={0.35} />
-                  <stop offset="100%" stopColor={C.dark} stopOpacity={0.02} />
+                  <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
-              <CartesianGrid stroke={C.beige} vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: C.textMid, fontSize: 12 }} axisLine={{ stroke: C.beige }} tickLine={false} />
-              <YAxis tick={{ fill: C.textMid, fontSize: 12 }} axisLine={{ stroke: C.beige }} tickLine={false} width={70} tickFormatter={(v: number) => brl(v)} />
+              <CartesianGrid stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="label" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={{ stroke: "var(--border)" }} tickLine={false} />
+              <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={{ stroke: "var(--border)" }} tickLine={false} width={70} tickFormatter={(v: number) => brl(v)} />
               <Tooltip
-                contentStyle={{ background: "#fff", border: `1px solid ${C.beige}`, borderRadius: 12, color: C.text }}
-                labelStyle={{ color: C.textMid, fontWeight: 700 }}
+                contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--foreground)" }}
+                labelStyle={{ color: "var(--muted-foreground)", fontWeight: 700 }}
                 formatter={(v: number) => [brl(v), "Em funil"]}
               />
-              <Area type="monotone" dataKey="valor" stroke={C.dark} strokeWidth={2} fill="url(#cmcArea)" />
+              <Area type="monotone" dataKey="valor" stroke="var(--primary)" strokeWidth={2} fill="url(#cmcArea)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -94,15 +90,15 @@ export function ComercialCharts({ leads }: { leads: LeadRow[] }) {
         <div style={{ width: "100%", height: 260 }}>
           <ResponsiveContainer>
             <BarChart data={barData} layout="vertical" margin={{ top: 8, right: 16, left: 20, bottom: 0 }}>
-              <CartesianGrid stroke={C.beige} horizontal={false} />
-              <XAxis type="number" tick={{ fill: C.textMid, fontSize: 12 }} axisLine={{ stroke: C.beige }} tickLine={false} allowDecimals={false} />
-              <YAxis type="category" dataKey="etapa" tick={{ fill: C.textMid, fontSize: 12 }} axisLine={{ stroke: C.beige }} tickLine={false} width={120} />
+              <CartesianGrid stroke="var(--border)" horizontal={false} />
+              <XAxis type="number" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={{ stroke: "var(--border)" }} tickLine={false} allowDecimals={false} />
+              <YAxis type="category" dataKey="etapa" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={{ stroke: "var(--border)" }} tickLine={false} width={120} />
               <Tooltip
-                contentStyle={{ background: "#fff", border: `1px solid ${C.beige}`, borderRadius: 12, color: C.text }}
-                labelStyle={{ color: C.textMid, fontWeight: 700 }}
+                contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--foreground)" }}
+                labelStyle={{ color: "var(--muted-foreground)", fontWeight: 700 }}
                 formatter={(v: number) => [v, "Leads"]}
               />
-              <Bar dataKey="qtd" fill={C.dark} radius={[0, 6, 6, 0]} />
+              <Bar dataKey="qtd" fill="var(--primary)" radius={[0, 6, 6, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

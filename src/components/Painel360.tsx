@@ -1581,22 +1581,20 @@ function FollowUpBadge({ date }: { date: string | null | undefined }) {
   const state = followUpState(date);
   if (state === "none") {
     return (
-      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold"
-        style={{ background: "#F1EDE6", color: "var(--muted-foreground)" }}>
+      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-secondary text-muted-foreground">
         Sem follow-up
       </span>
     );
   }
-  const styles: Record<string, { bg: string; fg: string; label: string }> = {
-    overdue: { bg: "#FEE2E2", fg: "#B91C1C", label: `Atrasado · ${fmtDateBR(date)}` },
-    today:   { bg: "#FEF3C7", fg: "#92400E", label: `Hoje · ${fmtDateBR(date)}` },
-    soon:    { bg: "#FEF9C3", fg: "#854D0E", label: `Em breve · ${fmtDateBR(date)}` },
-    future:  { bg: "#DCFCE7", fg: "#166534", label: fmtDateBR(date) },
+  const styles: Record<string, { cls: string; label: string }> = {
+    overdue: { cls: "bg-destructive-soft text-destructive", label: `Atrasado · ${fmtDateBR(date)}` },
+    today:   { cls: "bg-warning-soft text-warning", label: `Hoje · ${fmtDateBR(date)}` },
+    soon:    { cls: "bg-warning-soft text-warning", label: `Em breve · ${fmtDateBR(date)}` },
+    future:  { cls: "bg-success-soft text-success", label: fmtDateBR(date) },
   };
   const s = styles[state];
   return (
-    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold"
-      style={{ background: s.bg, color: s.fg }}>
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${s.cls}`}>
       {s.label}
     </span>
   );
@@ -1607,8 +1605,7 @@ function FollowUpBadge({ date }: { date: string | null | undefined }) {
 function KanbanCard({ lead, onEdit, onDelete, dragHandle }: any) {
   return (
     <div
-      className="rounded-[10px] bg-white p-3"
-      style={{ boxShadow: SHADOW }}
+      className="rounded-[10px] bg-card p-3 shadow-card"
     >
       <div className="flex items-start justify-between gap-2">
         <button
@@ -1617,10 +1614,10 @@ function KanbanCard({ lead, onEdit, onDelete, dragHandle }: any) {
           onClick={() => onEdit(lead)}
         >
           <div className="font-semibold text-sm truncate">{lead.nome}</div>
-          <div className="font-extrabold mt-1" style={{ color: "var(--muted-foreground)" }}>
+          <div className="font-extrabold mt-1 text-muted-foreground">
             {brl(Number(lead.valor) || 0)}
           </div>
-          <div className="text-[11px] mt-1" style={{ color: "var(--muted-foreground)" }}>
+          <div className="text-[11px] mt-1 text-muted-foreground">
             Último contato: {fmtDateBR(lead.ultimo_contato)}
           </div>
           <div className="mt-2">
@@ -1631,8 +1628,7 @@ function KanbanCard({ lead, onEdit, onDelete, dragHandle }: any) {
           <button
             type="button"
             aria-label="Arrastar"
-            className="cursor-grab active:cursor-grabbing rounded p-1 text-xs"
-            style={{ color: "var(--muted-foreground)" }}
+            className="cursor-grab active:cursor-grabbing rounded p-1 text-xs text-muted-foreground"
             {...dragHandle}
           >
             ⋮⋮
@@ -1641,8 +1637,7 @@ function KanbanCard({ lead, onEdit, onDelete, dragHandle }: any) {
             type="button"
             onClick={() => onDelete(lead)}
             aria-label="Excluir"
-            className="text-[10px]"
-            style={{ color: "#B91C1C" }}
+            className="text-[10px] text-destructive"
           >
             ✕
           </button>
@@ -1767,8 +1762,7 @@ export function CRMPage() {
       </div>
 
       {atrasados > 0 && (
-        <div className="mb-4 rounded-[12px] px-4 py-3 text-sm font-semibold"
-          style={{ background: "#FEE2E2", color: "#B91C1C" }}>
+        <div className="mb-4 rounded-[12px] px-4 py-3 text-sm font-semibold bg-destructive-soft text-destructive">
           ⚠ {atrasados} lead(s) com follow-up atrasado
         </div>
       )}
