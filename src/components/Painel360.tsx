@@ -692,7 +692,7 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
               ].map((c) => (
                 <button key={c.n} onClick={() => go(c.k)}
                   className="rounded-[10px] p-3 text-left transition-all hover:-translate-y-0.5 min-h-11"
-                  style={{ background: "var(--secondary)" }}>
+                  style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
                   <c.I size={18} strokeWidth={1.6} className="text-muted-foreground" />
                   <div className="text-sm font-bold mt-1">{c.n}</div>
                   <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>{c.s}</div>
