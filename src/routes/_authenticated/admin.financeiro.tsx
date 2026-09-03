@@ -352,7 +352,7 @@ function FinanceiroPage() {
         {aba === "contas_fixas" ? (
           contasFixas.length === 0 ? (
             <EmptyState
-              icon={Repeat}
+              icon={<Repeat size={24} strokeWidth={1.6} />}
               title="Nenhuma conta fixa cadastrada"
               description="Crie um lançamento marcado como recorrente para gerar contas fixas."
             />
@@ -400,7 +400,7 @@ function FinanceiroPage() {
           )
         ) : lista.length === 0 ? (
           <EmptyState
-            icon={CreditCard}
+            icon={<CreditCard size={24} strokeWidth={1.6} />}
             title="Sem lançamentos"
             description="Registre uma movimentação usando o formulário acima."
           />
