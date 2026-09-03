@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
       .select("role")
       .eq("user_id", userData.user.id);
     if (!roles?.some((r) => r.role === "admin")) {
-      throw redirect({ to: "/portal" });
+      throw redirect({ to: "/meu-portal" });
     }
   },
   component: AdminLayout,

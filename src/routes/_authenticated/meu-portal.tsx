@@ -4,8 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getMeuPortal } from "@/lib/portal-conteudos.functions";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, FileText, Route as Route2 } from "lucide-react";
 import { PortalRico, type ClientePortal, type Fase, type Topico, type Conteudo } from "@/components/PortalRico";
+import { PortalContratoSuporte } from "@/components/PortalContratoSuporte";
 
 export const Route = createFileRoute("/_authenticated/meu-portal")({
   head: () => ({
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/_authenticated/meu-portal")({
 
 function MeuPortalPage() {
   const navigate = useNavigate();
+  const [tab, setTab] = useState<"jornada" | "contrato">("jornada");
   const [cliente, setCliente] = useState<ClientePortal | null>(null);
   const [fases, setFases] = useState<Fase[]>([]);
   const [topicos, setTopicos] = useState<Topico[]>([]);
@@ -122,14 +124,40 @@ function MeuPortalPage() {
         </Button>
       </header>
 
+      <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-4 sm:px-6">
+        {(
+          [
+            { k: "jornada", label: "Minha jornada", icon: Route2 },
+            { k: "contrato", label: "Contrato & Suporte", icon: FileText },
+          ] as const
+        ).map(({ k, label, icon: Icon }) => (
+          <button
+            key={k}
+            onClick={() => setTab(k)}
+            className={`flex cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition ${
+              tab === k
+                ? "border-primary text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Icon className="h-4 w-4" strokeWidth={1.6} />
+            {label}
+          </button>
+        ))}
+      </nav>
+
       <main className="max-w-4xl mx-auto p-4 sm:p-6">
-        <PortalRico
-          cliente={cliente}
-          fases={fases}
-          topicos={topicos}
-          conteudos={conteudos}
-          variant="cliente"
-        />
+        {tab === "jornada" ? (
+          <PortalRico
+            cliente={cliente}
+            fases={fases}
+            topicos={topicos}
+            conteudos={conteudos}
+            variant="cliente"
+          />
+        ) : cliente?.id ? (
+          <PortalContratoSuporte clienteId={cliente.id} />
+        ) : null}
       </main>
     </div>
   );
