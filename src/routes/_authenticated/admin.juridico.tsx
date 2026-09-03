@@ -1,9 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText, Shield, Cookie, FileSignature, Download, Copy, Check } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { FileText, Shield, Cookie, FileSignature, Download, Copy, Check } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/juridico")({
   head: () => ({
@@ -352,28 +352,14 @@ function JuridicoPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-primary text-white px-6 py-4 flex items-center justify-between print:hidden">
-        <div className="flex items-center gap-3">
-          <Link
-            to="/admin/visao-geral"
-            className="text-primary-foreground/70 hover:text-white flex items-center gap-1 text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" /> Voltar
-          </Link>
-          <span className="text-muted-foreground">|</span>
-          <div>
-            <h1 className="text-lg font-bold">Jurídico</h1>
-            <p className="text-xs text-primary-foreground/70">
-              {EMPRESA.marca} · CNPJ {EMPRESA.cnpj}
-            </p>
-          </div>
-        </div>
-        <Badge className="bg-secondary text-foreground">v{EMPRESA.versao}</Badge>
-      </header>
+      <PageHeader
+        title="Jurídico"
+        description={`${EMPRESA.marca} · CNPJ ${EMPRESA.cnpj} · v${EMPRESA.versao}`}
+      />
 
-      <div className="max-w-6xl mx-auto p-6 grid gap-6 md:grid-cols-[260px_1fr]">
+      <div className="grid gap-6 md:grid-cols-[260px_1fr] print:hidden md:print:grid">
         <aside className="print:hidden">
-          <Card className="p-2 bg-white border-border">
+          <Card className="p-2 bg-card border-border shadow-card">
             {(Object.keys(DOCS) as DocKey[]).map((k) => {
               const D = DOCS[k];
               const I = D.icon;
@@ -389,7 +375,7 @@ function JuridicoPage() {
                   }`}
                 >
                   <I
-                    className={`w-4 h-4 mt-0.5 shrink-0 ${on ? "text-muted-foreground" : "text-muted-foreground"}`}
+                    strokeWidth={1.6} className={`w-4 h-4 mt-0.5 shrink-0 ${on ? "text-foreground" : "text-muted-foreground"}`}
                   />
                   <div className="min-w-0">
                     <p
@@ -404,7 +390,7 @@ function JuridicoPage() {
             })}
           </Card>
 
-          <Card className="p-4 mt-4 bg-white border-border">
+          <Card className="p-4 mt-4 bg-card border-border shadow-card">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">
               Dados da empresa
             </h3>
@@ -438,11 +424,11 @@ function JuridicoPage() {
         </aside>
 
         <main>
-          <Card className="p-8 bg-white border-border">
+          <Card className="p-8 bg-card border-border shadow-card">
             <div className="flex items-start justify-between gap-4 pb-6 border-b border-[var(--border)] print:border-none">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded bg-secondary flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-muted-foreground" />
+                  <Icon strokeWidth={1.6} className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-foreground">{doc.titulo}</h2>
@@ -454,12 +440,12 @@ function JuridicoPage() {
                   onClick={copiar}
                   variant="outline"
                   size="sm"
-                  className="border-primary text-muted-foreground hover:bg-secondary"
+                  className="border-border text-foreground hover:bg-secondary"
                 >
                   {copiado ? (
-                    <Check className="w-4 h-4 mr-1" />
+                    <Check strokeWidth={1.6} className="w-4 h-4 mr-1" />
                   ) : (
-                    <Copy className="w-4 h-4 mr-1" />
+                    <Copy strokeWidth={1.6} className="w-4 h-4 mr-1" />
                   )}
                   {copiado ? "Copiado" : "Copiar"}
                 </Button>
@@ -467,9 +453,9 @@ function JuridicoPage() {
                   onClick={baixar}
                   variant="outline"
                   size="sm"
-                  className="border-primary text-muted-foreground hover:bg-secondary"
+                  className="border-border text-foreground hover:bg-secondary"
                 >
-                  <Download className="w-4 h-4 mr-1" />
+                  <Download strokeWidth={1.6} className="w-4 h-4 mr-1" />
                   .md
                 </Button>
                 <Button
