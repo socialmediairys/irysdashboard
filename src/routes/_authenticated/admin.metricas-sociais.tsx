@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Trash2, ArrowLeft, TrendingUp } from "lucide-react";
-import { C } from "@/components/Painel360";
+import { C } from "@/lib/ui-tokens";
 
 export const Route = createFileRoute("/_authenticated/admin/metricas-sociais")({
   head: () => ({
