@@ -1,9 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText, Shield, Cookie, FileSignature, Download, Copy, Check } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { FileText, Shield, Cookie, FileSignature, Download, Copy, Check } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/juridico")({
   head: () => ({
