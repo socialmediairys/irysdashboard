@@ -51,6 +51,14 @@ import { ListState } from "@/components/ListState";
 import { ProfileTab } from "@/components/ProfileTab";
 import { IntegrationsTab } from "@/components/IntegrationsTab";
 import { AccountTab } from "@/components/AccountTab";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  ETAPA_LABEL,
+  STATUS_STYLE,
+  STATUS_LABEL,
+  currentMes,
+  type PipelineStatusRow,
+} from "@/lib/pipeline";
 
 
 
