@@ -10,7 +10,8 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-import { C, ETAPA_COLS, brl, type LeadRow } from "@/components/Painel360";
+import { ETAPA_COLS, brl, type LeadRow } from "@/components/Painel360";
+import { C } from "@/lib/ui-tokens";
 
 const SHADOW = "var(--shadow-card)";
 

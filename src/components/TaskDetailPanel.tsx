@@ -3,7 +3,7 @@ import { Loader2, Play, Pause, Square, Send, X, Plus, Check } from "lucide-react
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { C } from "@/components/Painel360";
+import { C } from "@/lib/ui-tokens";
 import { useClientes } from "@/components/crud/forms";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";

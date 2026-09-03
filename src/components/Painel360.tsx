@@ -171,23 +171,7 @@ const DB = {
 };
 
 
-/* ---------- tokens ---------- */
-/**
- * Legacy palette object, kept because 8 modules import it. The keys are the
- * old brown/gold names but the values now resolve to the indigo design system
- * tokens, so the gold is gone from the whole app at once.
- */
-export const C = {
-  dark: "var(--primary)",
-  mid: "var(--muted-foreground)",
-  gold: "var(--secondary)",
-  beige: "var(--border)",
-  beigeLight: "var(--secondary)",
-  bg: "var(--background)",
-  text: "var(--foreground)",
-  textMid: "var(--muted-foreground)",
-  textMuted: "var(--muted-foreground)",
-};
+/* ---------- tokens (neutral design system, see src/styles.css) ---------- */
 const SHADOW = "var(--shadow-card)";
 const SHADOW_HOVER = "var(--shadow-card-hover)";
 
@@ -195,18 +179,18 @@ export const brl = (n: number) => "R$ " + n.toLocaleString("pt-BR");
 
 /* ---------- shared atoms ---------- */
 function Eyebrow({ children }: { children: ReactNode }) {
-  return <div className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: C.textMid }}>{children}</div>;
+  return <div className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: "var(--muted-foreground)" }}>{children}</div>;
 }
 function H1({ children }: { children: ReactNode }) {
-  return <h1 className="text-4xl font-extrabold leading-tight mt-2" style={{ color: C.text, letterSpacing: "-0.03em" }}>{children}</h1>;
+  return <h1 className="text-4xl font-extrabold leading-tight mt-2" style={{ color: "var(--foreground)", letterSpacing: "-0.03em" }}>{children}</h1>;
 }
 export function Card({ children, dark = false, className = "", style }: { children: ReactNode; dark?: boolean; className?: string; style?: CSSProperties }) {
   return (
     <div
       className={`rounded-[18px] p-6 transition-all duration-150 ${className}`}
       style={{
-        background: dark ? C.dark : "#fff",
-        color: dark ? "#fff" : C.text,
+        background: dark ? "var(--primary)" : "var(--card)",
+        color: dark ? "var(--primary-foreground)" : "var(--foreground)",
         boxShadow: SHADOW,
         ...style,
       }}
@@ -219,9 +203,9 @@ export function Card({ children, dark = false, className = "", style }: { childr
 }
 export function PillBtn({ children, variant = "dark", onClick }: { children: ReactNode; variant?: "dark" | "ghost" | "gold"; onClick?: () => void }) {
   const styles: Record<string, CSSProperties> = {
-    dark:  { background: C.dark, color: "#fff" },
-    ghost: { background: "transparent", color: C.text, border: `1px solid ${C.beige}` },
-    gold:  { background: C.gold, color: C.text, border: `1px solid ${C.beige}` },
+    dark:  { background: "var(--primary)", color: "var(--primary-foreground)" },
+    ghost: { background: "transparent", color: "var(--foreground)", border: `1px solid var(--border)` },
+    gold:  { background: "var(--secondary)", color: "var(--foreground)", border: `1px solid var(--border)` },
   };
   return (
     <button onClick={onClick} className="rounded-[30px] px-5 py-2.5 text-sm font-semibold transition-all hover:-translate-y-0.5"
@@ -240,7 +224,7 @@ function LiveBadge({ label }: { label: string }) {
   );
 }
 function SectionLabel({ children }: { children: ReactNode }) {
-  return <div className="mb-3 text-xs font-bold uppercase tracking-[0.18em]" style={{ color: C.textMid }}>{children}</div>;
+  return <div className="mb-3 text-xs font-bold uppercase tracking-[0.18em]" style={{ color: "var(--muted-foreground)" }}>{children}</div>;
 }
 
 export const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
@@ -250,10 +234,10 @@ export const STATUS_COLORS: Record<string, { bg: string; fg: string }> = {
   proposta:   { bg: "var(--primary-soft)", fg: "var(--foreground)" },
   ativo:      { bg: "#D4EDDA", fg: "#1B5E20" },
   atencao:    { bg: "#FFE0B2", fg: "#A8431E" },
-  pendente:   { bg: C.beige, fg: C.dark },
+  pendente:   { bg: "var(--border)", fg: "var(--primary)" },
   done:       { bg: "#D4EDDA", fg: "#1B5E20" },
   buy:        { bg: "#FFE0B2", fg: "#A8431E" },
-  pend:       { bg: C.beige, fg: C.dark },
+  pend:       { bg: "var(--border)", fg: "var(--primary)" },
 };
 export function TagBadge({ label, variant }: { label: string; variant: string }) {
   const c = STATUS_COLORS[variant] ?? STATUS_COLORS.pendente;
@@ -265,15 +249,15 @@ const DOT_COLORS: Record<string, string> = {
   blue: "var(--muted-foreground)", purple: "var(--foreground)", gold: "var(--muted-foreground)",
 };
 function Dot({ color = "gold" }: { color?: string }) {
-  return <span className="h-2.5 w-2.5 rounded-full inline-block" style={{ background: DOT_COLORS[color] ?? C.gold }} />;
+  return <span className="h-2.5 w-2.5 rounded-full inline-block" style={{ background: DOT_COLORS[color] ?? "var(--secondary)" }} />;
 }
 
 function ProgressBar({ value, max, colorByPercent = false }: { value: number; max: number; colorByPercent?: boolean }) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
-  let color = C.dark;
-  if (colorByPercent) color = pct < 40 ? "var(--destructive)" : pct < 70 ? "var(--warning)" : C.dark;
+  let color = "var(--primary)";
+  if (colorByPercent) color = pct < 40 ? "var(--destructive)" : pct < 70 ? "var(--warning)" : "var(--primary)";
   return (
-    <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: C.beigeLight }}>
+    <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: "var(--secondary)" }}>
       <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
     </div>
   );
@@ -281,7 +265,7 @@ function ProgressBar({ value, max, colorByPercent = false }: { value: number; ma
 function GoldProgress({ pct }: { pct: number }) {
   return (
     <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.15)" }}>
-      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: C.dark }} />
+      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "var(--primary)" }} />
     </div>
   );
 }
@@ -290,15 +274,14 @@ function GoldProgress({ pct }: { pct: number }) {
 export function MetricCard({ variant = "default", value, label, delta, deltaType = "up" }: {
   variant?: "default" | "hero" | "accent"; value: ReactNode; label: string; delta?: string; deltaType?: "up" | "down" | "neutral";
 }) {
-  const dark = variant === "hero";
-  const accent = variant === "accent";
-  const bg = dark ? C.dark : accent ? C.beigeLight : "#fff";
-  const fg = dark ? "#fff" : C.text;
-  const labelColor = dark ? "rgba(255,255,255,0.7)" : C.textMid;
+  void variant; // variants kept for API compat; all cards use the neutral surface
+  const bg = "var(--card)";
+  const fg = "var(--foreground)";
+  const labelColor = "var(--muted-foreground)";
   const deltaColor = deltaType === "down" ? "var(--destructive)" : deltaType === "up" ? "var(--success)" : labelColor;
   return (
     <div className="rounded-[18px] p-4 sm:p-6 transition-all duration-150 hover:-translate-y-0.5 min-w-0"
-      style={{ background: bg, color: fg, boxShadow: SHADOW }}>
+      style={{ background: bg, color: fg, boxShadow: SHADOW, border: "1px solid var(--border)" }}>
       <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.14em] sm:tracking-[0.18em] break-words" style={{ color: labelColor }}>{label}</div>
       <div className="mt-2 sm:mt-3 text-2xl sm:text-4xl font-extrabold break-words" style={{ letterSpacing: "-0.03em" }}>{value}</div>
       {delta && <div className="mt-2 text-xs font-semibold break-words" style={{ color: deltaColor }}>{delta}</div>}
@@ -315,9 +298,9 @@ export function PageHeader({ eyebrow, title, accent, actions, badges }: {
     <div className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6">
       <div className="min-w-0">
         <Eyebrow>{eyebrow}</Eyebrow>
-        <h1 className="text-2xl md:text-4xl font-extrabold leading-tight mt-2" style={{ color: C.text, letterSpacing: "-0.03em" }}>
+        <h1 className="text-2xl md:text-4xl font-extrabold leading-tight mt-2" style={{ color: "var(--foreground)", letterSpacing: "-0.03em" }}>
           {title}{" "}
-          {accent && <em className="not-italic" style={{ color: C.textMuted, fontStyle: "italic", fontWeight: 500 }}>{accent}</em>}
+          {accent && <em className="not-italic" style={{ color: "var(--muted-foreground)", fontStyle: "italic", fontWeight: 500 }}>{accent}</em>}
         </h1>
         {badges && <div className="mt-3 md:mt-4 flex gap-2 flex-wrap">{badges}</div>}
       </div>
@@ -593,7 +576,7 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
           <Card>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-extrabold text-lg">CRM — Leads ativos</h3>
-              <button onClick={() => go("crm")} className="text-xs font-bold uppercase tracking-wider" style={{ color: C.mid }}>ver CRM →</button>
+              <button onClick={() => go("crm")} className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>ver CRM →</button>
             </div>
             <ListState
               loading={leadsQ.loading}
@@ -609,17 +592,17 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
             >
               <div className="space-y-3">
                 {leadsTop.map((l) => (
-                  <div key={l.id} className="flex items-center justify-between rounded-[10px] p-3" style={{ background: C.beigeLight }}>
+                  <div key={l.id} className="flex items-center justify-between rounded-[10px] p-3" style={{ background: "var(--secondary)" }}>
                     <div className="flex items-center gap-3 min-w-0">
                       <Dot color={l.etapa === "Negociando" ? "amber" : l.etapa === "Proposta Enviada" ? "purple" : "blue"} />
                       <div className="min-w-0">
                         <div className="font-semibold truncate">{l.nome}</div>
-                        <div className="text-xs truncate" style={{ color: C.textMid }}>{(l.origem ?? "—")} · {(l.potencial ?? "—")}</div>
+                        <div className="text-xs truncate" style={{ color: "var(--muted-foreground)" }}>{(l.origem ?? "—")} · {(l.potencial ?? "—")}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <TagBadge label={l.etapa} variant="frio" />
-                      <span className="font-extrabold" style={{ color: C.mid }}>{brl(Number(l.valor) || 0)}</span>
+                      <span className="font-extrabold" style={{ color: "var(--muted-foreground)" }}>{brl(Number(l.valor) || 0)}</span>
                     </div>
                   </div>
                 ))}
@@ -654,7 +637,7 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
                       </div>
                     </div>
                     <span className="rounded-full px-2.5 py-1 text-[11px] font-bold uppercase"
-                      style={{ background: e.prioridade === "alta" ? "var(--destructive)" : "rgba(255,255,255,0.15)", color: "#fff" }}>
+                      style={{ background: e.prioridade === "alta" ? "var(--destructive)" : "rgba(255,255,255,0.15)", color: "var(--primary-foreground)" }}>
                       {e.prioridade === "alta" ? "Urgente" : "Hoje"}
                     </span>
                   </div>
@@ -686,7 +669,7 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
                   <div key={c.id}>
                     <div className="flex justify-between text-sm mb-1.5">
                       <span className="font-semibold truncate pr-2">{c.name}</span>
-                      <span style={{ color: C.textMid }}>{c.feitos}/{c.total || 0}</span>
+                      <span style={{ color: "var(--muted-foreground)" }}>{c.feitos}/{c.total || 0}</span>
                     </div>
                     <ProgressBar value={c.feitos} max={Math.max(1, c.total)} colorByPercent />
                   </div>
@@ -709,10 +692,10 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
               ].map((c) => (
                 <button key={c.n} onClick={() => go(c.k)}
                   className="rounded-[10px] p-3 text-left transition-all hover:-translate-y-0.5 min-h-11"
-                  style={{ background: C.beigeLight }}>
+                  style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
                   <c.I size={18} strokeWidth={1.6} className="text-muted-foreground" />
                   <div className="text-sm font-bold mt-1">{c.n}</div>
-                  <div className="text-[11px]" style={{ color: C.textMid }}>{c.s}</div>
+                  <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>{c.s}</div>
                 </button>
               ))}
             </div>
@@ -846,7 +829,7 @@ function AgendaPage() {
       {!status?.connected && !loading && !error && (
         <Card>
           <h3 className="font-extrabold text-lg mb-2">Conecte sua conta do Google</h3>
-          <p className="text-sm mb-4" style={{ color: C.textMid }}>
+          <p className="text-sm mb-4" style={{ color: "var(--muted-foreground)" }}>
             Autorize o acesso ao seu Google Calendar para ver e organizar seus compromissos aqui. Somente você vê seus eventos — os tokens ficam vinculados ao seu usuário.
           </p>
           <PillBtn onClick={handleConnect}>
@@ -856,31 +839,31 @@ function AgendaPage() {
       )}
 
       {loading && (
-        <Card><div className="text-sm" style={{ color: C.textMid }}>Carregando agenda...</div></Card>
+        <Card><div className="text-sm" style={{ color: "var(--muted-foreground)" }}>Carregando agenda...</div></Card>
       )}
 
       {status?.connected && !loading && (
         <>
           {status.email && (
-            <div className="mb-4 text-xs" style={{ color: C.textMid }}>Conta conectada: <b>{status.email}</b></div>
+            <div className="mb-4 text-xs" style={{ color: "var(--muted-foreground)" }}>Conta conectada: <b>{status.email}</b></div>
           )}
           <div className="grid grid-cols-2 gap-5 mb-6">
             <Card>
               <h3 className="font-extrabold text-lg mb-4">Hoje — {today.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" })}</h3>
               {hoje.length === 0 ? (
-                <div className="text-sm" style={{ color: C.textMid }}>Nenhum evento hoje.</div>
+                <div className="text-sm" style={{ color: "var(--muted-foreground)" }}>Nenhum evento hoje.</div>
               ) : (
                 <div className="space-y-3">
                   {hoje.map((e) => (
                     <div key={e.id} className="flex gap-4 items-stretch">
                       <div className="min-w-[72px]">
                         <div className="font-extrabold">{fmtTime(e.start, e.allDay)}</div>
-                        <div className="text-xs" style={{ color: C.textMid }}>{fmtTime(e.end, e.allDay)}</div>
+                        <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{fmtTime(e.end, e.allDay)}</div>
                       </div>
                       <div className="w-[3px] rounded-full" style={{ background: DOT_COLORS.blue }} />
                       <div className="flex-1 min-w-0">
                         <div className="font-bold truncate">{e.title}</div>
-                        {e.location && <div className="text-xs truncate" style={{ color: C.textMid }}>{e.location}</div>}
+                        {e.location && <div className="text-xs truncate" style={{ color: "var(--muted-foreground)" }}>{e.location}</div>}
                       </div>
                       {e.htmlLink && (
                         <a href={e.htmlLink} target="_blank" rel="noreferrer" className="self-center text-xs">
@@ -1438,14 +1421,14 @@ function ClientesPage() {
             <a
               href="/admin/cadastros"
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border"
-              style={{ borderColor: C.mid, color: C.mid }}
+              style={{ borderColor: "var(--muted-foreground)", color: "var(--muted-foreground)" }}
             >
               <Users size={14} /> Cadastros pendentes
             </a>
             <a
               href="/admin/portal-conteudos"
               className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border"
-              style={{ borderColor: C.mid, color: C.mid }}
+              style={{ borderColor: "var(--muted-foreground)", color: "var(--muted-foreground)" }}
             >
               <FolderOpen size={14} /> Gerenciar portais (todos)
             </a>
@@ -1479,10 +1462,10 @@ function ClientesPage() {
                   aria-label={`Abrir perfil de ${c.nome}`}
                 >
                   <div className="flex h-12 w-12 items-center justify-center rounded-[10px] font-extrabold text-base flex-shrink-0"
-                    style={{ background: C.beige, color: C.dark }}>{c.init || initialsOf(c.nome)}</div>
+                    style={{ background: "var(--border)", color: "var(--primary)" }}>{c.init || initialsOf(c.nome)}</div>
                   <div className="min-w-0 flex-1">
                     <div className="font-extrabold truncate group-hover:underline">{c.nome}</div>
-                    <div className="text-xs truncate" style={{ color: C.textMid }}>
+                    <div className="text-xs truncate" style={{ color: "var(--muted-foreground)" }}>
                       {c.plano_label || c.plano_atual || "Serviço não definido"}
                     </div>
                   </div>
@@ -1495,11 +1478,11 @@ function ClientesPage() {
 
               <div className="mt-4 flex items-end justify-between gap-3 flex-wrap">
                 <div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: C.textMuted }}>
+                  <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
                     Valor mensal
                   </div>
-                  <div className="text-lg font-extrabold" style={{ color: C.mid }}>
-                    {brl(Number(c.valor_mensal) || 0)}<span className="text-xs font-semibold" style={{ color: C.textMuted }}>/mês</span>
+                  <div className="text-lg font-extrabold" style={{ color: "var(--muted-foreground)" }}>
+                    {brl(Number(c.valor_mensal) || 0)}<span className="text-xs font-semibold" style={{ color: "var(--muted-foreground)" }}>/mês</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
@@ -1509,14 +1492,14 @@ function ClientesPage() {
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 flex items-center justify-between gap-2" style={{ borderTop: `1px solid ${C.beigeLight}` }}>
-                <span className="text-[11px] font-semibold" style={{ color: C.textMuted }}>Portal do cliente</span>
+              <div className="mt-4 pt-3 flex items-center justify-between gap-2" style={{ borderTop: `1px solid var(--secondary)` }}>
+                <span className="text-[11px] font-semibold" style={{ color: "var(--muted-foreground)" }}>Portal do cliente</span>
                 <Link
                   to="/admin/clientes/$clienteId"
                   params={{ clienteId: c.id }}
                   search={{ tab: "dados" as const }}
                   className="inline-flex items-center gap-1 text-xs font-bold hover:underline"
-                  style={{ color: C.mid }}
+                  style={{ color: "var(--muted-foreground)" }}
                 >
                   Ver detalhes <ArrowRight size={12} />
                 </Link>
@@ -1531,7 +1514,7 @@ function ClientesPage() {
               <div key={c.id}>
                 <div className="flex justify-between text-sm mb-1.5">
                   <span className="font-semibold truncate pr-2">{c.nome}</span>
-                  <span className="font-extrabold shrink-0" style={{ color: C.mid }}>{brl(Number(c.valor_mensal) || 0)}</span>
+                  <span className="font-extrabold shrink-0" style={{ color: "var(--muted-foreground)" }}>{brl(Number(c.valor_mensal) || 0)}</span>
                 </div>
                 <ProgressBar value={Number(c.valor_mensal) || 0} max={maxVal} />
               </div>
@@ -1599,7 +1582,7 @@ function FollowUpBadge({ date }: { date: string | null | undefined }) {
   if (state === "none") {
     return (
       <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold"
-        style={{ background: "#F1EDE6", color: C.textMid }}>
+        style={{ background: "#F1EDE6", color: "var(--muted-foreground)" }}>
         Sem follow-up
       </span>
     );
@@ -1634,10 +1617,10 @@ function KanbanCard({ lead, onEdit, onDelete, dragHandle }: any) {
           onClick={() => onEdit(lead)}
         >
           <div className="font-semibold text-sm truncate">{lead.nome}</div>
-          <div className="font-extrabold mt-1" style={{ color: C.mid }}>
+          <div className="font-extrabold mt-1" style={{ color: "var(--muted-foreground)" }}>
             {brl(Number(lead.valor) || 0)}
           </div>
-          <div className="text-[11px] mt-1" style={{ color: C.textMuted }}>
+          <div className="text-[11px] mt-1" style={{ color: "var(--muted-foreground)" }}>
             Último contato: {fmtDateBR(lead.ultimo_contato)}
           </div>
           <div className="mt-2">
@@ -1649,7 +1632,7 @@ function KanbanCard({ lead, onEdit, onDelete, dragHandle }: any) {
             type="button"
             aria-label="Arrastar"
             className="cursor-grab active:cursor-grabbing rounded p-1 text-xs"
-            style={{ color: C.textMid }}
+            style={{ color: "var(--muted-foreground)" }}
             {...dragHandle}
           >
             ⋮⋮
@@ -1695,19 +1678,19 @@ function DroppableColumn({ etapa, items, children }: any) {
     <div
       ref={setNodeRef}
       className="rounded-[12px] p-3 flex flex-col min-h-[280px]"
-      style={{ background: isOver ? "#F7F0E0" : C.beigeLight, transition: "background 120ms" }}
+      style={{ background: isOver ? "var(--primary-soft)" : "var(--secondary)", transition: "background 120ms" }}
     >
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-wider" style={{ color: C.textMid }}>
+        <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
           {etapa}
         </span>
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#fff", color: C.textMid }}>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "var(--card)", color: "var(--muted-foreground)" }}>
           {items.length} · {brl(totalValor)}
         </span>
       </div>
       <div className="space-y-2 flex-1">
         {items.length === 0 && (
-          <div className="text-xs italic text-center py-6" style={{ color: C.textMuted }}>
+          <div className="text-xs italic text-center py-6" style={{ color: "var(--muted-foreground)" }}>
             Solte um card aqui
           </div>
         )}
@@ -1882,12 +1865,12 @@ function FinancasPage() {
           <Card>
             <h3 className="font-extrabold text-lg mb-4">Entradas do mês</h3>
             <div className="space-y-2">
-              {entradas.length === 0 && <div className="text-sm italic" style={{ color: C.textMuted }}>Nenhuma entrada.</div>}
+              {entradas.length === 0 && <div className="text-sm italic" style={{ color: "var(--muted-foreground)" }}>Nenhuma entrada.</div>}
               {entradas.map((e) => (
-                <div key={e.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                <div key={e.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: "var(--secondary)" }}>
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold truncate">{e.descricao}</div>
-                    <div className="text-xs" style={{ color: C.textMid }}>{catLabel(e)} · {e.status_pagamento}</div>
+                    <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{catLabel(e)} · {e.status_pagamento}</div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <div className="font-extrabold" style={{ color: "var(--success)" }}>+{brl(Number(e.valor))}</div>
@@ -1900,12 +1883,12 @@ function FinancasPage() {
           <Card>
             <h3 className="font-extrabold text-lg mb-4">Saídas do mês</h3>
             <div className="space-y-2">
-              {saidas.length === 0 && <div className="text-sm italic" style={{ color: C.textMuted }}>Nenhuma saída.</div>}
+              {saidas.length === 0 && <div className="text-sm italic" style={{ color: "var(--muted-foreground)" }}>Nenhuma saída.</div>}
               {saidas.map((e) => (
-                <div key={e.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                <div key={e.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: "var(--secondary)" }}>
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold truncate">{e.descricao}</div>
-                    <div className="text-xs" style={{ color: C.textMid }}>{catLabel(e)} · {e.status_pagamento}</div>
+                    <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{catLabel(e)} · {e.status_pagamento}</div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <div className="font-extrabold" style={{ color: "var(--destructive)" }}>-{brl(Number(e.valor))}</div>
@@ -2099,19 +2082,19 @@ function SocialPage() {
           <Card>
             <h3 className="font-extrabold text-lg mb-4">Posts com melhor desempenho — {networkLabel}</h3>
             {network !== "instagram" ? (
-              <div className="text-sm py-6 text-center" style={{ color: C.textMuted }}>Integração em breve</div>
+              <div className="text-sm py-6 text-center" style={{ color: "var(--muted-foreground)" }}>Integração em breve</div>
             ) : igLoading ? (
-              <div className="text-sm py-6 text-center" style={{ color: C.textMuted }}>Carregando...</div>
+              <div className="text-sm py-6 text-center" style={{ color: "var(--muted-foreground)" }}>Carregando...</div>
             ) : insights?.postsInsightsError ? (
               <div className="text-sm py-6 text-center text-destructive">{insights.postsInsightsError}</div>
             ) : topPosts.length === 0 ? (
-              <div className="text-sm py-6 text-center" style={{ color: C.textMuted }}>Sem posts disponíveis no período.</div>
+              <div className="text-sm py-6 text-center" style={{ color: "var(--muted-foreground)" }}>Sem posts disponíveis no período.</div>
             ) : (
               <div className="space-y-3">
                 {topPosts.map((p) => {
                   const title = (p.caption ?? "").trim().split("\n")[0].slice(0, 60) || "Publicação sem legenda";
                   const content = (
-                    <div className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+                    <div className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: "var(--secondary)" }}>
                       <div className="flex items-center gap-3 min-w-0">
                         <Dot color="gold" />
                         <span className="font-semibold truncate">{title}</span>
@@ -2159,7 +2142,7 @@ function SocialPage() {
                       <div className="font-semibold text-sm">{m.n}</div>
                       <div className="text-xs opacity-70">{igLoading && i < 2 ? "Carregando..." : m.s}</div>
                     </div>
-                    <span className="rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: C.gold, color: C.dark }}>
+                    <span className="rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "var(--secondary)", color: "var(--primary)" }}>
                       {m.p != null ? `${m.p}%` : "—"}
                     </span>
                   </div>
@@ -2174,7 +2157,7 @@ function SocialPage() {
       <Card>
         <h3 className="font-extrabold text-lg mb-4">Calendário editorial</h3>
         <table className="w-full text-sm">
-          <thead><tr className="text-left text-xs uppercase tracking-wider" style={{ color: C.textMid }}>
+          <thead><tr className="text-left text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
             <th className="py-2">Conteúdo</th><th>Cliente</th><th>Rede</th><th>Data</th><th>Status</th>
           </tr></thead>
           <tbody>
@@ -2184,9 +2167,9 @@ function SocialPage() {
               { c:"Story bastidores", cl:"Beatriz Abel", r:"Instagram", d:"28 Jun", s:"ativo" },
               { c:"Post depoimento", cl:"Unaessential", r:"Facebook", d:"29 Jun", s:"atencao" },
             ].map((p, i) => (
-              <tr key={i} className="border-t" style={{ borderColor: C.beigeLight }}>
+              <tr key={i} className="border-t" style={{ borderColor: "var(--secondary)" }}>
                 <td className="py-3 font-semibold">{p.c}</td><td>{p.cl}</td><td>{p.r}</td>
-                <td style={{ color: C.textMid }}>{p.d}</td><td><TagBadge label={StatusLabel(p.s)} variant={p.s} /></td>
+                <td style={{ color: "var(--muted-foreground)" }}>{p.d}</td><td><TagBadge label={StatusLabel(p.s)} variant={p.s} /></td>
               </tr>
             ))}
           </tbody>
@@ -2235,28 +2218,28 @@ function EstrategiaPage() {
             return (
               <Card key={e.id}>
                 <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg" style={{ background: C.beige, color: C.dark }}>
+                  <div className="flex h-14 w-14 items-center justify-center rounded-[10px] font-extrabold text-lg" style={{ background: "var(--border)", color: "var(--primary)" }}>
                     {cli ? (cli.init || initialsOf(cli.nome)) : "?"}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="font-extrabold truncate">{cli?.nome ?? "Cliente desconhecido"}</div>
-                    <div className="text-xs" style={{ color: C.textMid }}>{cli?.plano_label || cli?.plano_atual || "—"}</div>
+                    <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>{cli?.plano_label || cli?.plano_atual || "—"}</div>
                   </div>
                   <RowActions onEdit={() => openEdit("estrategia", e)} onDelete={() => openDelete("estrategia", e)} />
                 </div>
                 <div className="mt-4 space-y-1.5 text-sm">
-                  <div className="flex justify-between gap-2"><span style={{ color: C.textMid }}>Pilares</span><span className="font-semibold text-right truncate">{pilares.join(" · ") || "—"}</span></div>
-                  <div className="flex justify-between"><span style={{ color: C.textMid }}>Entregáveis</span><span className="font-semibold">{e.qtd_entregaveis}/mês</span></div>
-                  <div className="flex justify-between gap-2"><span style={{ color: C.textMid }}>Formato</span><span className="font-semibold text-right truncate">{formatos.join(" · ") || "—"}</span></div>
+                  <div className="flex justify-between gap-2"><span style={{ color: "var(--muted-foreground)" }}>Pilares</span><span className="font-semibold text-right truncate">{pilares.join(" · ") || "—"}</span></div>
+                  <div className="flex justify-between"><span style={{ color: "var(--muted-foreground)" }}>Entregáveis</span><span className="font-semibold">{e.qtd_entregaveis}/mês</span></div>
+                  <div className="flex justify-between gap-2"><span style={{ color: "var(--muted-foreground)" }}>Formato</span><span className="font-semibold text-right truncate">{formatos.join(" · ") || "—"}</span></div>
                 </div>
-                {e.objetivo && <div className="mt-3 text-xs" style={{ color: C.textMid }}>{e.objetivo}</div>}
+                {e.objetivo && <div className="mt-3 text-xs" style={{ color: "var(--muted-foreground)" }}>{e.objetivo}</div>}
               </Card>
             );
           })}
           <button
             onClick={() => openCreate("estrategia")}
             className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center transition-all hover:-translate-y-0.5 min-h-[180px]"
-            style={{ borderColor: C.beige, color: C.textMid }}
+            style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
           >
             <Plus size={28} />
             <div className="mt-2 font-semibold">Nova estratégia</div>
@@ -2320,7 +2303,7 @@ function OficinaPage() {
               const dark = i % 2 === 0;
               return (
                 <Card key={t.id} dark={dark}>
-                  <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: dark ? "rgba(255,255,255,0.72)" : C.mid }}>
+                  <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: dark ? "rgba(255,255,255,0.72)" : "var(--muted-foreground)" }}>
                     {t.tipo}{cli ? ` · ${cli.nome}` : ""}
                   </div>
                   <div className="mt-2 font-extrabold text-lg leading-snug break-words">{t.titulo}</div>
@@ -2347,14 +2330,14 @@ function OficinaPage() {
         >
           {/* Desktop table */}
           <table className="hidden md:table w-full text-sm">
-            <thead><tr className="text-left text-xs uppercase tracking-wider" style={{ color: C.textMid }}>
+            <thead><tr className="text-left text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
               <th className="py-2">Conteúdo</th><th>Cliente</th><th>Formato</th><th>Status</th><th></th>
             </tr></thead>
             <tbody>
               {tarefas.map((t) => {
                 const cli = t.cliente_id ? clienteMap.get(t.cliente_id) : null;
                 return (
-                  <tr key={t.id} className="border-t" style={{ borderColor: C.beigeLight }}>
+                  <tr key={t.id} className="border-t" style={{ borderColor: "var(--secondary)" }}>
                     <td className="py-3 font-semibold">{t.titulo}</td>
                     <td>{cli?.nome ?? "—"}</td>
                     <td>{t.tipo}</td>
@@ -2370,10 +2353,10 @@ function OficinaPage() {
             {tarefas.map((t) => {
               const cli = t.cliente_id ? clienteMap.get(t.cliente_id) : null;
               return (
-                <div key={t.id} className="rounded-[10px] p-3 flex items-start justify-between gap-2" style={{ background: C.beigeLight }}>
+                <div key={t.id} className="rounded-[10px] p-3 flex items-start justify-between gap-2" style={{ background: "var(--secondary)" }}>
                   <div className="min-w-0">
                     <div className="font-semibold truncate">{t.titulo}</div>
-                    <div className="text-xs mt-1" style={{ color: C.textMid }}>{t.tipo}{cli ? ` · ${cli.nome}` : ""}</div>
+                    <div className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>{t.tipo}{cli ? ` · ${cli.nome}` : ""}</div>
                     <div className="mt-2"><TagBadge label={t.status} variant={statusVariant(t.status)} /></div>
                   </div>
                   <RowActions onEdit={() => openEdit("tarefa", t)} onDelete={() => openDelete("tarefa", t)} />
@@ -2420,12 +2403,12 @@ function SwipePage() {
             <Card key={r.id}>
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: C.mid }}>{r.categoria}</div>
+                  <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>{r.categoria}</div>
                   <a href={r.url} target="_blank" rel="noopener noreferrer" className="mt-2 font-extrabold text-lg block truncate hover:underline">
                     {r.titulo}
                   </a>
-                  {r.descricao && <div className="mt-1 text-xs" style={{ color: C.textMid }}>{r.descricao}</div>}
-                  <a href={r.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs" style={{ color: C.mid }}>
+                  {r.descricao && <div className="mt-1 text-xs" style={{ color: "var(--muted-foreground)" }}>{r.descricao}</div>}
+                  <a href={r.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs" style={{ color: "var(--muted-foreground)" }}>
                     Abrir <ExternalLink size={12} />
                   </a>
                 </div>
@@ -2436,7 +2419,7 @@ function SwipePage() {
           <button
             onClick={() => openCreate("referencia")}
             className="rounded-[18px] border-2 border-dashed flex flex-col items-center justify-center p-6 text-center min-h-[160px]"
-            style={{ borderColor: C.beige, color: C.textMid }}
+            style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}
           >
             <Plus size={28} /><div className="mt-2 font-semibold">Adicionar referência</div>
           </button>
@@ -2477,7 +2460,7 @@ function PromptsPage() {
     <Card key={p.id}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: C.mid }}>{p.categoria}</div>
+          <div className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>{p.categoria}</div>
           <div className="mt-2 font-extrabold text-lg break-words">{p.titulo}</div>
           <div className="mt-2 text-sm opacity-80 overflow-hidden whitespace-pre-wrap" style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical" }}>
             {p.conteudo}
@@ -2488,7 +2471,7 @@ function PromptsPage() {
             onClick={() => copyPrompt(p.conteudo)}
             className="rounded-lg p-2 hover:bg-black/5 transition-colors"
             aria-label="Copiar prompt" title="Copiar"
-            style={{ color: C.mid }}
+            style={{ color: "var(--muted-foreground)" }}
           >
             <Copy size={16} />
           </button>
@@ -2566,12 +2549,12 @@ function FerramentasPage() {
         >
           <div className="space-y-3">
             {ferramentasDb.map((f) => (
-              <div key={f.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: C.beigeLight }}>
+              <div key={f.id} className="flex items-center justify-between p-3 rounded-[10px]" style={{ background: "var(--secondary)" }}>
                 <a href={f.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 min-w-0 flex-1 hover:opacity-80">
                   <span className="text-xl">🔧</span>
                   <div className="min-w-0">
                     <div className="font-semibold truncate">{f.nome}</div>
-                    <div className="text-xs" style={{ color: C.textMid }}>
+                    <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>
                       {f.categoria}{Number(f.custo_mensal) > 0 ? ` · ${brl(Number(f.custo_mensal))}/mês` : " · grátis"}
                     </div>
                   </div>
@@ -2617,12 +2600,12 @@ function CentralClientePage({ selectedId, setSelectedId, enterPortal }: {
                 <button key={c.id} onClick={() => setSelectedId(c.id)}
                   className="flex items-center gap-2 rounded-[30px] px-3 py-2 text-sm font-semibold transition-all"
                   style={{
-                    background: active ? C.dark : "#fff",
-                    color: active ? "#fff" : C.text,
-                    border: `1px solid ${active ? C.dark : C.beige}`,
+                    background: active ? "var(--primary)" : "var(--card)",
+                    color: active ? "var(--primary-foreground)" : "var(--foreground)",
+                    border: `1px solid ${active ? "var(--primary)" : "var(--border)"}`,
                   }}>
                   <span className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-extrabold"
-                    style={{ background: active ? C.gold : C.beigeLight, color: C.dark }}>{c.init}</span>
+                    style={{ background: active ? "var(--secondary)" : "var(--secondary)", color: "var(--primary)" }}>{c.init}</span>
                   {c.name}
                 </button>
               );
@@ -2634,7 +2617,7 @@ function CentralClientePage({ selectedId, setSelectedId, enterPortal }: {
 
       <Card>
         <SectionLabel>Preview do portal — {cliente.name}</SectionLabel>
-        <p className="text-sm" style={{ color: C.textMid }}>
+        <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
           Clique em <strong>Abrir Visão Cliente</strong> para simular exatamente o que <strong>{cliente.name}</strong> enxerga no Notion: vídeo de boas-vindas, 6 fases da parceria, 8 áudios de alinhamento, escopo, banco de insights, jornada de compra e bloqueadores de crescimento.
         </p>
         <div className="grid grid-cols-4 gap-4 mt-5">
@@ -2644,9 +2627,9 @@ function CentralClientePage({ selectedId, setSelectedId, enterPortal }: {
             { t: `${portal.audios.length} áudios`, s: "Player de dinâmica" },
             { t: `${portal.bloqueadores.length} cards`, s: "Bloqueadores de crescimento" },
           ].map((x, i) => (
-            <div key={i} className="p-4 rounded-[14px]" style={{ background: C.beigeLight }}>
-              <div className="text-2xl font-extrabold" style={{ color: C.dark }}>{x.t}</div>
-              <div className="text-xs mt-1" style={{ color: C.textMid }}>{x.s}</div>
+            <div key={i} className="p-4 rounded-[14px]" style={{ background: "var(--secondary)" }}>
+              <div className="text-2xl font-extrabold" style={{ color: "var(--primary)" }}>{x.t}</div>
+              <div className="text-xs mt-1" style={{ color: "var(--muted-foreground)" }}>{x.s}</div>
             </div>
           ))}
         </div>
@@ -2670,20 +2653,20 @@ function AudioPlayer({ id, title, desc, duration, activeId, setActiveId }: {
   useEffect(() => { if (!isPlaying) setProgress(0); }, [isPlaying]);
 
   return (
-    <div className="rounded-[14px] p-4 flex items-center gap-4" style={{ background: "#fff", boxShadow: SHADOW }}>
+    <div className="rounded-[14px] p-4 flex items-center gap-4" style={{ background: "var(--card)", boxShadow: SHADOW }}>
       <button onClick={() => setActiveId(isPlaying ? null : id)}
         className="h-12 w-12 rounded-full flex items-center justify-center shrink-0 transition-transform hover:scale-105"
-        style={{ background: C.dark, color: "#fff" }}>
+        style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
         {isPlaying ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
       </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-3">
-          <div className="font-semibold truncate" style={{ color: C.text }}>{title}</div>
-          <div className="text-xs font-bold tabular-nums" style={{ color: C.textMid }}>{duration}</div>
+          <div className="font-semibold truncate" style={{ color: "var(--foreground)" }}>{title}</div>
+          <div className="text-xs font-bold tabular-nums" style={{ color: "var(--muted-foreground)" }}>{duration}</div>
         </div>
-        <div className="text-xs mt-0.5 mb-2 line-clamp-1" style={{ color: C.textMid }}>{desc}</div>
-        <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: C.beigeLight }}>
-          <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: C.dark }} />
+        <div className="text-xs mt-0.5 mb-2 line-clamp-1" style={{ color: "var(--muted-foreground)" }}>{desc}</div>
+        <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ background: "var(--secondary)" }}>
+          <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: "var(--primary)" }} />
         </div>
       </div>
     </div>
@@ -2695,27 +2678,27 @@ function FaseAccordion({ fase, nome, desc, subitens, ativa, open, onToggle }: {
   open: boolean; onToggle: () => void;
 }) {
   return (
-    <div className="rounded-[18px] overflow-hidden" style={{ background: "#fff", boxShadow: SHADOW }}>
+    <div className="rounded-[18px] overflow-hidden" style={{ background: "var(--card)", boxShadow: SHADOW }}>
       <button onClick={onToggle} className="w-full p-5 flex items-center gap-4 text-left">
         <div className="h-11 w-11 rounded-full flex items-center justify-center shrink-0 text-sm font-extrabold"
-          style={{ background: ativa ? C.gold : C.beigeLight, color: C.dark }}>
+          style={{ background: ativa ? "var(--secondary)" : "var(--secondary)", color: "var(--primary)" }}>
           {fase}
         </div>
         <div className="flex-1">
-          <div className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: ativa ? C.mid : C.textMid }}>
+          <div className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: ativa ? "var(--muted-foreground)" : "var(--muted-foreground)" }}>
             Fase {fase} {ativa && "· Em andamento"}
           </div>
-          <div className="font-extrabold mt-0.5" style={{ color: C.text }}>{nome}</div>
+          <div className="font-extrabold mt-0.5" style={{ color: "var(--foreground)" }}>{nome}</div>
         </div>
-        {open ? <ChevronDown size={20} style={{ color: C.textMid }} /> : <ChevronRight size={20} style={{ color: C.textMid }} />}
+        {open ? <ChevronDown size={20} style={{ color: "var(--muted-foreground)" }} /> : <ChevronRight size={20} style={{ color: "var(--muted-foreground)" }} />}
       </button>
       {open && (
         <div className="px-5 pb-5" style={{ paddingLeft: "80px" }}>
-          <p className="text-sm mb-3" style={{ color: C.textMid }}>{desc}</p>
+          <p className="text-sm mb-3" style={{ color: "var(--muted-foreground)" }}>{desc}</p>
           <ul className="space-y-1.5">
             {subitens.map((s, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm" style={{ color: C.text }}>
-                {ativa ? <CheckCircle2 size={14} style={{ color: C.mid }} /> : <Circle size={14} style={{ color: C.textMuted }} />}
+              <li key={i} className="flex items-center gap-2 text-sm" style={{ color: "var(--foreground)" }}>
+                {ativa ? <CheckCircle2 size={14} style={{ color: "var(--muted-foreground)" }} /> : <Circle size={14} style={{ color: "var(--muted-foreground)" }} />}
                 {s}
               </li>
             ))}
@@ -2730,22 +2713,22 @@ function BloqueadorCard({ n, t, sub, por, open, onToggle }: {
   n: number; t: string; sub: string; por: string; open: boolean; onToggle: () => void;
 }) {
   return (
-    <div className="rounded-[18px] overflow-hidden" style={{ background: "#fff", boxShadow: SHADOW }}>
+    <div className="rounded-[18px] overflow-hidden" style={{ background: "var(--card)", boxShadow: SHADOW }}>
       <button onClick={onToggle} className="w-full p-5 flex items-center gap-4 text-left">
         <div className="h-10 w-10 rounded-[12px] flex items-center justify-center shrink-0 text-sm font-extrabold"
-          style={{ background: C.beigeLight, color: C.dark }}>
+          style={{ background: "var(--secondary)", color: "var(--primary)" }}>
           {n}
         </div>
         <div className="flex-1">
-          <div className="font-extrabold" style={{ color: C.text }}>{t}</div>
-          <div className="text-xs mt-0.5" style={{ color: C.textMid }}>{sub}</div>
+          <div className="font-extrabold" style={{ color: "var(--foreground)" }}>{t}</div>
+          <div className="text-xs mt-0.5" style={{ color: "var(--muted-foreground)" }}>{sub}</div>
         </div>
-        {open ? <ChevronDown size={20} style={{ color: C.textMid }} /> : <ChevronRight size={20} style={{ color: C.textMid }} />}
+        {open ? <ChevronDown size={20} style={{ color: "var(--muted-foreground)" }} /> : <ChevronRight size={20} style={{ color: "var(--muted-foreground)" }} />}
       </button>
       {open && (
         <div className="px-5 pb-5" style={{ paddingLeft: "76px" }}>
-          <div className="text-[11px] font-bold uppercase tracking-[0.18em] mb-1" style={{ color: C.mid }}>Por que bloqueia</div>
-          <p className="text-sm" style={{ color: C.text }}>{por}</p>
+          <div className="text-[11px] font-bold uppercase tracking-[0.18em] mb-1" style={{ color: "var(--muted-foreground)" }}>Por que bloqueia</div>
+          <p className="text-sm" style={{ color: "var(--foreground)" }}>{por}</p>
         </div>
       )}
     </div>
@@ -2760,12 +2743,12 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
   const [openBloq, setOpenBloq] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen" style={{ background: C.bg }}>
+    <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <header className="sticky top-0 z-30 flex items-center justify-between px-8 py-4"
-        style={{ background: C.dark, color: "#fff", boxShadow: SHADOW }}>
+        style={{ background: "var(--primary)", color: "var(--primary-foreground)", boxShadow: SHADOW }}>
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-extrabold"
-            style={{ background: C.mid, color: "#fff" }}>
+            style={{ background: "var(--muted-foreground)", color: "var(--primary-foreground)" }}>
             {cliente.init}
           </div>
           <div>
@@ -2777,18 +2760,18 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
         </div>
         <button onClick={onExit}
           className="rounded-[30px] px-5 py-2.5 text-sm font-semibold flex items-center gap-2 transition-all hover:-translate-y-0.5"
-          style={{ background: C.gold, color: C.dark }}>
+          style={{ background: "var(--secondary)", color: "var(--primary)" }}>
           <ArrowLeft size={14} /> Voltar para Gestão
         </button>
       </header>
 
       <div className="mx-auto max-w-[1100px] p-8 space-y-8">
-        <section className="rounded-[18px] p-8" style={{ background: C.beigeLight }}>
+        <section className="rounded-[18px] p-8" style={{ background: "var(--secondary)" }}>
           <Eyebrow>Bloco 1 · Boas-vindas</Eyebrow>
-          <h2 className="text-3xl font-extrabold mt-2 mb-4" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+          <h2 className="text-3xl font-extrabold mt-2 mb-4" style={{ color: "var(--foreground)", letterSpacing: "-0.02em" }}>
             Seja bem-vinda ao seu ecossistema.
           </h2>
-          <p className="text-base leading-relaxed" style={{ color: C.text }}>
+          <p className="text-base leading-relaxed" style={{ color: "var(--foreground)" }}>
             Seja bem-vinda ao seu ecossistema de <strong>posicionamento, desejo e marketing de diferenciação</strong>.
             Este é o espaço onde toda a estratégia da sua marca pessoal acontece — da primeira reunião à análise mensal.
             Reserve um tempo para explorar cada bloco abaixo com calma; tudo aqui foi desenhado para destravar o seu próximo nível.
@@ -2797,11 +2780,11 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
 
         <section className="grid grid-cols-2 gap-6 items-center">
           <div className="aspect-video rounded-[18px] overflow-hidden relative flex items-center justify-center cursor-pointer group"
-            style={{ background: C.dark, boxShadow: SHADOW }}
+            style={{ background: "var(--primary)", boxShadow: SHADOW }}
             onClick={() => setVideoPlaying(v => !v)}>
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="h-20 w-20 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
-                style={{ background: C.gold, color: C.dark }}>
+                style={{ background: "var(--secondary)", color: "var(--primary)" }}>
                 {videoPlaying ? <Pause size={28} /> : <Play size={28} className="ml-1" />}
               </div>
             </div>
@@ -2811,10 +2794,10 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
           </div>
           <div>
             <Eyebrow>Guia de navegação</Eyebrow>
-            <h3 className="text-2xl font-extrabold mt-2 mb-3" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+            <h3 className="text-2xl font-extrabold mt-2 mb-3" style={{ color: "var(--foreground)", letterSpacing: "-0.02em" }}>
               Comece por aqui.
             </h3>
-            <p className="text-sm leading-relaxed" style={{ color: C.textMid }}>
+            <p className="text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
               O vídeo ao lado contém orientações fundamentais sobre como funciona a nossa nova plataforma de trabalho
               e o que você deve preencher até o dia do nosso encontro estratégico.
             </p>
@@ -2823,7 +2806,7 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
 
         <section>
           <Eyebrow>Bloco 2 · Linha do tempo da parceria</Eyebrow>
-          <h2 className="text-2xl font-extrabold mt-2 mb-5" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+          <h2 className="text-2xl font-extrabold mt-2 mb-5" style={{ color: "var(--foreground)", letterSpacing: "-0.02em" }}>
             As 6 fases que vamos atravessar juntas.
           </h2>
           <div className="space-y-3">
@@ -2837,10 +2820,10 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
 
         <section>
           <Eyebrow>Bloco 3 · Gestão de expectativas</Eyebrow>
-          <h2 className="text-2xl font-extrabold mt-2 mb-2" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+          <h2 className="text-2xl font-extrabold mt-2 mb-2" style={{ color: "var(--foreground)", letterSpacing: "-0.02em" }}>
             Boas-vidas & nossa dinâmica.
           </h2>
-          <p className="text-sm mb-5" style={{ color: C.textMid }}>
+          <p className="text-sm mb-5" style={{ color: "var(--muted-foreground)" }}>
             Os áudios abaixo foram gravados especialmente para alinhar a nossa operação.
             Não deixe de ouvi-los antes do nosso primeiro encontro estratégico!
           </p>
@@ -2853,28 +2836,28 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
 
         <section>
           <Eyebrow>Bloco 4 · Referencial de entrega</Eyebrow>
-          <h2 className="text-2xl font-extrabold mt-2 mb-5" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+          <h2 className="text-2xl font-extrabold mt-2 mb-5" style={{ color: "var(--foreground)", letterSpacing: "-0.02em" }}>
             O que está incluso na sua marca pessoal.
           </h2>
           <Card>
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Instagram size={18} style={{ color: C.mid }} />
+                  <Instagram size={18} style={{ color: "var(--muted-foreground)" }} />
                   <div className="font-extrabold">Instagram Feed</div>
                   <TagBadge label="3x semana" variant="ativo" />
                 </div>
-                <p className="text-sm" style={{ color: C.textMid }}>
+                <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
                   Reels de posicionamento, bastidores refinados e Carrosséis educativos de alto valor.
                 </p>
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Instagram size={18} style={{ color: C.mid }} />
+                  <Instagram size={18} style={{ color: "var(--muted-foreground)" }} />
                   <div className="font-extrabold">Instagram Stories</div>
                   <TagBadge label="Diário" variant="ativo" />
                 </div>
-                <p className="text-sm" style={{ color: C.textMid }}>
+                <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
                   Mínimo de 3 blocos de narrativa ao longo do dia para gerar conexão e desejo.
                 </p>
               </div>
@@ -2884,13 +2867,13 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
 
         <section>
           <Eyebrow>Bloco 5 · Insights & jornada</Eyebrow>
-          <h2 className="text-2xl font-extrabold mt-2 mb-5" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+          <h2 className="text-2xl font-extrabold mt-2 mb-5" style={{ color: "var(--foreground)", letterSpacing: "-0.02em" }}>
             Onde você deposita ideias e como sua paciente decide comprar.
           </h2>
           <div className="grid grid-cols-2 gap-5">
             <Card>
               <SectionLabel>Banco de Insights</SectionLabel>
-              <p className="text-sm mb-4" style={{ color: C.textMid }}>
+              <p className="text-sm mb-4" style={{ color: "var(--muted-foreground)" }}>
                 Envie aqui ideias espontâneas, dúvidas de balcão da especialista, prints de conversas com pacientes
                 e qualquer faísca que possa virar conteúdo. Nada se perde — tudo entra no radar editorial.
               </p>
@@ -2908,7 +2891,7 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
                 ].map((x, i) => (
                   <div key={i} className="p-3 rounded-[12px] flex items-center gap-3" style={{ background: x.c }}>
                     <div className="h-8 w-8 rounded-full flex items-center justify-center font-extrabold text-sm"
-                      style={{ background: "#fff", color: x.fg }}>{i + 1}</div>
+                      style={{ background: "var(--card)", color: x.fg }}>{i + 1}</div>
                     <div>
                       <div className="font-extrabold text-sm" style={{ color: x.fg }}>{x.t}</div>
                       <div className="text-xs" style={{ color: x.fg, opacity: 0.85 }}>{x.s}</div>
@@ -2922,10 +2905,10 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
 
         <section>
           <Eyebrow>Bloco 6 · Bloqueadores de crescimento</Eyebrow>
-          <h2 className="text-2xl font-extrabold mt-2 mb-2" style={{ color: C.text, letterSpacing: "-0.02em" }}>
+          <h2 className="text-2xl font-extrabold mt-2 mb-2" style={{ color: "var(--foreground)", letterSpacing: "-0.02em" }}>
             Os 6 fatores que travam o algoritmo e o público.
           </h2>
-          <p className="text-sm mb-5" style={{ color: C.textMid }}>
+          <p className="text-sm mb-5" style={{ color: "var(--muted-foreground)" }}>
             Identificar para evitar. Clique em cada card para entender por que aquele comportamento bloqueia o crescimento.
           </p>
           <div className="space-y-3">
@@ -2937,7 +2920,7 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
           </div>
         </section>
 
-        <footer className="pt-4 pb-8 text-center text-xs" style={{ color: C.textMuted }}>
+        <footer className="pt-4 pb-8 text-center text-xs" style={{ color: "var(--muted-foreground)" }}>
           Portal exclusivo {cliente.name} · gerido por Thamirys · Painel 360°
         </footer>
       </div>
@@ -2948,7 +2931,7 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
 /* ---------- Unified pages (Bloco 1) ---------- */
 function TabBar({ tabs, active, onChange }: { tabs: { key: string; label: string }[]; active: string; onChange: (k: string) => void }) {
   return (
-    <div className="mb-6 flex gap-1 border-b" style={{ borderColor: C.beigeLight }}>
+    <div className="mb-6 flex gap-1 border-b" style={{ borderColor: "var(--secondary)" }}>
       {tabs.map((t) => {
         const on = t.key === active;
         return (
@@ -2957,8 +2940,8 @@ function TabBar({ tabs, active, onChange }: { tabs: { key: string; label: string
             onClick={() => onChange(t.key)}
             className="px-4 py-2 text-sm font-bold border-b-2 -mb-px transition-colors"
             style={{
-              color: on ? C.dark : C.textMid,
-              borderColor: on ? C.dark : "transparent",
+              color: on ? "var(--primary)" : "var(--muted-foreground)",
+              borderColor: on ? "var(--primary)" : "transparent",
             }}
           >
             {t.label}
@@ -3027,8 +3010,8 @@ function ConfigPage() {
       {tab === "juridico" && (
         <Card>
           <h3 className="font-extrabold text-lg mb-2">Modelos de contrato e termos</h3>
-          <p className="text-sm mb-4" style={{ color: C.textMid }}>Gerencie contratos, termos e políticas com dados do CNPJ.</p>
-          <a href="/admin/juridico" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: C.dark, color: "#fff" }}>
+          <p className="text-sm mb-4" style={{ color: "var(--muted-foreground)" }}>Gerencie contratos, termos e políticas com dados do CNPJ.</p>
+          <a href="/admin/juridico" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
             Abrir módulo jurídico <ArrowRight size={14} />
           </a>
         </Card>
@@ -3036,8 +3019,8 @@ function ConfigPage() {
       {tab === "equipe" && (
         <Card>
           <h3 className="font-extrabold text-lg mb-2">Equipe & papéis</h3>
-          <p className="text-sm mb-4" style={{ color: C.textMid }}>Atribua papéis (admin, gestor, editor, social, financeiro, jurídico, cliente) aos membros.</p>
-          <a href="/admin/equipe" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: C.dark, color: "#fff" }}>
+          <p className="text-sm mb-4" style={{ color: "var(--muted-foreground)" }}>Atribua papéis (admin, gestor, editor, social, financeiro, jurídico, cliente) aos membros.</p>
+          <a href="/admin/equipe" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
             Gerenciar equipe <ArrowRight size={14} />
           </a>
         </Card>
@@ -3067,11 +3050,11 @@ function Painel360Inner() {
 
 
   return (
-    <div className="h-screen overflow-hidden flex flex-col md:flex-row" style={{ background: C.bg, color: C.text }}>
+    <div className="h-screen overflow-hidden flex flex-col md:flex-row" style={{ background: "var(--background)", color: "var(--foreground)" }}>
       {/* Mobile header */}
       <header
         className="md:hidden sticky top-0 z-20 flex h-14 items-center justify-between px-4 shrink-0"
-        style={{ background: C.dark, color: "#fff" }}
+        style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
       >
         <button
           onClick={() => setMobileOpen(true)}
@@ -3083,7 +3066,7 @@ function Painel360Inner() {
         <span className="font-extrabold tracking-tight">Irys OS</span>
         <div
           className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-extrabold"
-          style={{ background: C.mid, color: "#fff" }}
+          style={{ background: "var(--muted-foreground)", color: "var(--primary-foreground)" }}
         >
           T
         </div>

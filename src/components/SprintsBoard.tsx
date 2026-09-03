@@ -18,7 +18,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { C, Card, PillBtn, PageHeader } from "@/components/Painel360";
+import { Card, PillBtn, PageHeader } from "@/components/Painel360";
+import { C } from "@/lib/ui-tokens";
 import { ListState } from "@/components/ListState";
 import { useClientes } from "@/components/crud/forms";
 import { TaskDetailPanel } from "@/components/TaskDetailPanel";

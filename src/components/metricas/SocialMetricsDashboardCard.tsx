@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowUp, ArrowDown, Minus, Instagram, TrendingUp } from "lucide-react";
-import { C } from "@/components/Painel360";
+import { C } from "@/lib/ui-tokens";
 
 type Account = {
   id: string;
