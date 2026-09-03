@@ -171,23 +171,7 @@ const DB = {
 };
 
 
-/* ---------- tokens ---------- */
-/**
- * Legacy palette object, kept because 8 modules import it. The keys are the
- * old brown/gold names but the values now resolve to the indigo design system
- * tokens, so the gold is gone from the whole app at once.
- */
-export const C = {
-  dark: "var(--primary)",
-  mid: "var(--muted-foreground)",
-  gold: "var(--secondary)",
-  beige: "var(--border)",
-  beigeLight: "var(--secondary)",
-  bg: "var(--background)",
-  text: "var(--foreground)",
-  textMid: "var(--muted-foreground)",
-  textMuted: "var(--muted-foreground)",
-};
+/* ---------- tokens (neutral design system, see src/styles.css) ---------- */
 const SHADOW = "var(--shadow-card)";
 const SHADOW_HOVER = "var(--shadow-card-hover)";
 
