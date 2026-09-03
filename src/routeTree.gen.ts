@@ -14,13 +14,11 @@ import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedMeuPortalRouteImport } from './routes/_authenticated/meu-portal'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminVisaoGeralRouteImport } from './routes/_authenticated/admin.visao-geral'
 import { Route as AuthenticatedAdminSprintsRouteImport } from './routes/_authenticated/admin.sprints'
-import { Route as AuthenticatedAdminSprintRouteImport } from './routes/_authenticated/admin.sprint'
 import { Route as AuthenticatedAdminPortalConteudosRouteImport } from './routes/_authenticated/admin.portal-conteudos'
 import { Route as AuthenticatedAdminMetricasSociaisRouteImport } from './routes/_authenticated/admin.metricas-sociais'
 import { Route as AuthenticatedAdminJuridicoRouteImport } from './routes/_authenticated/admin.juridico'
@@ -58,11 +56,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
-  id: '/portal',
-  path: '/portal',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedMeuPortalRoute = AuthenticatedMeuPortalRouteImport.update({
   id: '/meu-portal',
   path: '/meu-portal',
@@ -88,12 +81,6 @@ const AuthenticatedAdminSprintsRoute =
   AuthenticatedAdminSprintsRouteImport.update({
     id: '/sprints',
     path: '/sprints',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
-const AuthenticatedAdminSprintRoute =
-  AuthenticatedAdminSprintRouteImport.update({
-    id: '/sprint',
-    path: '/sprint',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminPortalConteudosRoute =
@@ -176,7 +163,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
   '/meu-portal': typeof AuthenticatedMeuPortalRoute
-  '/portal': typeof AuthenticatedPortalRoute
   '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
   '/admin/cadastros': typeof AuthenticatedAdminCadastrosRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
@@ -185,7 +171,6 @@ export interface FileRoutesByFullPath {
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/metricas-sociais': typeof AuthenticatedAdminMetricasSociaisRoute
   '/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
-  '/admin/sprint': typeof AuthenticatedAdminSprintRoute
   '/admin/sprints': typeof AuthenticatedAdminSprintsRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
@@ -201,7 +186,6 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
   '/meu-portal': typeof AuthenticatedMeuPortalRoute
-  '/portal': typeof AuthenticatedPortalRoute
   '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
   '/admin/cadastros': typeof AuthenticatedAdminCadastrosRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
@@ -210,7 +194,6 @@ export interface FileRoutesByTo {
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/metricas-sociais': typeof AuthenticatedAdminMetricasSociaisRoute
   '/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
-  '/admin/sprint': typeof AuthenticatedAdminSprintRoute
   '/admin/sprints': typeof AuthenticatedAdminSprintsRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
@@ -228,7 +211,6 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/meu-portal': typeof AuthenticatedMeuPortalRoute
-  '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
   '/_authenticated/admin/cadastros': typeof AuthenticatedAdminCadastrosRoute
   '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
@@ -237,7 +219,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/_authenticated/admin/metricas-sociais': typeof AuthenticatedAdminMetricasSociaisRoute
   '/_authenticated/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
-  '/_authenticated/admin/sprint': typeof AuthenticatedAdminSprintRoute
   '/_authenticated/admin/sprints': typeof AuthenticatedAdminSprintsRoute
   '/_authenticated/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/_authenticated/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
@@ -255,7 +236,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/meu-portal'
-    | '/portal'
     | '/admin/biblioteca-midia'
     | '/admin/cadastros'
     | '/admin/crm'
@@ -264,7 +244,6 @@ export interface FileRouteTypes {
     | '/admin/juridico'
     | '/admin/metricas-sociais'
     | '/admin/portal-conteudos'
-    | '/admin/sprint'
     | '/admin/sprints'
     | '/admin/visao-geral'
     | '/admin/clientes/$clienteId'
@@ -280,7 +259,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/meu-portal'
-    | '/portal'
     | '/admin/biblioteca-midia'
     | '/admin/cadastros'
     | '/admin/crm'
@@ -289,7 +267,6 @@ export interface FileRouteTypes {
     | '/admin/juridico'
     | '/admin/metricas-sociais'
     | '/admin/portal-conteudos'
-    | '/admin/sprint'
     | '/admin/sprints'
     | '/admin/visao-geral'
     | '/admin/clientes/$clienteId'
@@ -306,7 +283,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/app'
     | '/_authenticated/meu-portal'
-    | '/_authenticated/portal'
     | '/_authenticated/admin/biblioteca-midia'
     | '/_authenticated/admin/cadastros'
     | '/_authenticated/admin/crm'
@@ -315,7 +291,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/juridico'
     | '/_authenticated/admin/metricas-sociais'
     | '/_authenticated/admin/portal-conteudos'
-    | '/_authenticated/admin/sprint'
     | '/_authenticated/admin/sprints'
     | '/_authenticated/admin/visao-geral'
     | '/_authenticated/admin/clientes/$clienteId'
@@ -372,13 +347,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/portal': {
-      id: '/_authenticated/portal'
-      path: '/portal'
-      fullPath: '/portal'
-      preLoaderRoute: typeof AuthenticatedPortalRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/meu-portal': {
       id: '/_authenticated/meu-portal'
       path: '/meu-portal'
@@ -412,13 +380,6 @@ declare module '@tanstack/react-router' {
       path: '/sprints'
       fullPath: '/admin/sprints'
       preLoaderRoute: typeof AuthenticatedAdminSprintsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/sprint': {
-      id: '/_authenticated/admin/sprint'
-      path: '/sprint'
-      fullPath: '/admin/sprint'
-      preLoaderRoute: typeof AuthenticatedAdminSprintRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/portal-conteudos': {
@@ -517,7 +478,6 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminJuridicoRoute: typeof AuthenticatedAdminJuridicoRoute
   AuthenticatedAdminMetricasSociaisRoute: typeof AuthenticatedAdminMetricasSociaisRoute
   AuthenticatedAdminPortalConteudosRoute: typeof AuthenticatedAdminPortalConteudosRoute
-  AuthenticatedAdminSprintRoute: typeof AuthenticatedAdminSprintRoute
   AuthenticatedAdminSprintsRoute: typeof AuthenticatedAdminSprintsRoute
   AuthenticatedAdminVisaoGeralRoute: typeof AuthenticatedAdminVisaoGeralRoute
   AuthenticatedAdminClientesClienteIdRoute: typeof AuthenticatedAdminClientesClienteIdRoute
@@ -535,7 +495,6 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
     AuthenticatedAdminMetricasSociaisRoute,
   AuthenticatedAdminPortalConteudosRoute:
     AuthenticatedAdminPortalConteudosRoute,
-  AuthenticatedAdminSprintRoute: AuthenticatedAdminSprintRoute,
   AuthenticatedAdminSprintsRoute: AuthenticatedAdminSprintsRoute,
   AuthenticatedAdminVisaoGeralRoute: AuthenticatedAdminVisaoGeralRoute,
   AuthenticatedAdminClientesClienteIdRoute:
@@ -549,14 +508,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
   AuthenticatedMeuPortalRoute: typeof AuthenticatedMeuPortalRoute
-  AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAppRoute: AuthenticatedAppRoute,
   AuthenticatedMeuPortalRoute: AuthenticatedMeuPortalRoute,
-  AuthenticatedPortalRoute: AuthenticatedPortalRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
