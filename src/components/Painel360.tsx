@@ -648,60 +648,10 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5">
-        <div className="lg:col-span-3">
-          <Card>
-            <h3 className="font-extrabold text-lg mb-4">Entregas por cliente</h3>
-            <ListState
-              loading={clientesQ.loading || tarefasQ.loading}
-              error={clientesQ.error || tarefasQ.error}
-              rows={entregasPorCliente}
-              onRetry={() => { clientesQ.refetch(); tarefasQ.refetch(); }}
-              skeletonVariant="row"
-              skeletonCount={4}
-              emptyTitle="Sem clientes cadastrados"
-              emptyDescription="Cadastre clientes para acompanhar as entregas do mês."
-              actionLabel="Novo cliente"
-              onAction={() => openCreate("cliente")}
-            >
-              <div className="space-y-4">
-                {entregasPorCliente.map((c) => (
-                  <div key={c.id}>
-                    <div className="flex justify-between text-sm mb-1.5">
-                      <span className="font-semibold truncate pr-2">{c.name}</span>
-                      <span style={{ color: "var(--muted-foreground)" }}>{c.feitos}/{c.total || 0}</span>
-                    </div>
-                    <ProgressBar value={c.feitos} max={Math.max(1, c.total)} colorByPercent />
-                  </div>
-                ))}
-              </div>
-            </ListState>
-          </Card>
-        </div>
-        <div className="lg:col-span-2">
-          <Card>
-            <h3 className="font-extrabold text-lg mb-4">Acesso rápido</h3>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { I: Calendar, n:"Agenda", s:"Hoje", k:"agenda" as PageKey },
-                { I: Users, n:"Clientes", s:`${clientesAtivos} ativos`, k:"clientes" as PageKey },
-                { I: TrendingUp, n:"CRM", s:`${leads.length} leads`, k:"crm" as PageKey },
-                { I: CreditCard, n:"Finanças", s:"Junho", k:"financas" as PageKey },
-                { I: FileText, n:"Conteúdo", s:"Calendário", k:"conteudo" as PageKey },
-                { I: Library, n:"Biblioteca", s:"Refs & prompts", k:"biblioteca" as PageKey },
-              ].map((c) => (
-                <button key={c.n} onClick={() => go(c.k)}
-                  className="rounded-[10px] p-3 text-left transition-all hover:-translate-y-0.5 min-h-11"
-                  style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-                  <c.I size={18} strokeWidth={1.6} className="text-muted-foreground" />
-                  <div className="text-sm font-bold mt-1">{c.n}</div>
-                  <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>{c.s}</div>
-                </button>
-              ))}
-            </div>
-          </Card>
-        </div>
+      <div className="mb-6">
+        <AtencaoNecessariaCard clientes={clientes} pipeline={pipeline} loading={pipeLoading} />
       </div>
+
 
       <SocialMetricsDashboardCard />
     </>
