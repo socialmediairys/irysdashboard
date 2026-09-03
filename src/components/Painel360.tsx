@@ -190,7 +190,7 @@ export function Card({ children, dark = false, className = "", style }: { childr
       className={`rounded-[18px] p-6 transition-all duration-150 ${className}`}
       style={{
         background: dark ? "var(--primary)" : "var(--card)",
-        color: dark ? "#fff" : "var(--foreground)",
+        color: dark ? "var(--primary-foreground)" : "var(--foreground)",
         boxShadow: SHADOW,
         ...style,
       }}
@@ -2601,7 +2601,7 @@ function CentralClientePage({ selectedId, setSelectedId, enterPortal }: {
                   className="flex items-center gap-2 rounded-[30px] px-3 py-2 text-sm font-semibold transition-all"
                   style={{
                     background: active ? "var(--primary)" : "var(--card)",
-                    color: active ? "#fff" : "var(--foreground)",
+                    color: active ? "var(--primary-foreground)" : "var(--foreground)",
                     border: `1px solid ${active ? "var(--primary)" : "var(--border)"}`,
                   }}>
                   <span className="h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-extrabold"
