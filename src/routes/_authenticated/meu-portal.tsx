@@ -4,8 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getMeuPortal } from "@/lib/portal-conteudos.functions";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, FileText, Route as Route2 } from "lucide-react";
 import { PortalRico, type ClientePortal, type Fase, type Topico, type Conteudo } from "@/components/PortalRico";
+import { PortalContratoSuporte } from "@/components/PortalContratoSuporte";
 
 export const Route = createFileRoute("/_authenticated/meu-portal")({
   head: () => ({
