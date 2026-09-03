@@ -352,26 +352,12 @@ function JuridicoPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="bg-primary text-white px-6 py-4 flex items-center justify-between print:hidden">
-        <div className="flex items-center gap-3">
-          <Link
-            to="/admin/visao-geral"
-            className="text-primary-foreground/70 hover:text-white flex items-center gap-1 text-sm"
-          >
-            <ArrowLeft className="w-4 h-4" /> Voltar
-          </Link>
-          <span className="text-muted-foreground">|</span>
-          <div>
-            <h1 className="text-lg font-bold">Jurídico</h1>
-            <p className="text-xs text-primary-foreground/70">
-              {EMPRESA.marca} · CNPJ {EMPRESA.cnpj}
-            </p>
-          </div>
-        </div>
-        <Badge className="bg-secondary text-foreground">v{EMPRESA.versao}</Badge>
-      </header>
+      <PageHeader
+        title="Jurídico"
+        description={`${EMPRESA.marca} · CNPJ ${EMPRESA.cnpj} · v${EMPRESA.versao}`}
+      />
 
-      <div className="max-w-6xl mx-auto p-6 grid gap-6 md:grid-cols-[260px_1fr]">
+      <div className="grid gap-6 md:grid-cols-[260px_1fr] print:hidden md:print:grid">
         <aside className="print:hidden">
           <Card className="p-2 bg-white border-border">
             {(Object.keys(DOCS) as DocKey[]).map((k) => {
