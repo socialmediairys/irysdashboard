@@ -531,11 +531,6 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
     [clientes],
   );
   const clientesAtivos = useMemo(() => clientes.filter(c => c.status_contrato === "ativo").length, [clientes]);
-  const postsEntregues = useMemo(
-    () => tarefas.filter(t => t.status === "Publicado" || t.status === "Aprovado").length,
-    [tarefas],
-  );
-  const postsPrevistos = tarefas.length;
 
   type AgendaItem = { id: string; titulo: string; iso: string; prioridade: string | null; source: "local" | "gcal" };
   const hoje = useMemo<AgendaItem[]>(() => {
