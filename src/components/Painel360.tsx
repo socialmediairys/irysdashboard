@@ -541,13 +541,28 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
   }, [agenda, gcalHoje]);
   const leadsTop = leads.slice(0, 5);
 
-  const entregasPorCliente = useMemo(() => {
-    return clientes.map(c => {
-      const list = tarefas.filter(t => t.cliente_id === c.id);
-      const feitos = list.filter(t => t.status === "Publicado" || t.status === "Aprovado").length;
-      return { id: c.id, name: c.nome, feitos, total: list.length };
-    });
-  }, [clientes, tarefas]);
+  const [pipeline, setPipeline] = useState<PipelineStatusRow[]>([]);
+  const [pipeLoading, setPipeLoading] = useState(true);
+  useEffect(() => {
+    let cancel = false;
+    const load = async () => {
+      const { data } = await supabase
+        .from("pipeline_status")
+        .select("id, cliente_id, mes, etapa, status")
+        .eq("mes", currentMes());
+      if (!cancel) {
+        setPipeline((data ?? []) as PipelineStatusRow[]);
+        setPipeLoading(false);
+      }
+    };
+    void load();
+    return () => { cancel = true; };
+  }, []);
+
+  const precisamAtencao = useMemo(
+    () => new Set(pipeline.filter(p => p.status === "travado").map(p => p.cliente_id)).size,
+    [pipeline],
+  );
 
   const anyLoading = clientesQ.loading || leadsQ.loading || agendaQ.loading || tarefasQ.loading;
 
