@@ -375,7 +375,7 @@ function JuridicoPage() {
                   }`}
                 >
                   <I
-                    className={`w-4 h-4 mt-0.5 shrink-0 ${on ? "text-muted-foreground" : "text-muted-foreground"}`}
+                    strokeWidth={1.6} className={`w-4 h-4 mt-0.5 shrink-0 ${on ? "text-foreground" : "text-muted-foreground"}`}
                   />
                   <div className="min-w-0">
                     <p
@@ -428,7 +428,7 @@ function JuridicoPage() {
             <div className="flex items-start justify-between gap-4 pb-6 border-b border-[var(--border)] print:border-none">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded bg-secondary flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-muted-foreground" />
+                  <Icon strokeWidth={1.6} className="w-5 h-5 text-muted-foreground" />
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-foreground">{doc.titulo}</h2>
@@ -443,9 +443,9 @@ function JuridicoPage() {
                   className="border-border text-foreground hover:bg-secondary"
                 >
                   {copiado ? (
-                    <Check className="w-4 h-4 mr-1" />
+                    <Check strokeWidth={1.6} className="w-4 h-4 mr-1" />
                   ) : (
-                    <Copy className="w-4 h-4 mr-1" />
+                    <Copy strokeWidth={1.6} className="w-4 h-4 mr-1" />
                   )}
                   {copiado ? "Copiado" : "Copiar"}
                 </Button>
@@ -455,7 +455,7 @@ function JuridicoPage() {
                   size="sm"
                   className="border-border text-foreground hover:bg-secondary"
                 >
-                  <Download className="w-4 h-4 mr-1" />
+                  <Download strokeWidth={1.6} className="w-4 h-4 mr-1" />
                   .md
                 </Button>
                 <Button
