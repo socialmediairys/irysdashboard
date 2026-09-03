@@ -2,10 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Pencil, Trash2, Send, MessageCircle, FileText, Eye, Wallet } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil, Trash2, Send, MessageCircle, FileText, Eye, Wallet, LayoutGrid } from "lucide-react";
 import { CrudProvider, useCrud } from "@/components/crud/CrudProvider";
 import { PortalConteudosManager } from "@/components/portal/PortalConteudosManager";
 import { PortalPreview } from "@/components/portal/PortalPreview";
+import { PipelineMatrix } from "@/components/pipeline/PipelineMatrix";
 import {
   CobrancaWaMeButton,
   CobrancaWhatsappButton,
@@ -18,8 +19,8 @@ import {
 } from "@/components/Painel360";
 import { C } from "@/lib/ui-tokens";
 
-type TabKey = "dados" | "gerenciar" | "preview" | "cobranca";
-const TAB_KEYS: TabKey[] = ["dados", "gerenciar", "preview", "cobranca"];
+type TabKey = "dados" | "pipeline" | "gerenciar" | "preview" | "cobranca";
+const TAB_KEYS: TabKey[] = ["dados", "pipeline", "gerenciar", "preview", "cobranca"];
 
 export const Route = createFileRoute("/_authenticated/admin/clientes/$clienteId")({
   head: () => ({
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/_authenticated/admin/clientes/$clienteId"
 
 const TABS: { key: TabKey; label: string; icon: typeof FileText }[] = [
   { key: "dados", label: "Dados", icon: FileText },
+  { key: "pipeline", label: "Pipeline", icon: LayoutGrid },
   { key: "gerenciar", label: "Portal — Gerenciar conteúdo", icon: Pencil },
   { key: "preview", label: "Central do Cliente — Visualizar", icon: Eye },
   { key: "cobranca", label: "Cobrança", icon: Wallet },
@@ -227,6 +229,16 @@ function ClienteProfilePage() {
               <Pencil className="h-4 w-4" /> Editar dados do cliente
             </button>
           </div>
+        </Card>
+      )}
+
+      {tab === "pipeline" && (
+        <Card>
+          <h3 className="font-extrabold text-lg mb-1">Pipeline do mês</h3>
+          <p className="text-sm mb-4" style={{ color: C.textMid }}>
+            Matriz completa de clientes × etapas. A linha destacada é deste cliente.
+          </p>
+          <PipelineMatrix highlightClienteId={cliente.id} />
         </Card>
       )}
 

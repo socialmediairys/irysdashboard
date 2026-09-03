@@ -51,6 +51,14 @@ import { ListState } from "@/components/ListState";
 import { ProfileTab } from "@/components/ProfileTab";
 import { IntegrationsTab } from "@/components/IntegrationsTab";
 import { AccountTab } from "@/components/AccountTab";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  ETAPA_LABEL,
+  STATUS_STYLE,
+  STATUS_LABEL,
+  currentMes,
+  type PipelineStatusRow,
+} from "@/lib/pipeline";
 
 
 
@@ -523,11 +531,6 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
     [clientes],
   );
   const clientesAtivos = useMemo(() => clientes.filter(c => c.status_contrato === "ativo").length, [clientes]);
-  const postsEntregues = useMemo(
-    () => tarefas.filter(t => t.status === "Publicado" || t.status === "Aprovado").length,
-    [tarefas],
-  );
-  const postsPrevistos = tarefas.length;
 
   type AgendaItem = { id: string; titulo: string; iso: string; prioridade: string | null; source: "local" | "gcal" };
   const hoje = useMemo<AgendaItem[]>(() => {
@@ -541,13 +544,28 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
   }, [agenda, gcalHoje]);
   const leadsTop = leads.slice(0, 5);
 
-  const entregasPorCliente = useMemo(() => {
-    return clientes.map(c => {
-      const list = tarefas.filter(t => t.cliente_id === c.id);
-      const feitos = list.filter(t => t.status === "Publicado" || t.status === "Aprovado").length;
-      return { id: c.id, name: c.nome, feitos, total: list.length };
-    });
-  }, [clientes, tarefas]);
+  const [pipeline, setPipeline] = useState<PipelineStatusRow[]>([]);
+  const [pipeLoading, setPipeLoading] = useState(true);
+  useEffect(() => {
+    let cancel = false;
+    const load = async () => {
+      const { data } = await supabase
+        .from("pipeline_status")
+        .select("id, cliente_id, mes, etapa, status")
+        .eq("mes", currentMes());
+      if (!cancel) {
+        setPipeline((data ?? []) as PipelineStatusRow[]);
+        setPipeLoading(false);
+      }
+    };
+    void load();
+    return () => { cancel = true; };
+  }, []);
+
+  const precisamAtencao = useMemo(
+    () => new Set(pipeline.filter(p => p.status === "travado").map(p => p.cliente_id)).size,
+    [pipeline],
+  );
 
   const anyLoading = clientesQ.loading || leadsQ.loading || agendaQ.loading || tarefasQ.loading;
 
@@ -567,7 +585,12 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6">
         <MetricCard variant="hero" value={anyLoading ? "—" : brl(faturamento)} label="Faturamento mensal" />
         <MetricCard value={anyLoading ? "—" : clientesAtivos} label="Clientes ativos" />
-        <MetricCard variant="accent" value={anyLoading ? "—" : postsEntregues} label="Posts entregues" delta={postsPrevistos ? `de ${postsPrevistos} previstos` : "sem tarefas"} deltaType="neutral" />
+        <MetricCard
+          value={pipeLoading ? "—" : precisamAtencao}
+          label="Precisam de atenção"
+          delta={pipeLoading ? undefined : precisamAtencao === 0 ? "nenhuma etapa travada" : "com etapa travada no mês"}
+          deltaType="neutral"
+        />
         <MetricCard value={anyLoading ? "—" : leads.length} label="Leads no funil" />
       </div>
 
@@ -648,63 +671,78 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5">
-        <div className="lg:col-span-3">
-          <Card>
-            <h3 className="font-extrabold text-lg mb-4">Entregas por cliente</h3>
-            <ListState
-              loading={clientesQ.loading || tarefasQ.loading}
-              error={clientesQ.error || tarefasQ.error}
-              rows={entregasPorCliente}
-              onRetry={() => { clientesQ.refetch(); tarefasQ.refetch(); }}
-              skeletonVariant="row"
-              skeletonCount={4}
-              emptyTitle="Sem clientes cadastrados"
-              emptyDescription="Cadastre clientes para acompanhar as entregas do mês."
-              actionLabel="Novo cliente"
-              onAction={() => openCreate("cliente")}
-            >
-              <div className="space-y-4">
-                {entregasPorCliente.map((c) => (
-                  <div key={c.id}>
-                    <div className="flex justify-between text-sm mb-1.5">
-                      <span className="font-semibold truncate pr-2">{c.name}</span>
-                      <span style={{ color: "var(--muted-foreground)" }}>{c.feitos}/{c.total || 0}</span>
-                    </div>
-                    <ProgressBar value={c.feitos} max={Math.max(1, c.total)} colorByPercent />
-                  </div>
-                ))}
-              </div>
-            </ListState>
-          </Card>
-        </div>
-        <div className="lg:col-span-2">
-          <Card>
-            <h3 className="font-extrabold text-lg mb-4">Acesso rápido</h3>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { I: Calendar, n:"Agenda", s:"Hoje", k:"agenda" as PageKey },
-                { I: Users, n:"Clientes", s:`${clientesAtivos} ativos`, k:"clientes" as PageKey },
-                { I: TrendingUp, n:"CRM", s:`${leads.length} leads`, k:"crm" as PageKey },
-                { I: CreditCard, n:"Finanças", s:"Junho", k:"financas" as PageKey },
-                { I: FileText, n:"Conteúdo", s:"Calendário", k:"conteudo" as PageKey },
-                { I: Library, n:"Biblioteca", s:"Refs & prompts", k:"biblioteca" as PageKey },
-              ].map((c) => (
-                <button key={c.n} onClick={() => go(c.k)}
-                  className="rounded-[10px] p-3 text-left transition-all hover:-translate-y-0.5 min-h-11"
-                  style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-                  <c.I size={18} strokeWidth={1.6} className="text-muted-foreground" />
-                  <div className="text-sm font-bold mt-1">{c.n}</div>
-                  <div className="text-[11px]" style={{ color: "var(--muted-foreground)" }}>{c.s}</div>
-                </button>
-              ))}
-            </div>
-          </Card>
-        </div>
+      <div className="mb-6">
+        <AtencaoNecessariaCard clientes={clientes} pipeline={pipeline} loading={pipeLoading} />
       </div>
+
 
       <SocialMetricsDashboardCard />
     </>
+  );
+}
+
+function AtencaoNecessariaCard({
+  clientes,
+  pipeline,
+  loading,
+}: {
+  clientes: ClienteRow[];
+  pipeline: PipelineStatusRow[];
+  loading: boolean;
+}) {
+  const itens = useMemo(() => {
+    const nome = new Map(clientes.map((c) => [c.id, c.nome]));
+    return pipeline
+      .filter((p) => p.status === "travado" || p.status === "nao_iniciado")
+      .filter((p) => nome.has(p.cliente_id))
+      .sort((a, b) => (a.status === "travado" ? -1 : 1) - (b.status === "travado" ? -1 : 1))
+      .map((p) => ({ ...p, nome: nome.get(p.cliente_id)! }));
+  }, [clientes, pipeline]);
+
+  return (
+    <Card>
+      <h3 className="font-extrabold text-lg mb-4">Atenção necessária</h3>
+      {loading ? (
+        <div className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="h-12 rounded-[10px] animate-pulse" style={{ background: "var(--muted)" }} />
+          ))}
+        </div>
+      ) : itens.length === 0 ? (
+        <div className="py-6 text-center text-sm" style={{ color: "var(--muted-foreground)" }}>
+          Nenhuma pendência agora
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {itens.map((p) => {
+            const st = STATUS_STYLE[p.status];
+            return (
+              <Link
+                key={p.id}
+                to="/admin/clientes/$clienteId"
+                params={{ clienteId: p.cliente_id }}
+                search={{ tab: "pipeline" as const }}
+                className="flex items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 transition-colors hover:bg-muted"
+                style={{ border: "1px solid var(--border)" }}
+              >
+                <div className="min-w-0">
+                  <div className="font-semibold truncate">{p.nome}</div>
+                  <div className="text-xs" style={{ color: "var(--muted-foreground)" }}>
+                    {ETAPA_LABEL[p.etapa]}
+                  </div>
+                </div>
+                <span
+                  className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold"
+                  style={{ background: st.bg, color: st.fg, border: `1px solid ${st.border}` }}
+                >
+                  {STATUS_LABEL[p.status]}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </Card>
   );
 }
 
