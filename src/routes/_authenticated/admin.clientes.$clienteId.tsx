@@ -11,12 +11,12 @@ import {
   CobrancaWhatsappButton,
   Card,
   TagBadge,
-  C,
   brl,
   CLIENTE_STATUS_LABEL,
   CLIENTE_STATUS_VARIANT,
   type ClienteRow,
 } from "@/components/Painel360";
+import { C } from "@/lib/ui-tokens";
 
 type TabKey = "dados" | "gerenciar" | "preview" | "cobranca";
 const TAB_KEYS: TabKey[] = ["dados", "gerenciar", "preview", "cobranca"];
