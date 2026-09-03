@@ -30,8 +30,7 @@ const ADMIN_NAV_GROUPS: NavGroup[] = [
   {
     label: "Produção",
     items: [
-      { to: "/admin/sprint", label: "Sprint", icon: KanbanSquare },
-      { to: "/admin/sprints", label: "Sprints (board)", icon: KanbanSquare },
+      { to: "/admin/sprints", label: "Sprints", icon: KanbanSquare },
     ],
   },
   {
