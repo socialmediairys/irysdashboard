@@ -204,8 +204,8 @@ export function Card({ children, dark = false, className = "", style }: { childr
 export function PillBtn({ children, variant = "dark", onClick }: { children: ReactNode; variant?: "dark" | "ghost" | "gold"; onClick?: () => void }) {
   const styles: Record<string, CSSProperties> = {
     dark:  { background: C.dark, color: "#fff" },
-    ghost: { background: "transparent", color: C.text, border: `1px solid ${C.beige}` },
-    gold:  { background: C.gold, color: C.text, border: `1px solid ${C.beige}` },
+    ghost: { background: "transparent", color: C.text, border: `1px solid var(--border)` },
+    gold:  { background: C.gold, color: C.text, border: `1px solid var(--border)` },
   };
   return (
     <button onClick={onClick} className="rounded-[30px] px-5 py-2.5 text-sm font-semibold transition-all hover:-translate-y-0.5"
@@ -1493,7 +1493,7 @@ function ClientesPage() {
                 </div>
               </div>
 
-              <div className="mt-4 pt-3 flex items-center justify-between gap-2" style={{ borderTop: `1px solid ${C.beigeLight}` }}>
+              <div className="mt-4 pt-3 flex items-center justify-between gap-2" style={{ borderTop: `1px solid var(--secondary)` }}>
                 <span className="text-[11px] font-semibold" style={{ color: C.textMuted }}>Portal do cliente</span>
                 <Link
                   to="/admin/clientes/$clienteId"
