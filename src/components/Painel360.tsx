@@ -274,15 +274,14 @@ function GoldProgress({ pct }: { pct: number }) {
 export function MetricCard({ variant = "default", value, label, delta, deltaType = "up" }: {
   variant?: "default" | "hero" | "accent"; value: ReactNode; label: string; delta?: string; deltaType?: "up" | "down" | "neutral";
 }) {
-  const dark = variant === "hero";
-  const accent = variant === "accent";
-  const bg = dark ? "var(--primary)" : accent ? "var(--secondary)" : "var(--card)";
-  const fg = dark ? "#fff" : "var(--foreground)";
-  const labelColor = dark ? "rgba(255,255,255,0.7)" : "var(--muted-foreground)";
+  void variant; // variants kept for API compat; all cards use the neutral surface
+  const bg = "var(--card)";
+  const fg = "var(--foreground)";
+  const labelColor = "var(--muted-foreground)";
   const deltaColor = deltaType === "down" ? "var(--destructive)" : deltaType === "up" ? "var(--success)" : labelColor;
   return (
     <div className="rounded-[18px] p-4 sm:p-6 transition-all duration-150 hover:-translate-y-0.5 min-w-0"
-      style={{ background: bg, color: fg, boxShadow: SHADOW }}>
+      style={{ background: bg, color: fg, boxShadow: SHADOW, border: "1px solid var(--border)" }}>
       <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.14em] sm:tracking-[0.18em] break-words" style={{ color: labelColor }}>{label}</div>
       <div className="mt-2 sm:mt-3 text-2xl sm:text-4xl font-extrabold break-words" style={{ letterSpacing: "-0.03em" }}>{value}</div>
       {delta && <div className="mt-2 text-xs font-semibold break-words" style={{ color: deltaColor }}>{delta}</div>}
