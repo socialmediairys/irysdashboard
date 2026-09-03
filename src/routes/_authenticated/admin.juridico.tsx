@@ -359,7 +359,7 @@ function JuridicoPage() {
 
       <div className="grid gap-6 md:grid-cols-[260px_1fr] print:hidden md:print:grid">
         <aside className="print:hidden">
-          <Card className="p-2 bg-white border-border">
+          <Card className="p-2 bg-card border-border shadow-card">
             {(Object.keys(DOCS) as DocKey[]).map((k) => {
               const D = DOCS[k];
               const I = D.icon;
@@ -390,7 +390,7 @@ function JuridicoPage() {
             })}
           </Card>
 
-          <Card className="p-4 mt-4 bg-white border-border">
+          <Card className="p-4 mt-4 bg-card border-border shadow-card">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">
               Dados da empresa
             </h3>
@@ -424,7 +424,7 @@ function JuridicoPage() {
         </aside>
 
         <main>
-          <Card className="p-8 bg-white border-border">
+          <Card className="p-8 bg-card border-border shadow-card">
             <div className="flex items-start justify-between gap-4 pb-6 border-b border-[var(--border)] print:border-none">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded bg-secondary flex items-center justify-center">
@@ -440,7 +440,7 @@ function JuridicoPage() {
                   onClick={copiar}
                   variant="outline"
                   size="sm"
-                  className="border-primary text-muted-foreground hover:bg-secondary"
+                  className="border-border text-foreground hover:bg-secondary"
                 >
                   {copiado ? (
                     <Check className="w-4 h-4 mr-1" />
@@ -453,7 +453,7 @@ function JuridicoPage() {
                   onClick={baixar}
                   variant="outline"
                   size="sm"
-                  className="border-primary text-muted-foreground hover:bg-secondary"
+                  className="border-border text-foreground hover:bg-secondary"
                 >
                   <Download className="w-4 h-4 mr-1" />
                   .md
