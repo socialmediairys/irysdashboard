@@ -1478,6 +1478,13 @@ export type Database = {
             referencedRelation: "social_accounts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "social_goals_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts_cliente_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       social_metrics_snapshots: {
@@ -1520,6 +1527,13 @@ export type Database = {
             columns: ["social_account_id"]
             isOneToOne: false
             referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_metrics_snapshots_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts_cliente_view"
             referencedColumns: ["id"]
           },
         ]
@@ -2076,7 +2090,51 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      social_accounts_cliente_view: {
+        Row: {
+          client_id: string | null
+          connection_type: string | null
+          created_at: string | null
+          id: string | null
+          org_id: string | null
+          platform: string | null
+          username: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          connection_type?: string | null
+          created_at?: string | null
+          id?: string | null
+          org_id?: string | null
+          platform?: string | null
+          username?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          connection_type?: string | null
+          created_at?: string | null
+          id?: string | null
+          org_id?: string | null
+          platform?: string | null
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_accounts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_accounts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       current_cliente_id: { Args: never; Returns: string }
