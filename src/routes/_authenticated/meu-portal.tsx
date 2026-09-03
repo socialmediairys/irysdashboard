@@ -20,6 +20,7 @@ export const Route = createFileRoute("/_authenticated/meu-portal")({
 
 function MeuPortalPage() {
   const navigate = useNavigate();
+  const [tab, setTab] = useState<"jornada" | "contrato">("jornada");
   const [cliente, setCliente] = useState<ClientePortal | null>(null);
   const [fases, setFases] = useState<Fase[]>([]);
   const [topicos, setTopicos] = useState<Topico[]>([]);
