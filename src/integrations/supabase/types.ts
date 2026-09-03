@@ -1142,6 +1142,54 @@ export type Database = {
         }
         Relationships: []
       }
+      pipeline_status: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          etapa: Database["public"]["Enums"]["pipeline_etapa"]
+          id: string
+          mes: string
+          org_id: string
+          status: Database["public"]["Enums"]["pipeline_status_valor"]
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          etapa: Database["public"]["Enums"]["pipeline_etapa"]
+          id?: string
+          mes: string
+          org_id: string
+          status?: Database["public"]["Enums"]["pipeline_status_valor"]
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          etapa?: Database["public"]["Enums"]["pipeline_etapa"]
+          id?: string
+          mes?: string
+          org_id?: string
+          status?: Database["public"]["Enums"]["pipeline_status_valor"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_status_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_status_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2120,6 +2168,17 @@ export type Database = {
       fin_status: "pendente" | "pago"
       fin_tipo: "entrada" | "saida"
       forma_pagamento: "pix" | "boleto" | "cartao_recorrente"
+      pipeline_etapa:
+        | "estrategia"
+        | "linha_editorial"
+        | "design"
+        | "copy"
+        | "metricas"
+      pipeline_status_valor:
+        | "nao_iniciado"
+        | "em_andamento"
+        | "concluido"
+        | "travado"
       plano_atual: "basico" | "intermediario" | "avancado"
       status_contrato: "ativo" | "pendente_assinatura" | "vencido" | "cancelado"
       ticket_prioridade: "baixa" | "media" | "alta_urgente"
@@ -2286,6 +2345,19 @@ export const Constants = {
       fin_status: ["pendente", "pago"],
       fin_tipo: ["entrada", "saida"],
       forma_pagamento: ["pix", "boleto", "cartao_recorrente"],
+      pipeline_etapa: [
+        "estrategia",
+        "linha_editorial",
+        "design",
+        "copy",
+        "metricas",
+      ],
+      pipeline_status_valor: [
+        "nao_iniciado",
+        "em_andamento",
+        "concluido",
+        "travado",
+      ],
       plano_atual: ["basico", "intermediario", "avancado"],
       status_contrato: ["ativo", "pendente_assinatura", "vencido", "cancelado"],
       ticket_prioridade: ["baixa", "media", "alta_urgente"],
