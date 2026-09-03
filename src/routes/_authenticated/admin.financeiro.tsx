@@ -1,13 +1,16 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, CreditCard, TrendingUp, TrendingDown, Trash2, Repeat } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { MetricCard } from "@/components/ui/metric-card";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { DataTable, Thead, Tbody, Tr, Th, Td } from "@/components/ui/data-table";
+import { CreditCard, TrendingUp, TrendingDown, Trash2, Repeat } from "lucide-react";
 import { FinanceiroCharts } from "@/components/charts/FinanceiroCharts";
 
 export const Route = createFileRoute("/_authenticated/admin/financeiro")({
