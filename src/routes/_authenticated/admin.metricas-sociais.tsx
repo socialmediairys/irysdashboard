@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Trash2, ArrowLeft, TrendingUp } from "lucide-react";
-import { C } from "@/lib/ui-tokens";
+import { ArrowLeft, Plus, Trash2, TrendingUp } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { EmptyState } from "@/components/ui/empty-state";
+import { DataTable, Tbody, Td, Th, Thead, Tr } from "@/components/ui/data-table";
 
 export const Route = createFileRoute("/_authenticated/admin/metricas-sociais")({
   head: () => ({
@@ -48,6 +50,13 @@ const METRICS = [
   { v: "impressions", label: "Impressões" },
 ] as const;
 
+/** Superfícies e controles usam os tokens neutros do design system. */
+const CARD = "rounded-2xl bg-card p-5 shadow-card";
+const FIELD =
+  "rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground";
+const BTN =
+  "inline-flex items-center justify-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary-hover active:bg-primary-active disabled:opacity-60";
+
 function MetricasSociaisPage() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -89,49 +98,51 @@ function MetricasSociaisPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold flex items-center gap-2" style={{ color: C.text }}>
-          <TrendingUp size={22} style={{ color: C.mid }} /> Métricas sociais
-        </h1>
-        <p className="text-sm mt-1" style={{ color: C.textMid }}>
-          Cadastre contas sociais dos clientes, lance snapshots mensais e defina metas.
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        title="Métricas sociais"
+        description="Cadastre contas sociais dos clientes, lance snapshots mensais e defina metas."
+      />
 
-      <NewAccountForm clientes={clientes} onCreated={loadAccounts} />
+      <div className="space-y-6">
+        <NewAccountForm clientes={clientes} onCreated={loadAccounts} />
 
-      <div className="rounded-[14px] p-5" style={{ background: "#fff", boxShadow: "var(--shadow-card)" }}>
-        <h3 className="font-extrabold mb-3">Contas cadastradas</h3>
-        {loading ? (
-          <div className="text-sm" style={{ color: C.textMid }}>Carregando…</div>
-        ) : accounts.length === 0 ? (
-          <div className="text-sm" style={{ color: C.textMid }}>Nenhuma conta cadastrada ainda.</div>
-        ) : (
-          <ul className="divide-y" style={{ borderColor: C.beige }}>
-            {accounts.map((a) => {
-              const cli = clientes.find((c) => c.id === a.client_id);
-              return (
-                <li key={a.id} className="flex items-center justify-between py-3">
-                  <div>
-                    <div className="font-semibold">{cli?.nome ?? "—"}</div>
-                    <div className="text-xs" style={{ color: C.textMid }}>
-                      {a.platform} · @{a.username ?? "—"}
+        <div className={CARD}>
+          <h3 className="mb-3 font-bold text-foreground">Contas cadastradas</h3>
+          {loading ? (
+            <div className="text-sm text-muted-foreground">Carregando…</div>
+          ) : accounts.length === 0 ? (
+            <EmptyState
+              title="Nenhuma conta cadastrada"
+              description="Adicione a primeira conta social no formulário acima."
+              icon={<TrendingUp size={24} strokeWidth={1.6} />}
+              className="shadow-none"
+            />
+          ) : (
+            <ul className="divide-y divide-border">
+              {accounts.map((a) => {
+                const cli = clientes.find((c) => c.id === a.client_id);
+                return (
+                  <li key={a.id} className="flex items-center justify-between py-3">
+                    <div>
+                      <div className="font-semibold text-foreground">{cli?.nome ?? "—"}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {a.platform} · @{a.username ?? "—"}
+                      </div>
                     </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedAccount(a.id)}
-                    className="rounded-full px-4 py-1.5 text-xs font-bold"
-                    style={{ background: C.dark, color: "#fff" }}
-                  >
-                    Abrir
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAccount(a.id)}
+                      className="rounded-full border border-border px-4 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-secondary"
+                    >
+                      Abrir
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -164,20 +175,11 @@ function NewAccountForm({ clientes, onCreated }: { clientes: Cliente[]; onCreate
   };
 
   return (
-    <form
-      onSubmit={submit}
-      className="rounded-[14px] p-5 grid grid-cols-1 md:grid-cols-4 gap-3"
-      style={{ background: "#fff", boxShadow: "var(--shadow-card)" }}
-    >
+    <form onSubmit={submit} className={`${CARD} grid grid-cols-1 gap-3 md:grid-cols-4`}>
       <div className="md:col-span-4">
-        <h3 className="font-extrabold">Nova conta social</h3>
+        <h3 className="font-bold text-foreground">Nova conta social</h3>
       </div>
-      <select
-        value={clientId}
-        onChange={(e) => setClientId(e.target.value)}
-        className="rounded-[10px] px-3 py-2 text-sm"
-        style={{ border: `1px solid ${C.beige}` }}
-      >
+      <select value={clientId} onChange={(e) => setClientId(e.target.value)} className={FIELD}>
         <option value="">Cliente…</option>
         {clientes.map((c) => (
           <option key={c.id} value={c.id}>{c.nome}</option>
@@ -186,8 +188,7 @@ function NewAccountForm({ clientes, onCreated }: { clientes: Cliente[]; onCreate
       <select
         value={platform}
         onChange={(e) => setPlatform(e.target.value as Account["platform"])}
-        className="rounded-[10px] px-3 py-2 text-sm"
-        style={{ border: `1px solid ${C.beige}` }}
+        className={FIELD}
       >
         {PLATFORMS.map((p) => (
           <option key={p} value={p}>{p}</option>
@@ -197,16 +198,10 @@ function NewAccountForm({ clientes, onCreated }: { clientes: Cliente[]; onCreate
         value={username}
         onChange={(e) => setUsername(e.target.value)}
         placeholder="@username"
-        className="rounded-[10px] px-3 py-2 text-sm"
-        style={{ border: `1px solid ${C.beige}` }}
+        className={FIELD}
       />
-      <button
-        type="submit"
-        disabled={saving}
-        className="rounded-[10px] px-4 py-2 text-sm font-bold inline-flex items-center gap-1 justify-center"
-        style={{ background: C.dark, color: "#fff" }}
-      >
-        <Plus size={14} /> Adicionar
+      <button type="submit" disabled={saving} className={BTN}>
+        <Plus size={14} strokeWidth={1.6} /> Adicionar
       </button>
     </form>
   );
@@ -261,93 +256,83 @@ function AccountDetail({
       <button
         type="button"
         onClick={onBack}
-        className="inline-flex items-center gap-1 text-sm font-semibold"
-        style={{ color: C.mid }}
+        className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
       >
-        <ArrowLeft size={14} /> Voltar
+        <ArrowLeft size={14} strokeWidth={1.6} /> Voltar
       </button>
 
-      <div
-        className="rounded-[14px] p-5 flex items-start justify-between gap-3"
-        style={{ background: C.dark, color: "#fff" }}
-      >
-        <div>
-          <div className="text-xs uppercase tracking-wider opacity-70">{account.platform}</div>
-          <h1 className="text-2xl font-extrabold">{cliente?.nome ?? "—"}</h1>
-          <div className="text-sm opacity-80">@{account.username ?? "—"}</div>
-        </div>
-        <button
-          type="button"
-          onClick={deleteAccount}
-          className="rounded-full h-9 w-9 flex items-center justify-center hover:bg-white/10"
-          aria-label="Excluir conta"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
+      <PageHeader
+        title={cliente?.nome ?? "—"}
+        description={`${account.platform} · @${account.username ?? "—"}`}
+        actions={
+          <button
+            type="button"
+            onClick={deleteAccount}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-destructive"
+            aria-label="Excluir conta"
+          >
+            <Trash2 size={16} strokeWidth={1.6} />
+          </button>
+        }
+      />
 
       <NewSnapshotForm accountId={account.id} onCreated={load} />
 
-      <div className="rounded-[14px] p-5" style={{ background: "#fff", boxShadow: "var(--shadow-card)" }}>
-        <h3 className="font-extrabold mb-3">Snapshots</h3>
+      <div>
+        <h3 className="mb-3 font-bold text-foreground">Snapshots</h3>
         {loading ? (
-          <div className="text-sm" style={{ color: C.textMid }}>Carregando…</div>
+          <div className={`${CARD} text-sm text-muted-foreground`}>Carregando…</div>
         ) : snaps.length === 0 ? (
-          <div className="text-sm" style={{ color: C.textMid }}>Nenhum snapshot lançado.</div>
+          <EmptyState title="Nenhum snapshot lançado" description="Use o formulário acima para registrar o primeiro." />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left" style={{ color: C.textMuted }}>
-                  <th className="py-2 pr-3 text-[11px] uppercase font-bold">Data</th>
-                  <th className="py-2 pr-3 text-[11px] uppercase font-bold">Seguidores</th>
-                  <th className="py-2 pr-3 text-[11px] uppercase font-bold">Engaj. %</th>
-                  <th className="py-2 pr-3 text-[11px] uppercase font-bold">Alcance</th>
-                  <th className="py-2 pr-3 text-[11px] uppercase font-bold">Impressões</th>
-                  <th className="py-2 pr-3 text-[11px] uppercase font-bold text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {snaps.map((s) => (
-                  <tr key={s.id} className="border-t" style={{ borderColor: C.beige }}>
-                    <td className="py-2 pr-3">{new Date(s.snapshot_date).toLocaleDateString("pt-BR")}</td>
-                    <td className="py-2 pr-3">{s.followers ?? "—"}</td>
-                    <td className="py-2 pr-3">{s.engagement_rate ?? "—"}</td>
-                    <td className="py-2 pr-3">{s.reach ?? "—"}</td>
-                    <td className="py-2 pr-3">{s.impressions ?? "—"}</td>
-                    <td className="py-2 pr-3 text-right">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (!confirm("Excluir snapshot?")) return;
-                          const { error } = await supabase
-                            .from("social_metrics_snapshots")
-                            .delete()
-                            .eq("id", s.id);
-                          if (error) return toast.error(error.message);
-                          toast.success("Excluído");
-                          await load();
-                        }}
-                        className="text-xs font-bold"
-                        style={{ color: "#C8351A" }}
-                      >
-                        Excluir
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable>
+            <Thead>
+              <Th>Data</Th>
+              <Th>Seguidores</Th>
+              <Th>Engaj. %</Th>
+              <Th>Alcance</Th>
+              <Th>Impressões</Th>
+              <Th align="right">Ações</Th>
+            </Thead>
+            <Tbody>
+              {snaps.map((s) => (
+                <Tr key={s.id}>
+                  <Td>{new Date(s.snapshot_date).toLocaleDateString("pt-BR")}</Td>
+                  <Td>{s.followers ?? "—"}</Td>
+                  <Td>{s.engagement_rate ?? "—"}</Td>
+                  <Td>{s.reach ?? "—"}</Td>
+                  <Td>{s.impressions ?? "—"}</Td>
+                  <Td align="right">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!confirm("Excluir snapshot?")) return;
+                        const { error } = await supabase
+                          .from("social_metrics_snapshots")
+                          .delete()
+                          .eq("id", s.id);
+                        if (error) return toast.error(error.message);
+                        toast.success("Excluído");
+                        await load();
+                      }}
+                      className="text-xs font-semibold text-destructive hover:underline"
+                    >
+                      Excluir
+                    </button>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </DataTable>
         )}
       </div>
 
       <NewGoalForm accountId={account.id} onCreated={load} />
 
-      <div className="rounded-[14px] p-5" style={{ background: "#fff", boxShadow: "var(--shadow-card)" }}>
-        <h3 className="font-extrabold mb-3">Metas</h3>
+      <div className={CARD}>
+        <h3 className="mb-3 font-bold text-foreground">Metas</h3>
         {goals.length === 0 ? (
-          <div className="text-sm" style={{ color: C.textMid }}>Nenhuma meta definida.</div>
+          <div className="text-sm text-muted-foreground">Nenhuma meta definida.</div>
         ) : (
           <div className="space-y-3">
             {goals.map((g) => {
@@ -359,20 +344,20 @@ function AccountDetail({
               const metricLabel = METRICS.find((m) => m.v === g.metric)?.label ?? g.metric;
               return (
                 <div key={g.id}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="font-semibold">{metricLabel}</span>
-                    <span style={{ color: C.textMid }}>
+                  <div className="mb-1 flex justify-between text-sm">
+                    <span className="font-semibold text-foreground">{metricLabel}</span>
+                    <span className="text-muted-foreground">
                       {current ?? "—"} / {g.target_value}
                       {g.target_date && ` · até ${new Date(g.target_date).toLocaleDateString("pt-BR")}`}
                     </span>
                   </div>
-                  <div className="h-2 w-full rounded-full overflow-hidden" style={{ background: C.beigeLight }}>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
                     <div
-                      className="h-full rounded-full"
-                      style={{ width: `${pct}%`, background: pct >= 100 ? "#2E7D32" : C.gold }}
+                      className={`h-full rounded-full ${pct >= 100 ? "bg-success" : "bg-primary"}`}
+                      style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <div className="text-right mt-1">
+                  <div className="mt-1 text-right">
                     <button
                       type="button"
                       onClick={async () => {
@@ -382,8 +367,7 @@ function AccountDetail({
                         toast.success("Excluída");
                         await load();
                       }}
-                      className="text-xs font-bold"
-                      style={{ color: "#C8351A" }}
+                      className="text-xs font-semibold text-destructive hover:underline"
                     >
                       Excluir meta
                     </button>
@@ -428,29 +412,17 @@ function NewSnapshotForm({ accountId, onCreated }: { accountId: string; onCreate
     await onCreated();
   };
 
-  const input = "rounded-[10px] px-3 py-2 text-sm";
-  const border = { border: `1px solid ${C.beige}` };
-
   return (
-    <form
-      onSubmit={submit}
-      className="rounded-[14px] p-5 grid grid-cols-2 md:grid-cols-6 gap-3"
-      style={{ background: "#fff", boxShadow: "var(--shadow-card)" }}
-    >
+    <form onSubmit={submit} className={`${CARD} grid grid-cols-2 gap-3 md:grid-cols-6`}>
       <div className="col-span-2 md:col-span-6">
-        <h3 className="font-extrabold">Novo snapshot</h3>
+        <h3 className="font-bold text-foreground">Novo snapshot</h3>
       </div>
-      <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={input} style={border} />
-      <input type="number" placeholder="Seguidores" value={followers} onChange={(e) => setFollowers(e.target.value)} className={input} style={border} />
-      <input type="number" step="0.01" placeholder="Engaj. %" value={engagement} onChange={(e) => setEngagement(e.target.value)} className={input} style={border} />
-      <input type="number" placeholder="Alcance" value={reach} onChange={(e) => setReach(e.target.value)} className={input} style={border} />
-      <input type="number" placeholder="Impressões" value={impressions} onChange={(e) => setImpressions(e.target.value)} className={input} style={border} />
-      <button
-        type="submit"
-        disabled={saving}
-        className="rounded-[10px] px-4 py-2 text-sm font-bold"
-        style={{ background: C.dark, color: "#fff" }}
-      >
+      <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={FIELD} />
+      <input type="number" placeholder="Seguidores" value={followers} onChange={(e) => setFollowers(e.target.value)} className={FIELD} />
+      <input type="number" step="0.01" placeholder="Engaj. %" value={engagement} onChange={(e) => setEngagement(e.target.value)} className={FIELD} />
+      <input type="number" placeholder="Alcance" value={reach} onChange={(e) => setReach(e.target.value)} className={FIELD} />
+      <input type="number" placeholder="Impressões" value={impressions} onChange={(e) => setImpressions(e.target.value)} className={FIELD} />
+      <button type="submit" disabled={saving} className={BTN}>
         Salvar
       </button>
     </form>
@@ -481,31 +453,19 @@ function NewGoalForm({ accountId, onCreated }: { accountId: string; onCreated: (
     await onCreated();
   };
 
-  const input = "rounded-[10px] px-3 py-2 text-sm";
-  const border = { border: `1px solid ${C.beige}` };
-
   return (
-    <form
-      onSubmit={submit}
-      className="rounded-[14px] p-5 grid grid-cols-2 md:grid-cols-4 gap-3"
-      style={{ background: "#fff", boxShadow: "var(--shadow-card)" }}
-    >
+    <form onSubmit={submit} className={`${CARD} grid grid-cols-2 gap-3 md:grid-cols-4`}>
       <div className="col-span-2 md:col-span-4">
-        <h3 className="font-extrabold">Nova meta</h3>
+        <h3 className="font-bold text-foreground">Nova meta</h3>
       </div>
-      <select value={metric} onChange={(e) => setMetric(e.target.value as Goal["metric"])} className={input} style={border}>
+      <select value={metric} onChange={(e) => setMetric(e.target.value as Goal["metric"])} className={FIELD}>
         {METRICS.map((m) => (
           <option key={m.v} value={m.v}>{m.label}</option>
         ))}
       </select>
-      <input type="number" step="0.01" placeholder="Valor alvo" value={target} onChange={(e) => setTarget(e.target.value)} className={input} style={border} />
-      <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={input} style={border} />
-      <button
-        type="submit"
-        disabled={saving}
-        className="rounded-[10px] px-4 py-2 text-sm font-bold"
-        style={{ background: C.dark, color: "#fff" }}
-      >
+      <input type="number" step="0.01" placeholder="Valor alvo" value={target} onChange={(e) => setTarget(e.target.value)} className={FIELD} />
+      <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={FIELD} />
+      <button type="submit" disabled={saving} className={BTN}>
         Salvar meta
       </button>
     </form>

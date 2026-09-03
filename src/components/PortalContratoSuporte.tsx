@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { FileDown } from "lucide-react";
+
+/** Superfície padrão do design system para os cards do portal. */
+const CARD = "rounded-2xl bg-card p-6 shadow-card";
 
 type Contrato = {
   id: string;
@@ -132,17 +135,17 @@ export function PortalContratoSuporte({ clienteId }: { clienteId: string }) {
   return (
     <div className="space-y-4">
       {msg && (
-        <div className="rounded border border-border bg-muted p-3 text-sm text-foreground">{msg}</div>
+        <div className="rounded-xl border border-border bg-secondary p-3 text-sm text-foreground">{msg}</div>
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="p-6">
+        <div className={CARD}>
           <h2 className="mb-4 font-bold text-foreground">Meu contrato</h2>
           {contrato ? (
             <>
               <dl className="space-y-2 text-sm">
                 <Row label="Status">
-                  <Badge variant="secondary">{contrato.status_contrato ?? "—"}</Badge>
+                  <StatusBadge status={contrato.status_contrato} />
                 </Row>
                 <Row label="Plano">{contrato.plano_atual ?? "—"}</Row>
                 <Row label="Valor mensal">
@@ -150,12 +153,14 @@ export function PortalContratoSuporte({ clienteId }: { clienteId: string }) {
                 </Row>
                 <Row label="Forma de pagamento">{contrato.forma_pagamento ?? "—"}</Row>
                 <Row label="Vencimento">
-                  {contrato.data_vencimento_contrato ?? "—"}
-                  {diasAteVencimento !== null && diasAteVencimento < 30 && (
-                    <Badge variant="outline" className="ml-2">
-                      Vence em {diasAteVencimento}d
-                    </Badge>
-                  )}
+                  <span className="inline-flex items-center gap-2">
+                    {contrato.data_vencimento_contrato ?? "—"}
+                    {diasAteVencimento !== null && diasAteVencimento < 30 && (
+                      <StatusBadge variant="warning" dot={false}>
+                        Vence em {diasAteVencimento}d
+                      </StatusBadge>
+                    )}
+                  </span>
                 </Row>
               </dl>
               {contrato.link_contrato_assinado && (
@@ -163,9 +168,9 @@ export function PortalContratoSuporte({ clienteId }: { clienteId: string }) {
                   href={contrato.link_contrato_assinado}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 inline-block text-sm text-muted-foreground underline"
+                  className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground"
                 >
-                  Baixar contrato assinado
+                  <FileDown className="h-4 w-4" strokeWidth={1.6} /> Baixar contrato assinado
                 </a>
               )}
               {diasAteVencimento !== null && diasAteVencimento < 30 && (
@@ -177,9 +182,9 @@ export function PortalContratoSuporte({ clienteId }: { clienteId: string }) {
           ) : (
             <p className="text-sm text-muted-foreground">Contrato não disponível.</p>
           )}
-        </Card>
+        </div>
 
-        <Card className="p-6">
+        <div className={CARD}>
           <h2 className="mb-4 font-bold text-foreground">Documentos</h2>
           {docs.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhum documento disponível.</p>
@@ -192,25 +197,25 @@ export function PortalContratoSuporte({ clienteId }: { clienteId: string }) {
                     href={d.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground underline"
+                    className="inline-flex items-center gap-1 text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground"
                   >
-                    Baixar
+                    <FileDown className="h-3.5 w-3.5" strokeWidth={1.6} /> Baixar
                   </a>
                 </li>
               ))}
             </ul>
           )}
-        </Card>
+        </div>
       </div>
 
-      <Card className="p-6">
+      <div className={CARD}>
         <h2 className="mb-4 font-bold text-foreground">Checklist de onboarding</h2>
         {checklist.length === 0 ? (
           <p className="text-sm text-muted-foreground">Sem tarefas cadastradas.</p>
         ) : (
           <ul className="space-y-3">
             {checklist.map((item) => (
-              <li key={item.id} className="flex items-start gap-3 rounded border border-border p-3">
+              <li key={item.id} className="flex items-start gap-3 rounded-xl border border-border p-3">
                 <Checkbox
                   checked={item.concluido}
                   onCheckedChange={() => toggleChecklist(item)}
@@ -230,20 +235,20 @@ export function PortalContratoSuporte({ clienteId }: { clienteId: string }) {
             ))}
           </ul>
         )}
-      </Card>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card className="p-6">
+        <div className={CARD}>
           <h2 className="mb-4 font-bold text-foreground">Meus tickets</h2>
           {tickets.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhum ticket ainda.</p>
           ) : (
             <ul className="space-y-2">
               {tickets.map((t) => (
-                <li key={t.id} className="rounded border border-border p-3">
-                  <div className="flex items-center justify-between">
+                <li key={t.id} className="rounded-xl border border-border p-3">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-medium text-foreground">{t.assunto}</span>
-                    <Badge variant="secondary">{t.status}</Badge>
+                    <StatusBadge status={t.status} />
                   </div>
                   {t.descricao && (
                     <p className="mt-1 text-xs text-muted-foreground">{t.descricao}</p>
@@ -256,8 +261,8 @@ export function PortalContratoSuporte({ clienteId }: { clienteId: string }) {
               ))}
             </ul>
           )}
-        </Card>
-        <Card className="p-6">
+        </div>
+        <div className={CARD}>
           <h2 className="mb-4 font-bold text-foreground">Abrir novo ticket</h2>
           <form onSubmit={abrirTicket} className="space-y-3">
             <Input
@@ -276,7 +281,7 @@ export function PortalContratoSuporte({ clienteId }: { clienteId: string }) {
               Enviar
             </Button>
           </form>
-        </Card>
+        </div>
       </div>
     </div>
   );

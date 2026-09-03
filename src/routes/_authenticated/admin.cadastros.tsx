@@ -9,12 +9,19 @@ import {
   type Solicitacao,
 } from "@/lib/cadastros.functions";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "sonner";
-import { Check, Loader2, X } from "lucide-react";
+import { Check, Loader2, UserCheck, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/cadastros")({
+  head: () => ({
+    meta: [
+      { title: "Cadastros pendentes — Irys OS" },
+      { name: "description", content: "Aprove pedidos de acesso vinculando cada um a um cliente." },
+    ],
+  }),
   component: CadastrosPage,
 });
 
@@ -82,31 +89,31 @@ function CadastrosPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Cadastros pendentes</h1>
-        <p className="text-sm text-muted-foreground">
-          Aprove os pedidos de acesso vinculando cada um a um cliente já existente.
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        title="Cadastros pendentes"
+        description="Aprove os pedidos de acesso vinculando cada um a um cliente já existente."
+      />
 
       {loading ? (
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Carregando...
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" strokeWidth={1.6} /> Carregando…
         </div>
       ) : pendentes.length === 0 ? (
-        <Card className="p-6 text-sm text-muted-foreground">Nenhum cadastro aguardando aprovação.</Card>
+        <EmptyState
+          title="Nenhum cadastro aguardando aprovação"
+          description="Novos pedidos de acesso aparecem aqui automaticamente."
+          icon={<UserCheck size={24} strokeWidth={1.6} />}
+        />
       ) : (
         <ul className="space-y-3">
           {pendentes.map((sol) => (
-            <Card key={sol.id} className="p-4 sm:p-5">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="font-semibold text-foreground break-words">{sol.nome}</div>
-                  <div className="text-sm text-muted-foreground break-all">{sol.email}</div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    Solicitado em {new Date(sol.created_at).toLocaleString("pt-BR")}
-                  </div>
+            <li key={sol.id} className="rounded-2xl bg-card p-5 shadow-card">
+              <div className="min-w-0">
+                <div className="break-words font-semibold text-foreground">{sol.nome}</div>
+                <div className="break-all text-sm text-muted-foreground">{sol.email}</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Solicitado em {new Date(sol.created_at).toLocaleString("pt-BR")}
                 </div>
               </div>
 
@@ -135,20 +142,14 @@ function CadastrosPage() {
                 <Button
                   onClick={() => handleAprovar(sol)}
                   disabled={acting === sol.id || !selecoes[sol.id]}
-                  className="bg-primary hover:bg-primary-hover text-white"
                 >
-                  <Check className="h-4 w-4 mr-1" /> Aprovar
+                  <Check className="mr-1 h-4 w-4" strokeWidth={1.6} /> Aprovar
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleRejeitar(sol)}
-                  disabled={acting === sol.id}
-                  className="border-border text-muted-foreground"
-                >
-                  <X className="h-4 w-4 mr-1" /> Rejeitar
+                <Button variant="outline" onClick={() => handleRejeitar(sol)} disabled={acting === sol.id}>
+                  <X className="mr-1 h-4 w-4" strokeWidth={1.6} /> Rejeitar
                 </Button>
               </div>
-            </Card>
+            </li>
           ))}
         </ul>
       )}

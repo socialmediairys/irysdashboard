@@ -1,10 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, Shield, X } from "lucide-react";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Shield, Users, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/equipe")({
   head: () => ({ meta: [{ title: "Equipe & Papéis — Irys OS" }] }),
@@ -14,14 +14,15 @@ export const Route = createFileRoute("/_authenticated/admin/equipe")({
 type Papel = "admin" | "gestor" | "editor" | "social" | "financeiro" | "juridico" | "cliente";
 const PAPEIS: Papel[] = ["admin", "gestor", "editor", "social", "financeiro", "juridico", "cliente"];
 
-const CORES: Record<Papel, string> = {
-  admin: "bg-primary text-white",
-  gestor: "bg-primary-hover text-white",
-  editor: "bg-secondary text-foreground",
-  social: "bg-pink-600 text-white",
-  financeiro: "bg-emerald-700 text-white",
-  juridico: "bg-indigo-700 text-white",
-  cliente: "bg-slate-500 text-white",
+/** Papéis usam a escala neutra do design system; só admin recebe destaque. */
+const VARIANTES: Record<Papel, StatusVariant> = {
+  admin: "primary",
+  gestor: "info",
+  editor: "neutral",
+  social: "neutral",
+  financeiro: "neutral",
+  juridico: "neutral",
+  cliente: "neutral",
 };
 
 type Membro = { id: string; nome: string | null; email: string | null; papeis: Papel[] };
@@ -60,70 +61,73 @@ function EquipePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-primary text-white px-6 py-4 flex items-center gap-3">
-        <Link to="/admin/visao-geral" className="text-primary-foreground/70 hover:text-white flex items-center gap-1 text-sm">
-          <ArrowLeft className="w-4 h-4" /> Voltar
-        </Link>
-        <span className="text-muted-foreground">|</span>
-        <Users className="w-5 h-5 text-primary-foreground/70" />
-        <div>
-          <h1 className="text-lg font-bold">Equipe & Papéis</h1>
-          <p className="text-xs text-primary-foreground/70">{membros.length} usuários no sistema</p>
-        </div>
-      </header>
+    <div>
+      <PageHeader
+        title="Equipe & Papéis"
+        description={`${membros.length} usuários no sistema`}
+      />
 
-      <div className="max-w-5xl mx-auto p-6 space-y-4">
-        <Card className="p-4 bg-white border-border">
-          <div className="flex items-start gap-2 text-sm text-muted-foreground">
-            <Shield className="w-4 h-4 mt-0.5 shrink-0" />
-            <p>
-              Papéis controlam o acesso às áreas do sistema. Um usuário pode ter vários papéis.
-              O papel <b>cliente</b> é atribuído automaticamente no cadastro.
-            </p>
-          </div>
-        </Card>
+      <div className="space-y-4">
+        <div className="flex items-start gap-2 rounded-2xl bg-card p-4 text-sm text-muted-foreground shadow-card">
+          <Shield className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.6} />
+          <p>
+            Papéis controlam o acesso às áreas do sistema. Um usuário pode ter vários papéis.
+            O papel <b className="text-foreground">cliente</b> é atribuído automaticamente no cadastro.
+          </p>
+        </div>
 
         {loading ? (
-          <Card className="p-8 text-center text-muted-foreground">Carregando membros...</Card>
+          <div className="rounded-2xl bg-card p-8 text-center text-sm text-muted-foreground shadow-card">
+            Carregando membros…
+          </div>
+        ) : membros.length === 0 ? (
+          <EmptyState
+            title="Nenhum usuário encontrado"
+            description="Assim que alguém acessar o sistema, aparecerá aqui."
+            icon={<Users size={24} strokeWidth={1.6} />}
+          />
         ) : (
           <div className="space-y-3">
             {membros.map((m) => (
-              <Card key={m.id} className="p-4 bg-white border-border">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className="font-medium text-foreground">{m.nome || "(sem nome)"}</p>
-                    <p className="text-xs text-muted-foreground">{m.email}</p>
-                  </div>
+              <div key={m.id} className="rounded-2xl bg-card p-5 shadow-card">
+                <div className="mb-3">
+                  <p className="font-semibold text-foreground">{m.nome || "(sem nome)"}</p>
+                  <p className="text-xs text-muted-foreground">{m.email}</p>
                 </div>
-                <div className="flex flex-wrap gap-2 mb-3">
+                <div className="mb-3 flex flex-wrap gap-2">
                   {m.papeis.length === 0 && (
-                    <span className="text-xs text-muted-foreground italic">Sem papéis atribuídos</span>
+                    <span className="text-xs italic text-muted-foreground">Sem papéis atribuídos</span>
                   )}
                   {m.papeis.map((p) => (
-                    <Badge
+                    <button
                       key={p}
-                      className={`${CORES[p]} hover:opacity-90 gap-1 cursor-pointer`}
+                      type="button"
                       onClick={() => removerPapel(m.id, p)}
+                      className="cursor-pointer transition-opacity hover:opacity-80"
+                      aria-label={`Remover papel ${p}`}
                     >
-                      {p}
-                      <X className="w-3 h-3" />
-                    </Badge>
+                      <StatusBadge variant={VARIANTES[p]} dot={false}>
+                        <span className="inline-flex items-center gap-1">
+                          {p}
+                          <X className="h-3 w-3" strokeWidth={1.6} />
+                        </span>
+                      </StatusBadge>
+                    </button>
                   ))}
                 </div>
-                <div className="flex flex-wrap gap-1.5 border-t pt-3">
-                  <span className="text-xs text-muted-foreground self-center mr-2">+ Atribuir:</span>
+                <div className="flex flex-wrap gap-1.5 border-t border-border pt-3">
+                  <span className="mr-2 self-center text-xs text-muted-foreground">+ Atribuir:</span>
                   {PAPEIS.filter((p) => !m.papeis.includes(p)).map((p) => (
                     <button
                       key={p}
                       onClick={() => adicionarPapel(m.id, p)}
-                      className="text-xs px-2 py-1 rounded border border-border text-muted-foreground hover:bg-secondary cursor-pointer"
+                      className="cursor-pointer rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                     >
                       {p}
                     </button>
                   ))}
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         )}
