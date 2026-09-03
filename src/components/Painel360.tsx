@@ -189,7 +189,7 @@ export function Card({ children, dark = false, className = "", style }: { childr
     <div
       className={`rounded-[18px] p-6 transition-all duration-150 ${className}`}
       style={{
-        background: dark ? "var(--primary)" : "#fff",
+        background: dark ? "var(--primary)" : "var(--card)",
         color: dark ? "#fff" : "var(--foreground)",
         boxShadow: SHADOW,
         ...style,
@@ -203,7 +203,7 @@ export function Card({ children, dark = false, className = "", style }: { childr
 }
 export function PillBtn({ children, variant = "dark", onClick }: { children: ReactNode; variant?: "dark" | "ghost" | "gold"; onClick?: () => void }) {
   const styles: Record<string, CSSProperties> = {
-    dark:  { background: "var(--primary)", color: "#fff" },
+    dark:  { background: "var(--primary)", color: "var(--primary-foreground)" },
     ghost: { background: "transparent", color: "var(--foreground)", border: `1px solid var(--border)` },
     gold:  { background: "var(--secondary)", color: "var(--foreground)", border: `1px solid var(--border)` },
   };
@@ -276,7 +276,7 @@ export function MetricCard({ variant = "default", value, label, delta, deltaType
 }) {
   const dark = variant === "hero";
   const accent = variant === "accent";
-  const bg = dark ? "var(--primary)" : accent ? "var(--secondary)" : "#fff";
+  const bg = dark ? "var(--primary)" : accent ? "var(--secondary)" : "var(--card)";
   const fg = dark ? "#fff" : "var(--foreground)";
   const labelColor = dark ? "rgba(255,255,255,0.7)" : "var(--muted-foreground)";
   const deltaColor = deltaType === "down" ? "var(--destructive)" : deltaType === "up" ? "var(--success)" : labelColor;
@@ -638,7 +638,7 @@ function DashboardPage({ go }: { go: (p: PageKey) => void }) {
                       </div>
                     </div>
                     <span className="rounded-full px-2.5 py-1 text-[11px] font-bold uppercase"
-                      style={{ background: e.prioridade === "alta" ? "var(--destructive)" : "rgba(255,255,255,0.15)", color: "#fff" }}>
+                      style={{ background: e.prioridade === "alta" ? "var(--destructive)" : "rgba(255,255,255,0.15)", color: "var(--primary-foreground)" }}>
                       {e.prioridade === "alta" ? "Urgente" : "Hoje"}
                     </span>
                   </div>
@@ -1679,13 +1679,13 @@ function DroppableColumn({ etapa, items, children }: any) {
     <div
       ref={setNodeRef}
       className="rounded-[12px] p-3 flex flex-col min-h-[280px]"
-      style={{ background: isOver ? "#F7F0E0" : "var(--secondary)", transition: "background 120ms" }}
+      style={{ background: isOver ? "var(--primary-soft)" : "var(--secondary)", transition: "background 120ms" }}
     >
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
           {etapa}
         </span>
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "#fff", color: "var(--muted-foreground)" }}>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "var(--card)", color: "var(--muted-foreground)" }}>
           {items.length} · {brl(totalValor)}
         </span>
       </div>
@@ -2601,7 +2601,7 @@ function CentralClientePage({ selectedId, setSelectedId, enterPortal }: {
                 <button key={c.id} onClick={() => setSelectedId(c.id)}
                   className="flex items-center gap-2 rounded-[30px] px-3 py-2 text-sm font-semibold transition-all"
                   style={{
-                    background: active ? "var(--primary)" : "#fff",
+                    background: active ? "var(--primary)" : "var(--card)",
                     color: active ? "#fff" : "var(--foreground)",
                     border: `1px solid ${active ? "var(--primary)" : "var(--border)"}`,
                   }}>
@@ -2654,10 +2654,10 @@ function AudioPlayer({ id, title, desc, duration, activeId, setActiveId }: {
   useEffect(() => { if (!isPlaying) setProgress(0); }, [isPlaying]);
 
   return (
-    <div className="rounded-[14px] p-4 flex items-center gap-4" style={{ background: "#fff", boxShadow: SHADOW }}>
+    <div className="rounded-[14px] p-4 flex items-center gap-4" style={{ background: "var(--card)", boxShadow: SHADOW }}>
       <button onClick={() => setActiveId(isPlaying ? null : id)}
         className="h-12 w-12 rounded-full flex items-center justify-center shrink-0 transition-transform hover:scale-105"
-        style={{ background: "var(--primary)", color: "#fff" }}>
+        style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
         {isPlaying ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
       </button>
       <div className="flex-1 min-w-0">
@@ -2679,7 +2679,7 @@ function FaseAccordion({ fase, nome, desc, subitens, ativa, open, onToggle }: {
   open: boolean; onToggle: () => void;
 }) {
   return (
-    <div className="rounded-[18px] overflow-hidden" style={{ background: "#fff", boxShadow: SHADOW }}>
+    <div className="rounded-[18px] overflow-hidden" style={{ background: "var(--card)", boxShadow: SHADOW }}>
       <button onClick={onToggle} className="w-full p-5 flex items-center gap-4 text-left">
         <div className="h-11 w-11 rounded-full flex items-center justify-center shrink-0 text-sm font-extrabold"
           style={{ background: ativa ? "var(--secondary)" : "var(--secondary)", color: "var(--primary)" }}>
@@ -2714,7 +2714,7 @@ function BloqueadorCard({ n, t, sub, por, open, onToggle }: {
   n: number; t: string; sub: string; por: string; open: boolean; onToggle: () => void;
 }) {
   return (
-    <div className="rounded-[18px] overflow-hidden" style={{ background: "#fff", boxShadow: SHADOW }}>
+    <div className="rounded-[18px] overflow-hidden" style={{ background: "var(--card)", boxShadow: SHADOW }}>
       <button onClick={onToggle} className="w-full p-5 flex items-center gap-4 text-left">
         <div className="h-10 w-10 rounded-[12px] flex items-center justify-center shrink-0 text-sm font-extrabold"
           style={{ background: "var(--secondary)", color: "var(--primary)" }}>
@@ -2746,10 +2746,10 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <header className="sticky top-0 z-30 flex items-center justify-between px-8 py-4"
-        style={{ background: "var(--primary)", color: "#fff", boxShadow: SHADOW }}>
+        style={{ background: "var(--primary)", color: "var(--primary-foreground)", boxShadow: SHADOW }}>
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-extrabold"
-            style={{ background: "var(--muted-foreground)", color: "#fff" }}>
+            style={{ background: "var(--muted-foreground)", color: "var(--primary-foreground)" }}>
             {cliente.init}
           </div>
           <div>
@@ -2892,7 +2892,7 @@ function PortalCliente({ cliente, onExit }: { cliente: Cliente; onExit: () => vo
                 ].map((x, i) => (
                   <div key={i} className="p-3 rounded-[12px] flex items-center gap-3" style={{ background: x.c }}>
                     <div className="h-8 w-8 rounded-full flex items-center justify-center font-extrabold text-sm"
-                      style={{ background: "#fff", color: x.fg }}>{i + 1}</div>
+                      style={{ background: "var(--card)", color: x.fg }}>{i + 1}</div>
                     <div>
                       <div className="font-extrabold text-sm" style={{ color: x.fg }}>{x.t}</div>
                       <div className="text-xs" style={{ color: x.fg, opacity: 0.85 }}>{x.s}</div>
@@ -3012,7 +3012,7 @@ function ConfigPage() {
         <Card>
           <h3 className="font-extrabold text-lg mb-2">Modelos de contrato e termos</h3>
           <p className="text-sm mb-4" style={{ color: "var(--muted-foreground)" }}>Gerencie contratos, termos e políticas com dados do CNPJ.</p>
-          <a href="/admin/juridico" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: "var(--primary)", color: "#fff" }}>
+          <a href="/admin/juridico" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
             Abrir módulo jurídico <ArrowRight size={14} />
           </a>
         </Card>
@@ -3021,7 +3021,7 @@ function ConfigPage() {
         <Card>
           <h3 className="font-extrabold text-lg mb-2">Equipe & papéis</h3>
           <p className="text-sm mb-4" style={{ color: "var(--muted-foreground)" }}>Atribua papéis (admin, gestor, editor, social, financeiro, jurídico, cliente) aos membros.</p>
-          <a href="/admin/equipe" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: "var(--primary)", color: "#fff" }}>
+          <a href="/admin/equipe" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
             Gerenciar equipe <ArrowRight size={14} />
           </a>
         </Card>
@@ -3055,7 +3055,7 @@ function Painel360Inner() {
       {/* Mobile header */}
       <header
         className="md:hidden sticky top-0 z-20 flex h-14 items-center justify-between px-4 shrink-0"
-        style={{ background: "var(--primary)", color: "#fff" }}
+        style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
       >
         <button
           onClick={() => setMobileOpen(true)}
@@ -3067,7 +3067,7 @@ function Painel360Inner() {
         <span className="font-extrabold tracking-tight">Irys OS</span>
         <div
           className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-extrabold"
-          style={{ background: "var(--muted-foreground)", color: "#fff" }}
+          style={{ background: "var(--muted-foreground)", color: "var(--primary-foreground)" }}
         >
           T
         </div>
