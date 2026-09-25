@@ -1,5 +1,7 @@
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { cdb, conteudoFromCalendario } from "@/lib/content";
 import { JORNADA_OPCOES } from "@/lib/strategy";
 import type { StepProps } from "../StrategyWorkspace";
 import { Block, Empty, btn, btnPrimary, inputCls } from "../ui";
@@ -32,9 +34,18 @@ export function CalendarStep({ data, clienteId, touch }: StepProps) {
     setF(blank); setAdding(false); touch();
   };
   const sel = `${inputCls} h-8 py-1 text-[13px]`;
+  const qc = useQueryClient();
+  const { data: gerados = [] } = useQuery({
+    queryKey: ["conteudos-do-calendario", clienteId],
+    queryFn: async () => ((await cdb("conteudos").select("calendario_item_id").eq("cliente_id", clienteId).not("calendario_item_id", "is", null)).data ?? []).map((r: { calendario_item_id: string }) => r.calendario_item_id) as string[],
+  });
+  const transformar = async (i: (typeof items)[number]) => {
+    await conteudoFromCalendario(i, clienteId, nome(data.mensagens, i.mensagem_id, "mensagem"));
+    qc.invalidateQueries({ queryKey: ["conteudos-do-calendario", clienteId] }); qc.invalidateQueries({ queryKey: ["conteudos"] });
+  };
 
   return (
-    <Block title="Calendário estratégico" description="Itens planejados. Na Fase 5 eles poderão originar conteúdos em produção."
+    <Block title="Calendário estratégico" description="Itens planejados. Cada item pode virar um conteúdo, mantendo os vínculos."
       action={
         <div className="flex items-center gap-2">
           <button className={btn} onClick={() => setMes(new Date(mes.getFullYear(), mes.getMonth() - 1, 1))} aria-label="Mês anterior"><ChevronLeft size={14} /></button>
@@ -80,7 +91,7 @@ export function CalendarStep({ data, clienteId, touch }: StepProps) {
                   <td className="max-w-xs px-3 py-2.5 text-foreground">{i.titulo || nome(data.mensagens, i.mensagem_id, "mensagem") || "—"}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{i.jornada ?? "—"}</td>
                   <td className="px-3 py-2.5 text-muted-foreground">{i.cta ?? "—"}</td>
-                  <td className="px-3 py-2.5"><button onClick={() => a.remove("calendario_estrategico_itens", i.id)} className="text-muted-foreground hover:text-destructive" aria-label="Excluir item"><Trash2 size={13} strokeWidth={1.6} /></button></td>
+                  <td className="whitespace-nowrap px-3 py-2.5">{gerados.includes(i.id) ? <span className="mr-2 text-[12px] text-muted-foreground">Conteúdo criado</span> : <button onClick={() => transformar(i)} className="mr-2 text-[12px] font-medium text-foreground underline-offset-2 hover:underline">Transformar em conteúdo</button>}<button onClick={() => a.remove("calendario_estrategico_itens", i.id)} className="text-muted-foreground hover:text-destructive" aria-label="Excluir item"><Trash2 size={13} strokeWidth={1.6} /></button></td>
                 </tr>
               ))}
             </tbody>

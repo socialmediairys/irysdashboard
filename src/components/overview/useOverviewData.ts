@@ -34,7 +34,10 @@ export type PriorityKind =
   | "reuniao"
   | "ticket"
   | "recebimento"
-  | "contrato";
+  | "contrato"
+  | "conteudo_atrasado"
+  | "conteudo_incompleto"
+  | "conteudo_revisao";
 
 export type Priority = {
   id: string;
@@ -60,7 +63,9 @@ export type OverviewData = {
     tarefasAtrasadas: number;
     faturamentoPrevisto: number;
     recebidoMes: number;
+    conteudosProducao: number;
   };
+  production: { producao: number; revisao: number; comCliente: number; aprovados: number; publicados: number };
   priorities: Priority[];
   week: { date: Date; items: { id: string; kind: "reuniao" | "tarefa"; title: string; time?: string; cliente?: string; to: string }[] }[];
   attention: AttentionClient[];
@@ -80,7 +85,7 @@ async function load(): Promise<OverviewData> {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
 
   const { data: u } = await supabase.auth.getUser();
-  const [prof, cli, tar, ag, pipe, tick, fin, onb, arq] = await Promise.all([
+  const [prof, cli, tar, ag, pipe, tick, fin, onb, arq, cont] = await Promise.all([
     u.user ? supabase.from("profiles").select("nome").eq("id", u.user.id).maybeSingle() : Promise.resolve({ data: null }),
     supabase.from("clientes").select("id,nome,status_contrato,valor_mensal,data_vencimento_contrato,created_at,updated_at"),
     supabase.from("tarefas").select("id,titulo,status,prazo,cliente_id,updated_at").order("updated_at", { ascending: false }).limit(500),
@@ -91,7 +96,10 @@ async function load(): Promise<OverviewData> {
     supabase.from("entradas_financeiras").select("id,descricao,valor,data_ref,status_pagamento,cliente_id").gte("data_ref", monthStart),
     supabase.from("onboarding_checklist").select("cliente_id,concluido").eq("concluido", false),
     supabase.from("arquivos").select("id,titulo,nome_original,cliente_id,created_at").order("created_at", { ascending: false }).limit(5),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).from("conteudos").select("id,titulo,status,data_prevista,cliente_id,legenda,midias:conteudo_midias(id)").neq("status", "ideia").limit(2000),
   ]);
+  const conteudos = (cont.data ?? []) as { id: string; titulo: string; status: string; data_prevista: string | null; cliente_id: string; legenda: string | null; midias: { id: string }[] }[];
 
   const clientes = (cli.data ?? []) as ClienteLite[];
   const nomeDe = new Map(clientes.map((c) => [c.id, c.nome]));
@@ -143,7 +151,20 @@ async function load(): Promise<OverviewData> {
     const title = pendente ? "Contrato aguardando assinatura" : c.status_contrato === "vencido" || passou ? "Contrato vencido — renovar" : "Contrato vence em breve";
     p.push({ id: `ct-${c.id}`, kind: "contrato", title, clienteId: c.id, clienteNome: c.nome, due: venc, rank: 6, action: { label: "Ver cliente", to: "/admin/clientes/$clienteId", params: { clienteId: c.id }, search: { tab: "visao-geral" } } });
   }
+  const in3 = new Date(today.getTime() + 3 * DAY);
+  for (const c of conteudos) {
+    const d = c.data_prevista ? parseDate(c.data_prevista) : null;
+    const action = { label: "Abrir conteúdo", to: "/admin/conteudo" };
+    if (d && d < today && !["publicado", "agendado"].includes(c.status)) {
+      p.push({ id: `ca-${c.id}`, kind: "conteudo_atrasado", title: c.titulo || "Conteúdo sem título", clienteId: c.cliente_id, clienteNome: cn(c.cliente_id), due: d, rank: 0.5, action });
+    } else if (d && d <= in3 && ["planejado", "em_producao", "revisao_interna"].includes(c.status) && (!c.legenda?.trim() || !c.midias?.length)) {
+      p.push({ id: `ci-${c.id}`, kind: "conteudo_incompleto", title: `${c.titulo || "Conteúdo"} — ${!c.midias?.length ? "sem mídia" : "sem legenda"}`, clienteId: c.cliente_id, clienteNome: cn(c.cliente_id), due: d, rank: 1.5, action });
+    } else if (c.status === "revisao_interna") {
+      p.push({ id: `cr-${c.id}`, kind: "conteudo_revisao", title: c.titulo || "Conteúdo em revisão", clienteId: c.cliente_id, clienteNome: cn(c.cliente_id), due: d, rank: 2.5, action });
+    }
+  }
   p.sort((a, b) => a.rank - b.rank);
+  const cnt = (...s: string[]) => conteudos.filter((c) => s.includes(c.status)).length;
 
   // Week (next 7 days)
   const week: OverviewData["week"] = Array.from({ length: 7 }, (_, i) => ({ date: new Date(today.getTime() + i * DAY), items: [] }));
@@ -203,7 +224,9 @@ async function load(): Promise<OverviewData> {
       tarefasAtrasadas: atrasadas.length,
       faturamentoPrevisto: ativos.reduce((s, c) => s + Number(c.valor_mensal || 0), 0),
       recebidoMes,
+      conteudosProducao: cnt("planejado", "em_producao", "revisao_interna", "alteracao_solicitada"),
     },
+    production: { producao: cnt("planejado", "em_producao", "alteracao_solicitada"), revisao: cnt("revisao_interna"), comCliente: cnt("com_cliente"), aprovados: cnt("aprovado", "agendado"), publicados: cnt("publicado") },
     priorities: p,
     week,
     attention,

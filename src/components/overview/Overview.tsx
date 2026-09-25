@@ -53,8 +53,8 @@ export function Overview() {
               <ClientsAttention clients={data.attention} />
             </OverviewSection>
 
-            <OverviewSection title="Produção de conteúdo">
-              <ContentProduction />
+            <OverviewSection title="Produção de conteúdo" action={<Link to="/admin/conteudo" className={linkCls}>Abrir Conteúdo</Link>}>
+              <ContentProduction counts={data.production} />
             </OverviewSection>
           </div>
 

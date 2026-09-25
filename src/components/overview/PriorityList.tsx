@@ -12,6 +12,9 @@ const KIND: Record<PriorityKind, { icon: LucideIcon; label: string; urgent?: boo
   ticket: { icon: LifeBuoy, label: "Suporte" },
   recebimento: { icon: Wallet, label: "Recebimento" },
   contrato: { icon: FileSignature, label: "Contrato" },
+  conteudo_atrasado: { icon: AlertCircle, label: "Conteúdo atrasado", urgent: true },
+  conteudo_incompleto: { icon: Clock, label: "Conteúdo incompleto" },
+  conteudo_revisao: { icon: Clock, label: "Revisão interna" },
 };
 
 function formatDue(d: Date | null, kind: PriorityKind) {

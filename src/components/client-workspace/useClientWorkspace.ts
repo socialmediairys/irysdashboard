@@ -27,12 +27,13 @@ export type Workspace = {
   briefing: { lacunas: string | null; updated_at: string } | null;
   evidencias: number;
   conteudos: WsConteudo[];
+  editoriais: { id: string; titulo: string; status: string; data_prevista: string | null; canal: string | null; formato: string | null }[];
   social: WsSocial[];
 };
 
 async function load(id: string): Promise<Workspace | null> {
   const nowIso = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-  const [cli, tar, ag, arq, doc, ent, cf, onb, tk, pipe, est, bri, evi, cont, soc] = await Promise.all([
+  const [cli, tar, ag, arq, doc, ent, cf, onb, tk, pipe, est, bri, evi, cont, soc, edi] = await Promise.all([
     supabase.from("clientes").select("id,nome,init,plano_label,plano_atual,valor_mensal,status_contrato,email,telefone,slug,data_inicio_contrato,data_vencimento_contrato,forma_pagamento,created_at,updated_at").eq("id", id).maybeSingle(),
     supabase.from("tarefas").select("id,titulo,status,prazo,updated_at").eq("cliente_id", id).order("prazo", { ascending: true, nullsFirst: false }),
     supabase.from("agenda_itens").select("id,titulo,data_hora,concluido").eq("cliente_id", id).gte("data_hora", nowIso).order("data_hora").limit(10),
@@ -48,6 +49,8 @@ async function load(id: string): Promise<Workspace | null> {
     supabase.from("estrategia_evidencias").select("id", { count: "exact", head: true }).eq("cliente_id", id),
     supabase.from("conteudos_cliente").select("id,titulo,tipo,created_at").eq("cliente_id", id).order("created_at", { ascending: false }),
     supabase.from("social_accounts").select("id,platform,username,connection_type").eq("client_id", id),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase as any).from("conteudos").select("id,titulo,status,data_prevista,canal,formato").eq("cliente_id", id).neq("status", "ideia").order("updated_at", { ascending: false }).limit(5),
   ]);
   if (!cli.data) return null;
 
@@ -79,6 +82,7 @@ async function load(id: string): Promise<Workspace | null> {
     briefing: (bri.data as Workspace["briefing"]) ?? null,
     evidencias: evi.count ?? 0,
     conteudos: (cont.data ?? []) as WsConteudo[],
+    editoriais: edi.data ?? [],
     social,
   };
 }
