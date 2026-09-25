@@ -303,9 +303,9 @@ function NewSprintDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="current">Current</SelectItem>
-                <SelectItem value="next">Next</SelectItem>
-                <SelectItem value="future">Future</SelectItem>
+                <SelectItem value="current">Atual</SelectItem>
+                <SelectItem value="next">Próxima</SelectItem>
+                <SelectItem value="future">Futura</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -596,7 +596,7 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
             onRetry={fetchSprints}
             emptyTitle="Nenhuma sprint cadastrada"
             emptyDescription="Crie sua primeira sprint para começar."
-            actionLabel="New sprint"
+            actionLabel="Nova sprint"
             onAction={() => setNewSprintOpen(true)}
           >
             <div />

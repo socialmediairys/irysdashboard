@@ -2072,9 +2072,6 @@ function SocialPage() {
 
   return (
     <>
-      <PageHeader eyebrow="Meta Business + Instagram" title="Métricas" accent="sociais"
-        badges={<><LiveBadge label="Meta Business" /><LiveBadge label="Instagram" /></>}
-      />
 
       <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl">
         <div>
@@ -2116,19 +2113,19 @@ function SocialPage() {
       </div>
 
       <div className="mb-6">
-        <Card dark>
+        <Card>
           <div className="flex items-center justify-between mb-4">
-            <div className="font-extrabold text-lg">{networkLabel}</div>
+            <div className="text-base font-semibold text-foreground">{networkLabel}</div>
             {network === "instagram" && insights?.username && (
-              <div className="text-xs opacity-70">@{insights.username}</div>
+              <div className="text-xs text-muted-foreground">@{insights.username}</div>
             )}
           </div>
           {network !== "instagram" ? (
-            <div className="text-sm opacity-70 py-6 text-center">Integração em breve</div>
+            <div className="text-sm text-muted-foreground py-6 text-center">Integração em breve</div>
           ) : igLoading ? (
-            <div className="text-xs opacity-70 py-6 text-center">Carregando métricas...</div>
+            <div className="text-xs text-muted-foreground py-6 text-center">Carregando métricas...</div>
           ) : igError ? (
-            <div className="text-xs py-4" style={{ color: "#FFC1B0" }}>
+            <div className="text-xs py-4 text-destructive">
               {igError}
               <div className="mt-2 flex items-center gap-3">
                 <button
@@ -2150,22 +2147,22 @@ function SocialPage() {
                 { label: "Salvamentos", value: fmtNum(totalSaved) },
                 { label: "Taxa de engajamento", value: fmtPct(engagementNow) },
               ].map((m) => (
-                <div key={m.label} className="rounded-[10px] p-3" style={{ background: "rgba(255,255,255,0.06)" }}>
-                  <div className="text-xs opacity-70">{m.label}</div>
-                  <div className="mt-1 text-2xl font-extrabold" style={{ letterSpacing: "-0.03em" }}>{m.value}</div>
+                <div key={m.label} className="rounded-[10px] p-3" style={{ background: "var(--secondary)" }}>
+                  <div className="text-xs text-muted-foreground">{m.label}</div>
+                  <div className="mt-1 text-2xl font-semibold tracking-tight text-foreground">{m.value}</div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-xs opacity-70 py-6 text-center">Selecione um cliente</div>
+            <div className="text-xs text-muted-foreground py-6 text-center">Selecione um cliente</div>
           )}
         </Card>
       </div>
 
-      <div className="grid grid-cols-5 gap-5 mb-6">
-        <div className="col-span-3">
+      <div className="grid grid-cols-1 gap-5 mb-6 lg:grid-cols-5">
+        <div className="lg:col-span-3">
           <Card>
-            <h3 className="font-extrabold text-lg mb-4">Posts com melhor desempenho — {networkLabel}</h3>
+            <h3 className="text-base font-semibold text-foreground mb-4">Posts com melhor desempenho — {networkLabel}</h3>
             {network !== "instagram" ? (
               <div className="text-sm py-6 text-center" style={{ color: "var(--muted-foreground)" }}>Integração em breve</div>
             ) : igLoading ? (
@@ -2198,9 +2195,9 @@ function SocialPage() {
           </Card>
         </div>
 
-        <div className="col-span-2">
-          <Card dark>
-            <h3 className="font-extrabold text-lg mb-4">Metas do mês</h3>
+        <div className="lg:col-span-2">
+          <Card>
+            <h3 className="text-base font-semibold text-foreground mb-4">Metas do mês</h3>
             <div className="space-y-4">
               {[
                 {
@@ -2217,15 +2214,12 @@ function SocialPage() {
                   p: engagementNow != null ? Math.min(100, Math.round((engagementNow / 0.05) * 100)) : null,
                   s: `Meta 5% · Atual ${fmtPct(engagementNow)}`,
                 },
-                // Mantidos mockados por enquanto:
-                { n: "Reels publicados", meta: 20, atualLabel: "14", p: 70, s: "Meta 20 · Atual 14" },
-                { n: "Leads via DM",     meta: 30, atualLabel: "18", p: 60, s: "Meta 30 · Atual 18" },
               ].map((m, i) => (
                 <div key={i}>
                   <div className="flex justify-between mb-1.5">
                     <div>
                       <div className="font-semibold text-sm">{m.n}</div>
-                      <div className="text-xs opacity-70">{igLoading && i < 2 ? "Carregando..." : m.s}</div>
+                      <div className="text-xs text-muted-foreground">{igLoading && i < 2 ? "Carregando..." : m.s}</div>
                     </div>
                     <span className="rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ background: "var(--secondary)", color: "var(--primary)" }}>
                       {m.p != null ? `${m.p}%` : "—"}
@@ -2239,27 +2233,6 @@ function SocialPage() {
         </div>
       </div>
 
-      <Card>
-        <h3 className="font-extrabold text-lg mb-4">Calendário editorial</h3>
-        <table className="w-full text-sm">
-          <thead><tr className="text-left text-xs uppercase tracking-wider" style={{ color: "var(--muted-foreground)" }}>
-            <th className="py-2">Conteúdo</th><th>Cliente</th><th>Rede</th><th>Data</th><th>Status</th>
-          </tr></thead>
-          <tbody>
-            {[
-              { c:"Reels educativo", cl:"FL Contabilidade", r:"Instagram", d:"26 Jun", s:"ativo" },
-              { c:"Carrossel cases", cl:"Irys SM", r:"Instagram", d:"27 Jun", s:"pendente" },
-              { c:"Story bastidores", cl:"Beatriz Abel", r:"Instagram", d:"28 Jun", s:"ativo" },
-              { c:"Post depoimento", cl:"Unaessential", r:"Facebook", d:"29 Jun", s:"atencao" },
-            ].map((p, i) => (
-              <tr key={i} className="border-t" style={{ borderColor: "var(--secondary)" }}>
-                <td className="py-3 font-semibold">{p.c}</td><td>{p.cl}</td><td>{p.r}</td>
-                <td style={{ color: "var(--muted-foreground)" }}>{p.d}</td><td><TagBadge label={StatusLabel(p.s)} variant={p.s} /></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
     </>
   );
 }
@@ -3069,7 +3042,7 @@ function ConfigPage() {
   });
   return (
     <>
-      <PageHeader eyebrow="Sistema" title="Configurações &" accent="conta" />
+      <h2 className="mb-3 text-sm font-medium text-muted-foreground">Conta e integrações</h2>
       <TabBar
         active={tab}
         onChange={setTab}
@@ -3094,18 +3067,18 @@ function ConfigPage() {
       )}
       {tab === "juridico" && (
         <Card>
-          <h3 className="font-extrabold text-lg mb-2">Modelos de contrato e termos</h3>
+          <h3 className="mb-2 text-base font-semibold text-foreground">Modelos de contrato e termos</h3>
           <p className="text-sm mb-4" style={{ color: "var(--muted-foreground)" }}>Gerencie contratos, termos e políticas com dados do CNPJ.</p>
-          <a href="/admin/juridico" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
+          <a href="/admin/juridico" className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary-hover">
             Abrir módulo jurídico <ArrowRight size={14} />
           </a>
         </Card>
       )}
       {tab === "equipe" && (
         <Card>
-          <h3 className="font-extrabold text-lg mb-2">Equipe & papéis</h3>
+          <h3 className="mb-2 text-base font-semibold text-foreground">Equipe & papéis</h3>
           <p className="text-sm mb-4" style={{ color: "var(--muted-foreground)" }}>Atribua papéis (admin, gestor, editor, social, financeiro, jurídico, cliente) aos membros.</p>
-          <a href="/admin/equipe" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
+          <a href="/admin/equipe" className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary-hover">
             Gerenciar equipe <ArrowRight size={14} />
           </a>
         </Card>

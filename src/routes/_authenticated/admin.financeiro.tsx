@@ -45,6 +45,7 @@ type ContaFixa = {
   data_inicio: string;
   data_fim: string | null;
   ativo: boolean;
+  cliente_id?: string | null;
 };
 
 type Filtro = "todas" | "fixas" | "variaveis";
@@ -83,6 +84,7 @@ async function gerarOcorrencias(conta: ContaFixa) {
       conta_fixa_id: conta.id,
       is_fixed: true,
       recurrence_day: conta.dia_vencimento,
+      ...(conta.tipo === "receita" ? { cliente_id: conta.cliente_id ?? null } : {}),
     });
   }
   if (rows.length === 0) return;
@@ -107,7 +109,18 @@ function FinanceiroPage() {
     dia_vencimento: "",
     data_inicio: new Date().toISOString().slice(0, 10),
     data_fim: "",
+    cliente_id: "",
   });
+  const [clientes, setClientes] = useState<{ id: string; nome: string }[]>([]);
+  useEffect(() => {
+    void supabase.from("clientes").select("id,nome").order("nome").then(({ data }) => setClientes(data ?? []));
+  }, []);
+
+  async function vincularCliente(id: string, cliente_id: string) {
+    const { error } = await supabase.from("entradas_financeiras").update({ cliente_id: cliente_id || null }).eq("id", id);
+    if (error) { alert("Não foi possível vincular o cliente."); return; }
+    void carregar();
+  }
 
   const carregar = useCallback(async () => {
     const [{ data: e }, { data: s }, { data: cf }] = await Promise.all([
@@ -145,6 +158,7 @@ function FinanceiroPage() {
           data_inicio: form.data_inicio,
           data_fim: form.data_fim || null,
           ativo: true,
+          cliente_id: tipo === "receita" ? form.cliente_id || null : null,
         })
         .select()
         .single();
@@ -160,6 +174,7 @@ function FinanceiroPage() {
         categoria: form.categoria || null,
         valor: Number(form.valor),
         data_ref: form.data_inicio,
+        ...(aba === "entradas" ? { cliente_id: form.cliente_id || null } : {}),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any);
     }
@@ -167,7 +182,7 @@ function FinanceiroPage() {
       descricao: "", categoria: "", valor: "",
       recorrente: false, dia_vencimento: "",
       data_inicio: new Date().toISOString().slice(0, 10),
-      data_fim: "",
+      data_fim: "", cliente_id: form.cliente_id,
     });
     void carregar();
   }
@@ -204,6 +219,7 @@ function FinanceiroPage() {
     const isRec = !!m.conta_fixa_id || !!m.is_fixed;
     if (filtro === "fixas") return isRec;
     if (filtro === "variaveis") return !isRec;
+    if (aba === "entradas" && clienteId && m.cliente_id !== clienteId) return false;
     return true;
   });
 
@@ -297,6 +313,20 @@ function FinanceiroPage() {
                 <Label>Valor (R$)</Label>
                 <Input type="number" step="0.01" value={form.valor} onChange={(e) => setForm({ ...form, valor: e.target.value })} />
               </div>
+
+              {aba === "entradas" && (
+                <div className="md:col-span-2">
+                  <Label>Cliente (opcional)</Label>
+                  <select
+                    className="mt-1 h-9 w-full rounded-md border border-input bg-card px-3 text-sm text-foreground"
+                    value={form.cliente_id}
+                    onChange={(e) => setForm({ ...form, cliente_id: e.target.value })}
+                  >
+                    <option value="">Sem cliente</option>
+                    {clientes.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                  </select>
+                </div>
+              )}
 
               <div className="flex items-center gap-3 pt-1 md:col-span-2">
                 <Switch
@@ -419,6 +449,7 @@ function FinanceiroPage() {
               <Th>Data</Th>
               <Th>Descrição</Th>
               <Th>Categoria</Th>
+              {aba === "entradas" && <Th>Cliente</Th>}
               <Th align="right">Valor</Th>
               <Th />
             </Thead>
@@ -430,6 +461,19 @@ function FinanceiroPage() {
                     <Td className="text-muted-foreground">{new Date(m.data_ref).toLocaleDateString("pt-BR")}</Td>
                     <Td className="font-medium text-foreground">{m.descricao}</Td>
                     <Td className="text-muted-foreground">{m.categoria || "—"}</Td>
+                    {aba === "entradas" && (
+                      <Td>
+                        <select
+                          aria-label="Cliente vinculado"
+                          className="max-w-[180px] rounded-md border border-border bg-card px-2 py-1 text-[13px] text-foreground"
+                          value={m.cliente_id ?? ""}
+                          onChange={(e) => vincularCliente(m.id, e.target.value)}
+                        >
+                          <option value="">Sem cliente</option>
+                          {clientes.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                        </select>
+                      </Td>
+                    )}
                     <Td align="right" className="font-semibold text-foreground">
                       <div className="flex items-center justify-end gap-2">
                         <span>R$ {Number(m.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>

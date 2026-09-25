@@ -9,15 +9,16 @@ import { cn } from "@/lib/utils";
 
 type VMidia = { bucket: string; storage_path: string; tipo: string; ordem: number; url?: string };
 type Versao = { id: string; numero: number; legenda: string | null; hashtags: string | null; midias: VMidia[]; status: string; status_arte: string; status_legenda: string; enviada_em: string };
-type Item = { id: string; titulo: string; canal: string | null; formato: string | null; data_prevista: string | null; status: ContentStatus; versao_atual: number; publicacao_url: string | null; publicado_em: string | null; versoes: Versao[] };
+type Item = { id: string; titulo: string; canal: string | null; formato: string | null; data_prevista: string | null; status: ContentStatus; versao_atual: number; publicacao_url: string | null; publicado_em: string | null; versoes: Versao[]; comentarios: Coment[] };
+type Coment = { id: string; texto: string; alvo: string; autor_id: string | null; created_at: string; versao_id: string | null };
 
 /** Tudo aqui é lido direto do banco com as regras do cliente: só conteúdos enviados, versões enviadas e comentários do tipo "cliente". */
 async function load(clienteId: string): Promise<Item[]> {
   const { data, error } = await cdb("conteudos")
-    .select("id,titulo,canal,formato,data_prevista,status,versao_atual,publicacao_url,publicado_em,versoes:conteudo_versoes(id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em)")
+    .select("id,titulo,canal,formato,data_prevista,status,versao_atual,publicacao_url,publicado_em,versoes:conteudo_versoes(id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em),comentarios:conteudo_comentarios(id,texto,alvo,autor_id,created_at,versao_id)")
     .eq("cliente_id", clienteId).order("data_prevista", { ascending: true, nullsFirst: false });
   if (error) throw error;
-  return ((data ?? []) as Item[]).map((c) => ({ ...c, versoes: [...c.versoes].sort((a, b) => b.numero - a.numero) }));
+  return ((data ?? []) as Item[]).map((c) => ({ ...c, versoes: [...c.versoes].sort((a, b) => b.numero - a.numero), comentarios: [...(c.comentarios ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at)) }));
 }
 export function useClientContents(clienteId: string) {
   return useQuery({ queryKey: ["portal-conteudos", clienteId], queryFn: () => load(clienteId) });
@@ -49,7 +50,7 @@ export function PortalConteudos({ clienteId }: { clienteId: string }) {
             <span className="hidden text-[13px] text-muted-foreground sm:inline">{[c.canal, c.formato].filter(Boolean).join(" · ")}</span>
             <StatusBadge variant={CONTENT_STATUS_VARIANT[c.status]}>{CONTENT_STATUS_LABEL[c.status]}</StatusBadge>
           </button>
-          {open === c.id && current(c) && <div className="border-t border-border p-5"><VersionView v={current(c)!} /></div>}
+          {open === c.id && current(c) && <div className="space-y-5 border-t border-border p-5"><VersionView v={current(c)!} /><Conversa c={c} /></div>}
         </div>
       ))}
     </div>
@@ -114,6 +115,7 @@ function ApprovalCard({ c, clienteId }: { c: Item; clienteId: string }) {
           <Decision label="Legenda" state={v.status_legenda} onDecide={(d, t) => avaliar("legenda", d, t)} />
         </div>
       </div>
+      {c.comentarios.length > 0 && <div className="border-t border-border px-5 py-4"><Conversa c={c} /></div>}
       {antigas.length > 0 && (
         <div className="border-t border-border px-5 py-3">
           <button onClick={() => setHistorico(!historico)} className="text-[13px] text-muted-foreground hover:text-foreground">{historico ? "Ocultar" : "Ver"} versões anteriores ({antigas.length})</button>
@@ -147,6 +149,29 @@ function Decision({ label, state, onDecide }: { label: string; state: string; on
           <div className="flex justify-end"><button disabled={busy || !t.trim()} onClick={() => run("alteracao_solicitada")} className="inline-flex h-8 items-center rounded-md bg-foreground px-3 text-[13px] font-medium text-background disabled:opacity-50">Enviar pedido</button></div>
         </div>
       )}
+    </div>
+  );
+}
+
+function Conversa({ c }: { c: Item }) {
+  const { data: uid } = useQuery({ queryKey: ["portal-uid"], queryFn: async () => (await supabase.auth.getUser()).data.user?.id ?? null, staleTime: Infinity });
+  if (!c.comentarios.length) return null;
+  const ver = (id: string | null) => c.versoes.find((v) => v.id === id)?.numero;
+  return (
+    <div>
+      <h4 className="mb-2 text-[13px] font-medium text-foreground">Comentários</h4>
+      <ul className="space-y-2">
+        {c.comentarios.map((m) => (
+          <li key={m.id} className={cn("rounded-md px-3 py-2 text-sm", m.autor_id === uid ? "bg-muted/60" : "border border-border")}>
+            <div className="mb-0.5 text-[11px] text-muted-foreground">
+              {m.autor_id === uid ? "Você" : "Equipe Irys"}
+              {m.alvo && m.alvo !== "geral" ? ` · ${m.alvo}` : ""}
+              {ver(m.versao_id) ? ` · V${ver(m.versao_id)}` : ""} · {new Date(m.created_at).toLocaleDateString("pt-BR")}
+            </div>
+            <p className="whitespace-pre-wrap text-foreground">{m.texto}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
