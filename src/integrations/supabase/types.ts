@@ -155,6 +155,106 @@ export type Database = {
           },
         ]
       }
+      calendario_estrategico_itens: {
+        Row: {
+          argumento_id: string | null
+          canal: string | null
+          cliente_id: string
+          created_at: string
+          cta: string | null
+          data: string
+          formato: string | null
+          id: string
+          jornada: string | null
+          mensagem_id: string | null
+          objetivo: string | null
+          org_id: string
+          pilar_id: string | null
+          tema_id: string | null
+          titulo: string | null
+          updated_at: string
+        }
+        Insert: {
+          argumento_id?: string | null
+          canal?: string | null
+          cliente_id: string
+          created_at?: string
+          cta?: string | null
+          data: string
+          formato?: string | null
+          id?: string
+          jornada?: string | null
+          mensagem_id?: string | null
+          objetivo?: string | null
+          org_id?: string
+          pilar_id?: string | null
+          tema_id?: string | null
+          titulo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          argumento_id?: string | null
+          canal?: string | null
+          cliente_id?: string
+          created_at?: string
+          cta?: string | null
+          data?: string
+          formato?: string | null
+          id?: string
+          jornada?: string | null
+          mensagem_id?: string | null
+          objetivo?: string | null
+          org_id?: string
+          pilar_id?: string | null
+          tema_id?: string | null
+          titulo?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendario_estrategico_itens_argumento_id_fkey"
+            columns: ["argumento_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_argumentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendario_estrategico_itens_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendario_estrategico_itens_mensagem_id_fkey"
+            columns: ["mensagem_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_mensagens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendario_estrategico_itens_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendario_estrategico_itens_pilar_id_fkey"
+            columns: ["pilar_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_pilares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendario_estrategico_itens_tema_id_fkey"
+            columns: ["tema_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_temas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           auth_user_id: string | null
@@ -470,6 +570,238 @@ export type Database = {
           },
         ]
       }
+      editorial_argumentos: {
+        Row: {
+          argumento: string
+          cliente_id: string
+          created_at: string
+          evidencia_id: string | null
+          id: string
+          mensagem_id: string
+          org_id: string
+          prova: string | null
+          updated_at: string
+        }
+        Insert: {
+          argumento: string
+          cliente_id: string
+          created_at?: string
+          evidencia_id?: string | null
+          id?: string
+          mensagem_id: string
+          org_id?: string
+          prova?: string | null
+          updated_at?: string
+        }
+        Update: {
+          argumento?: string
+          cliente_id?: string
+          created_at?: string
+          evidencia_id?: string | null
+          id?: string
+          mensagem_id?: string
+          org_id?: string
+          prova?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_argumentos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_argumentos_evidencia_id_fkey"
+            columns: ["evidencia_id"]
+            isOneToOne: false
+            referencedRelation: "estrategia_evidencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_argumentos_mensagem_id_fkey"
+            columns: ["mensagem_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_mensagens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_argumentos_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      editorial_mensagens: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          cta: string | null
+          formatos: string[]
+          id: string
+          jornada: string | null
+          mensagem: string
+          objetivo_psicologico: string | null
+          org_id: string
+          tema_id: string
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          cta?: string | null
+          formatos?: string[]
+          id?: string
+          jornada?: string | null
+          mensagem: string
+          objetivo_psicologico?: string | null
+          org_id?: string
+          tema_id: string
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          cta?: string | null
+          formatos?: string[]
+          id?: string
+          jornada?: string | null
+          mensagem?: string
+          objetivo_psicologico?: string | null
+          org_id?: string
+          tema_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_mensagens_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_mensagens_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_mensagens_tema_id_fkey"
+            columns: ["tema_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_temas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      editorial_pilares: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          ordem: number
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          ordem?: number
+          org_id?: string
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          ordem?: number
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_pilares_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_pilares_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      editorial_temas: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          org_id: string
+          pilar_id: string
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          org_id?: string
+          pilar_id: string
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          org_id?: string
+          pilar_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_temas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_temas_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_temas_pilar_id_fkey"
+            columns: ["pilar_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_pilares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entradas_financeiras: {
         Row: {
           categoria: string | null
@@ -550,6 +882,126 @@ export type Database = {
           },
         ]
       }
+      estrategia_achado_evidencias: {
+        Row: {
+          achado_id: string
+          cliente_id: string
+          created_at: string
+          evidencia_id: string
+          org_id: string
+        }
+        Insert: {
+          achado_id: string
+          cliente_id: string
+          created_at?: string
+          evidencia_id: string
+          org_id?: string
+        }
+        Update: {
+          achado_id?: string
+          cliente_id?: string
+          created_at?: string
+          evidencia_id?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estrategia_achado_evidencias_achado_id_fkey"
+            columns: ["achado_id"]
+            isOneToOne: false
+            referencedRelation: "estrategia_achados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estrategia_achado_evidencias_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estrategia_achado_evidencias_evidencia_id_fkey"
+            columns: ["evidencia_id"]
+            isOneToOne: false
+            referencedRelation: "estrategia_evidencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estrategia_achado_evidencias_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      estrategia_achados: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          deriva_de: string | null
+          descricao: string | null
+          etapa: number
+          id: string
+          org_id: string
+          origem: string
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          deriva_de?: string | null
+          descricao?: string | null
+          etapa: number
+          id?: string
+          org_id?: string
+          origem?: string
+          status?: string
+          tipo: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          deriva_de?: string | null
+          descricao?: string | null
+          etapa?: number
+          id?: string
+          org_id?: string
+          origem?: string
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estrategia_achados_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estrategia_achados_deriva_de_fkey"
+            columns: ["deriva_de"]
+            isOneToOne: false
+            referencedRelation: "estrategia_achados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estrategia_achados_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estrategia_briefing: {
         Row: {
           cliente_id: string
@@ -592,38 +1044,230 @@ export type Database = {
           },
         ]
       }
+      estrategia_concorrentes: {
+        Row: {
+          cliente_id: string
+          comunicacao: string | null
+          conteudo: string | null
+          created_at: string
+          diferenciais: string | null
+          id: string
+          nome: string
+          oferta: string | null
+          oportunidades: string | null
+          org_id: string
+          posicionamento: string | null
+          preco: string | null
+          provas: string | null
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          comunicacao?: string | null
+          conteudo?: string | null
+          created_at?: string
+          diferenciais?: string | null
+          id?: string
+          nome: string
+          oferta?: string | null
+          oportunidades?: string | null
+          org_id?: string
+          posicionamento?: string | null
+          preco?: string | null
+          provas?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          comunicacao?: string | null
+          conteudo?: string | null
+          created_at?: string
+          diferenciais?: string | null
+          id?: string
+          nome?: string
+          oferta?: string | null
+          oportunidades?: string | null
+          org_id?: string
+          posicionamento?: string | null
+          preco?: string | null
+          provas?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estrategia_concorrentes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estrategia_concorrentes_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      estrategia_definicoes: {
+        Row: {
+          campo: string
+          cliente_id: string
+          created_at: string
+          etapa: number
+          id: string
+          org_id: string
+          updated_at: string
+          valor: string | null
+        }
+        Insert: {
+          campo: string
+          cliente_id: string
+          created_at?: string
+          etapa: number
+          id?: string
+          org_id?: string
+          updated_at?: string
+          valor?: string | null
+        }
+        Update: {
+          campo?: string
+          cliente_id?: string
+          created_at?: string
+          etapa?: number
+          id?: string
+          org_id?: string
+          updated_at?: string
+          valor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estrategia_definicoes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estrategia_definicoes_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      estrategia_etapas: {
+        Row: {
+          cliente_id: string
+          concluido_em: string | null
+          created_at: string
+          etapa: number
+          id: string
+          iniciado_em: string | null
+          metadados: Json
+          org_id: string
+          progresso: number | null
+          status: Database["public"]["Enums"]["estrategia_etapa_status"]
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          concluido_em?: string | null
+          created_at?: string
+          etapa: number
+          id?: string
+          iniciado_em?: string | null
+          metadados?: Json
+          org_id?: string
+          progresso?: number | null
+          status?: Database["public"]["Enums"]["estrategia_etapa_status"]
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          concluido_em?: string | null
+          created_at?: string
+          etapa?: number
+          id?: string
+          iniciado_em?: string | null
+          metadados?: Json
+          org_id?: string
+          progresso?: number | null
+          status?: Database["public"]["Enums"]["estrategia_etapa_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estrategia_etapas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estrategia_etapas_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estrategia_evidencias: {
         Row: {
+          categoria: string | null
           classificacao: string
           cliente_id: string
           created_at: string
+          data_ref: string | null
+          etapa: number | null
           evidencia: string | null
+          fonte_id: string | null
           id: string
           informacao: string
           muda: string | null
+          observacao: string | null
           org_id: string
+          origem: string | null
+          updated_at: string
           validar: string | null
         }
         Insert: {
+          categoria?: string | null
           classificacao?: string
           cliente_id: string
           created_at?: string
+          data_ref?: string | null
+          etapa?: number | null
           evidencia?: string | null
+          fonte_id?: string | null
           id?: string
           informacao: string
           muda?: string | null
+          observacao?: string | null
           org_id?: string
+          origem?: string | null
+          updated_at?: string
           validar?: string | null
         }
         Update: {
+          categoria?: string | null
           classificacao?: string
           cliente_id?: string
           created_at?: string
+          data_ref?: string | null
+          etapa?: number | null
           evidencia?: string | null
+          fonte_id?: string | null
           id?: string
           informacao?: string
           muda?: string | null
+          observacao?: string | null
           org_id?: string
+          origem?: string | null
+          updated_at?: string
           validar?: string | null
         }
         Relationships: [
@@ -635,7 +1279,125 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "estrategia_evidencias_fonte_id_fkey"
+            columns: ["fonte_id"]
+            isOneToOne: false
+            referencedRelation: "estrategia_fontes"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "estrategia_evidencias_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      estrategia_fontes: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          data_ref: string | null
+          etapa: number
+          id: string
+          nome: string
+          observacoes: string | null
+          org_id: string
+          status: string
+          tipo: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          data_ref?: string | null
+          etapa: number
+          id?: string
+          nome: string
+          observacoes?: string | null
+          org_id?: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          data_ref?: string | null
+          etapa?: number
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          org_id?: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estrategia_fontes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estrategia_fontes_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      estrategia_sugestoes_ia: {
+        Row: {
+          cliente_id: string
+          conteudo: string
+          created_at: string
+          etapa: number | null
+          id: string
+          org_id: string
+          status: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          conteudo: string
+          created_at?: string
+          etapa?: number | null
+          id?: string
+          org_id?: string
+          status?: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          conteudo?: string
+          created_at?: string
+          etapa?: number | null
+          id?: string
+          org_id?: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estrategia_sugestoes_ia_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estrategia_sugestoes_ia_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -2160,6 +2922,11 @@ export type Database = {
         | "design"
         | "outro"
       checklist_responsavel: "admin" | "cliente"
+      estrategia_etapa_status:
+        | "nao_iniciada"
+        | "em_andamento"
+        | "revisar"
+        | "concluida"
       fin_categoria:
         | "assinatura_ferramenta"
         | "pro_labore"
@@ -2336,6 +3103,12 @@ export const Constants = {
         "outro",
       ],
       checklist_responsavel: ["admin", "cliente"],
+      estrategia_etapa_status: [
+        "nao_iniciada",
+        "em_andamento",
+        "revisar",
+        "concluida",
+      ],
       fin_categoria: [
         "assinatura_ferramenta",
         "pro_labore",
