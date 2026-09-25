@@ -17,13 +17,13 @@ const VIEWS: { key: ContentView; label: string }[] = [
 ];
 
 /** Um único módulo: as views são recortes da mesma fonte `conteudos`. `clienteId` fixa o filtro (tab do cliente). */
-export function ContentModule({ clienteId, initialView = "calendario" }: { clienteId?: string; initialView?: ContentView }) {
+export function ContentModule({ clienteId, initialView = "calendario", initialOpenId }: { clienteId?: string; initialView?: ContentView; initialOpenId?: string }) {
   const { data = [], isLoading, error } = useConteudos({ clienteId });
   const { data: clientes = [] } = useClientesLite();
   const nome = useMemo(() => new Map(clientes.map((c) => [c.id, c.nome])), [clientes]);
   const [view, setView] = useState<ContentView>(initialView);
   const [f, setF] = useState({ cliente: "", canal: "", formato: "", status: "", de: "", ate: "", q: "" });
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(initialOpenId ?? null);
   const [creating, setCreating] = useState<null | "conteudo" | "ideia">(null);
 
   const filtered = data.filter((c) =>

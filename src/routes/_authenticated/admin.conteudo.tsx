@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { z } from "zod";
 import { ExternalLink } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ContentModule } from "@/components/content/ContentModule";
@@ -14,10 +15,12 @@ export const Route = createFileRoute("/_authenticated/admin/conteudo")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  validateSearch: z.object({ c: z.string().optional() }),
   component: ConteudoRoute,
 });
 
 function ConteudoRoute() {
+  const { c } = Route.useSearch();
   return (
     <div className="space-y-6">
       <PageHeader
@@ -29,7 +32,7 @@ function ConteudoRoute() {
           </Link>
         }
       />
-      <ContentModule />
+      <ContentModule key={c ?? "all"} initialOpenId={c} />
     </div>
   );
 }

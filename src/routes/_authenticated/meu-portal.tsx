@@ -4,7 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getMeuPortal } from "@/lib/portal-conteudos.functions";
 import { Button } from "@/components/ui/button";
-import { LogOut, FileText, Route as Route2 } from "lucide-react";
+import { LogOut, FileText, Route as Route2, LayoutGrid, CheckCircle2, BarChart3 } from "lucide-react";
+import { PortalAprovacoes, PortalConteudos, PortalResultados } from "@/components/portal/PortalConteudosEditoriais";
 import { PortalRico, type ClientePortal, type Fase, type Topico, type Conteudo } from "@/components/PortalRico";
 import { PortalContratoSuporte } from "@/components/PortalContratoSuporte";
 
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/meu-portal")({
 
 function MeuPortalPage() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"jornada" | "contrato">("jornada");
+  const [tab, setTab] = useState<"jornada" | "conteudos" | "aprovacoes" | "resultados" | "contrato">("jornada");
   const [cliente, setCliente] = useState<ClientePortal | null>(null);
   const [fases, setFases] = useState<Fase[]>([]);
   const [topicos, setTopicos] = useState<Topico[]>([]);
@@ -129,8 +130,11 @@ function MeuPortalPage() {
       <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-4 sm:px-6" aria-label="Seções do portal">
         {(
           [
-            { k: "jornada", label: "Minha jornada", icon: Route2 },
-            { k: "contrato", label: "Contrato & Suporte", icon: FileText },
+            { k: "jornada", label: "Início", icon: Route2 },
+            { k: "conteudos", label: "Conteúdos", icon: LayoutGrid },
+            { k: "aprovacoes", label: "Aprovações", icon: CheckCircle2 },
+            { k: "resultados", label: "Resultados", icon: BarChart3 },
+            { k: "contrato", label: "Arquivos", icon: FileText },
           ] as const
         ).map(({ k, label, icon: Icon }) => (
           <button
@@ -157,9 +161,15 @@ function MeuPortalPage() {
             conteudos={conteudos}
             variant="cliente"
           />
-        ) : cliente?.id ? (
+        ) : !cliente?.id ? null : tab === "conteudos" ? (
+          <PortalConteudos clienteId={cliente.id} />
+        ) : tab === "aprovacoes" ? (
+          <PortalAprovacoes clienteId={cliente.id} />
+        ) : tab === "resultados" ? (
+          <PortalResultados clienteId={cliente.id} />
+        ) : (
           <PortalContratoSuporte clienteId={cliente.id} />
-        ) : null}
+        )}
       </main>
     </div>
   );

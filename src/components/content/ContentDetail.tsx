@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, ChevronDown, Film, ImagePlus, Loader2, Trash2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ArrowLeft, ArrowRight, ChevronDown, Film, ImagePlus, Loader2, Plus, Send, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -17,6 +18,7 @@ type Detail = {
   comentarios: { id: string; texto: string; tipo: string; alvo: string; created_at: string }[];
   eventos: { id: string; tipo: string; de: string | null; para: string | null; detalhe: string | null; created_at: string }[];
   versoes: { id: string; numero: number; status: string; status_arte: string; status_legenda: string; enviada_em: string }[];
+  tarefas: { id: string; titulo: string; status: string; prazo: string | null }[];
   estrategia: { pilar?: string; tema?: string; mensagem?: string; argumento?: string; prova?: string | null; evidencia?: string };
 };
 
@@ -24,7 +26,7 @@ async function loadDetail(id: string): Promise<Detail> {
   const { data: c, error } = await cdb("conteudos").select("*").eq("id", id).single();
   if (error) throw error;
   const one = (t: string, cid: string | null, sel: string) => (cid ? cdb(t).select(sel).eq("id", cid).maybeSingle() : Promise.resolve({ data: null }));
-  const [cli, mid, int, com, ev, ve, pi, te, me, ar, evi] = await Promise.all([
+  const [cli, mid, int, com, ev, ve, pi, te, me, ar, evi, ta] = await Promise.all([
     supabase.from("clientes").select("nome").eq("id", c.cliente_id).maybeSingle(),
     cdb("conteudo_midias").select("*").eq("conteudo_id", id).order("ordem"),
     cdb("conteudos_internos").select("observacoes").eq("conteudo_id", id).maybeSingle(),
@@ -34,11 +36,12 @@ async function loadDetail(id: string): Promise<Detail> {
     one("editorial_pilares", c.pilar_id, "nome"), one("editorial_temas", c.tema_id, "nome"),
     one("editorial_mensagens", c.mensagem_id, "mensagem"), one("editorial_argumentos", c.argumento_id, "argumento,prova"),
     one("estrategia_evidencias", c.evidencia_id, "informacao"),
+    cdb("tarefas").select("id,titulo,status,prazo").eq("conteudo_id", id).order("created_at"),
   ]);
   const midias = await Promise.all(((mid.data ?? []) as Midia[]).map(async (m) => ({ ...m, url: await signedUrl(m.bucket, m.storage_path) })));
   return {
     c, cliente: cli.data?.nome ?? "—", midias, interno: int.data?.observacoes ?? "",
-    comentarios: com.data ?? [], eventos: ev.data ?? [], versoes: ve.data ?? [],
+    tarefas: ta.data ?? [], comentarios: com.data ?? [], eventos: ev.data ?? [], versoes: ve.data ?? [],
     estrategia: { pilar: pi.data?.nome, tema: te.data?.nome, mensagem: me.data?.mensagem, argumento: ar.data?.argumento, prova: ar.data?.prova, evidencia: evi.data?.informacao },
   };
 }
@@ -120,6 +123,8 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
         </div>
       </SheetHeader>
 
+      <SendBar c={c} sent={sent} onSend={() => save({ status: "com_cliente" })} />
+
       <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1fr_1fr]">
         <section>
           <div className="mb-2 flex items-center justify-between">
@@ -184,6 +189,9 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
           ) : <p className="text-[13px] text-muted-foreground">Conteúdo avulso — sem vínculo com o Sistema Editorial.</p>}
           {c.origem === "calendario_estrategico" && <p className="mt-3 text-[12px] text-muted-foreground">Originado do Calendário Estratégico.</p>}
         </Fold>
+        <Fold title={`Tarefas relacionadas${data.tarefas.length ? ` (${data.tarefas.length})` : ""}`}>
+          <RelatedTasks c={c} items={data.tarefas} onDone={reload} />
+        </Fold>
         <Fold title="Publicação">
           <div className="grid gap-2 sm:grid-cols-2">
             <input defaultValue={c.publicacao_url ?? ""} onBlur={(e) => save({ publicacao_url: e.target.value || null })} placeholder="Link da publicação" className={inputCls} />
@@ -191,7 +199,7 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
           </div>
           <p className="mt-2 text-[12px] text-muted-foreground">{c.publicado_em ? `Publicado em ${new Date(c.publicado_em).toLocaleString("pt-BR")}` : "Agendado e Publicado são marcados manualmente; não há publicação automática."}</p>
         </Fold>
-        <Fold title="Observações internas">
+        <Fold title="Observações e comentários" defaultOpen={data.comentarios.some((x) => x.tipo === "cliente")}>
           <textarea defaultValue={data.interno} rows={3} onBlur={(e) => e.target.value !== data.interno && saveInterno(e.target.value)} placeholder="Visível apenas para a equipe" className={inputCls} />
           <Comments conteudoId={c.id} clienteId={c.cliente_id} items={data.comentarios} onDone={reload} />
         </Fold>
@@ -207,7 +215,7 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
             {data.eventos.map((e) => (
               <li key={e.id} className="flex gap-3">
                 <span className="w-28 shrink-0">{new Date(e.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
-                <span>{e.tipo === "criado" ? `Criado em ${label(e.para)}` : e.tipo === "status" ? `${label(e.de)} → ${label(e.para)}` : e.tipo === "nova_versao" ? `Nova versão ${e.detalhe}` : e.tipo}</span>
+                <span>{e.tipo === "criado" ? `Criado em ${label(e.para)}` : e.tipo === "status" ? `${label(e.de)} → ${label(e.para)}` : e.tipo === "nova_versao" ? `Nova versão ${e.detalhe}` : e.tipo === "avaliacao_cliente" ? `Cliente: ${e.detalhe?.replace("alteracao_solicitada", "alteração solicitada")}` : e.tipo}</span>
               </li>
             ))}
           </ul>
@@ -217,6 +225,62 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
       <div className="flex justify-between border-t border-border px-6 py-4">
         <button className={cn(btnGhost, "hover:text-destructive")} onClick={async () => { if (confirm("Excluir este conteúdo?") && (await a.remove(c.id))) onClose(); }}><Trash2 size={13} /> Excluir</button>
         <button className={btnPrimary} onClick={onClose}>Fechar</button>
+      </div>
+    </div>
+  );
+}
+
+const PART: Record<string, string> = { pendente: "Pendente", aprovado: "Aprovada", alteracao_solicitada: "Alteração solicitada" };
+const partCls = (s: string) => (s === "aprovado" ? "text-success" : s === "alteracao_solicitada" ? "text-destructive" : "text-muted-foreground");
+
+function SendBar({ c, sent, onSend }: { c: Conteudo; sent: boolean; onSend: () => void }) {
+  const waiting = ["com_cliente", "alteracao_solicitada", "aprovado", "agendado", "publicado"].includes(c.status);
+  const canSend = ["em_producao", "revisao_interna", "alteracao_solicitada", "planejado"].includes(c.status);
+  const resend = c.status === "alteracao_solicitada";
+  return (
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-border bg-muted/30 px-6 py-3 text-[13px]">
+      {waiting || sent ? (
+        <>
+          <span className="text-muted-foreground">Cliente · V{c.versao_atual}{sent ? "" : " (rascunho)"}</span>
+          <span>Arte: <span className={partCls(c.status_arte)}>{PART[c.status_arte]}</span></span>
+          <span>Legenda: <span className={partCls(c.status_legenda)}>{PART[c.status_legenda]}</span></span>
+          {c.enviado_cliente_em && <span className="text-muted-foreground">Enviado {new Date(c.enviado_cliente_em).toLocaleDateString("pt-BR")}</span>}
+        </>
+      ) : <span className="text-muted-foreground">Ainda não enviado ao cliente.</span>}
+      {canSend && (
+        <button className={cn(btnPrimary, "ml-auto")} onClick={() => { if (confirm(resend ? `Enviar nova versão (V${sent ? c.versao_atual + 1 : c.versao_atual}) ao cliente? A versão anterior fica preservada.` : "Enviar ao cliente para aprovação? Legenda e mídias desta versão ficam congeladas.")) onSend(); }}>
+          <Send size={13} /> {resend ? "Reenviar nova versão" : "Enviar ao cliente"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function RelatedTasks({ c, items, onDone }: { c: Conteudo; items: Detail["tarefas"]; onDone: () => void }) {
+  const [t, setT] = useState("");
+  const add = async () => {
+    if (!t.trim()) return;
+    const { error } = await cdb("tarefas").insert({ titulo: t.trim(), cliente_id: c.cliente_id, conteudo_id: c.id, status: "not_started" });
+    if (error) return toast.error("Não foi possível criar a tarefa.");
+    setT(""); onDone();
+  };
+  return (
+    <div className="space-y-2">
+      {items.length ? (
+        <ul className="divide-y divide-border rounded-md border border-border">
+          {items.map((x) => (
+            <li key={x.id}>
+              <Link to="/admin/sprints" search={{ task: x.id }} className="flex items-center gap-3 px-3 py-2 text-[13px] hover:bg-accent/50">
+                <span className="min-w-0 flex-1 truncate text-foreground">{x.titulo}</span>
+                <span className="text-muted-foreground">{x.status}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : <p className="text-[13px] text-muted-foreground">Nenhuma tarefa vinculada. Tarefas são opcionais.</p>}
+      <div className="flex gap-2">
+        <input value={t} onChange={(e) => setT(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder="Nova tarefa para este conteúdo…" className={inputCls} />
+        <button className={btn} onClick={add}><Plus size={13} /> Criar</button>
       </div>
     </div>
   );
@@ -250,25 +314,27 @@ function Fact({ k, v, wide }: { k: string; v?: string | null; wide?: boolean }) 
 
 function Comments({ conteudoId, clienteId, items, onDone }: { conteudoId: string; clienteId: string; items: Detail["comentarios"]; onDone: () => void }) {
   const [t, setT] = useState("");
+  const [paraCliente, setParaCliente] = useState(false);
   useEffect(() => setT(""), [conteudoId]);
   const add = async () => {
     if (!t.trim()) return;
-    const { error } = await cdb("conteudo_comentarios").insert({ conteudo_id: conteudoId, cliente_id: clienteId, tipo: "interno", texto: t.trim() });
+    const { error } = await cdb("conteudo_comentarios").insert({ conteudo_id: conteudoId, cliente_id: clienteId, tipo: paraCliente ? "cliente" : "interno", texto: t.trim() });
     if (error) return toast.error("Não foi possível comentar.");
     setT(""); onDone();
   };
   return (
     <div className="mt-4">
-      <div className="mb-2 text-[12px] text-muted-foreground">Comentários da equipe</div>
+      <div className="mb-2 text-[12px] text-muted-foreground">Comentários — “Interno” nunca aparece para o cliente</div>
       <ul className="mb-2 space-y-2">
         {items.map((c) => (
           <li key={c.id} className="rounded-md bg-muted/50 px-3 py-2 text-[13px] text-foreground">
-            <span className="mr-2 text-[11px] text-muted-foreground">{c.tipo === "cliente" ? "Cliente" : "Interno"} · {new Date(c.created_at).toLocaleDateString("pt-BR")}</span>{c.texto}
+            <span className="mr-2 text-[11px] text-muted-foreground">{c.tipo === "cliente" ? "Visível ao cliente" : "Interno"}{c.alvo !== "geral" ? ` · ${c.alvo}` : ""} · {new Date(c.created_at).toLocaleDateString("pt-BR")}</span>{c.texto}
           </li>
         ))}
       </ul>
       <div className="flex gap-2">
-        <input value={t} onChange={(e) => setT(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder="Comentário interno…" className={inputCls} />
+        <select value={paraCliente ? "c" : "i"} onChange={(e) => setParaCliente(e.target.value === "c")} className={cn(inputCls, "w-36")} aria-label="Visibilidade"><option value="i">Interno</option><option value="c">Para o cliente</option></select>
+        <input value={t} onChange={(e) => setT(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder={paraCliente ? "Resposta visível ao cliente…" : "Comentário interno…"} className={inputCls} />
         <button className={btn} onClick={add}>Enviar</button>
       </div>
     </div>
