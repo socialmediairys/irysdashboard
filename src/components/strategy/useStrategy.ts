@@ -122,18 +122,19 @@ export function useStrategyActions(clienteId: string) {
 /** Debounced autosave with discreet state: idle → saving → saved | error. Flushes on unmount. */
 export function useAutosave<T>(value: T, save: (v: T) => Promise<void>, delay = 800) {
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const first = useRef(true);
+  const lastSaved = useRef(JSON.stringify(value));
   const pending = useRef<T | null>(null);
   const saveRef = useRef(save);
   saveRef.current = save;
 
   useEffect(() => {
-    if (first.current) { first.current = false; return; }
+    const ser = JSON.stringify(value);
+    if (ser === lastSaved.current) return; // only save real changes
     pending.current = value;
     const t = setTimeout(async () => {
       pending.current = null;
       setState("saving");
-      try { await saveRef.current(value); setState("saved"); } catch { setState("error"); }
+      try { await saveRef.current(value); lastSaved.current = ser; setState("saved"); } catch { setState("error"); }
     }, delay);
     return () => clearTimeout(t);
   }, [value, delay]);
