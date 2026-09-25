@@ -42,8 +42,7 @@ async function loadDetail(id: string): Promise<Detail> {
   return {
     c, cliente: cli.data?.nome ?? "—", midias, interno: int.data?.observacoes ?? "",
     tarefas: ta.data ?? [], comentarios: com.data ?? [], eventos: ev.data ?? [], versoes: ve.data ?? [],
-    tarefas: { id: string; titulo: string; status: string; prazo: string | null }[];
-  estrategia: { pilar: pi.data?.nome, tema: te.data?.nome, mensagem: me.data?.mensagem, argumento: ar.data?.argumento, prova: ar.data?.prova, evidencia: evi.data?.informacao },
+    estrategia: { pilar: pi.data?.nome, tema: te.data?.nome, mensagem: me.data?.mensagem, argumento: ar.data?.argumento, prova: ar.data?.prova, evidencia: evi.data?.informacao },
   };
 }
 
