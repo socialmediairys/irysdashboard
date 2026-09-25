@@ -4,6 +4,9 @@ import type { ReactNode } from "react";
 import { CONTRATO_LABEL, type ClientTabKey } from "@/lib/client-workspace";
 import { ETAPA_LABEL, PIPELINE_ETAPAS } from "@/lib/pipeline";
 import { brl, fmtDate, isDone, parseDate, type Workspace } from "./useClientWorkspace";
+import { useStrategy } from "@/components/strategy/useStrategy";
+import { strategyGaps } from "@/components/strategy/StrategyOverview";
+import { strategyProgress } from "@/lib/strategy";
 import { WsEmpty, WsFact, WsList, WsRow, WsSection, btnOutline } from "./ui";
 
 type GoTab = (t: ClientTabKey) => void;
@@ -35,15 +38,7 @@ export function ClientOverview({ ws, goTab }: { ws: Workspace; goTab: GoTab }) {
       <ClientAttention ws={ws} goTab={goTab} />
 
       <div className="grid gap-10 lg:grid-cols-2">
-        <WsSection title="Progresso estratégico">
-          <WsEmpty
-            title={ws.estrategia || ws.briefing ? "Estratégia iniciada" : "Jornada estratégica ainda não iniciada"}
-            action={<button onClick={() => goTab("estrategia")} className={btnOutline}>Abrir estratégia</button>}
-          >
-            A jornada em 13 etapas chega na próxima fase.
-            {ws.evidencias > 0 && ` ${ws.evidencias} evidência(s) já registradas.`}
-          </WsEmpty>
-        </WsSection>
+        <StrategySummary clienteId={ws.cliente.id} goTab={goTab} />
         <ClientNextSteps ws={ws} />
       </div>
 
@@ -153,6 +148,26 @@ export function ClientNextSteps({ ws }: { ws: Workspace }) {
           ))}
         </WsList>
       ) : <WsEmpty>Nenhuma reunião ou tarefa com prazo à frente.</WsEmpty>}
+    </WsSection>
+  );
+}
+
+function StrategySummary({ clienteId, goTab }: { clienteId: string; goTab: GoTab }) {
+  const { data } = useStrategy(clienteId);
+  const prog = strategyProgress(data?.etapas ?? []);
+  const gaps = data ? strategyGaps(data) : [];
+  return (
+    <WsSection title="Progresso estratégico" action={<button onClick={() => goTab("estrategia")} className={btnOutline}>Abrir estratégia</button>}>
+      {!data ? <WsEmpty>Carregando…</WsEmpty> : !prog.iniciada ? (
+        <WsEmpty title="Jornada estratégica ainda não iniciada">Comece pelo Briefing Estratégico.</WsEmpty>
+      ) : (
+        <WsList>
+          <WsRow><span className="flex-1 text-sm text-muted-foreground">Progresso</span><span className="text-sm font-medium text-foreground">{prog.pct}% · {prog.concluidas}/13 etapas</span></WsRow>
+          <WsRow><span className="flex-1 text-sm text-muted-foreground">Etapa atual</span><span className="truncate text-sm text-foreground">{prog.atual ? `${prog.atual.n}. ${prog.atual.titulo}` : "Concluída"}</span></WsRow>
+          <WsRow><span className="flex-1 text-sm text-muted-foreground">Última atualização</span><span className="text-sm text-foreground">{prog.last ? fmtDate(new Date(prog.last)) : "—"}</span></WsRow>
+          <WsRow><span className="flex-1 text-sm text-muted-foreground">Lacunas</span><span className="text-sm text-foreground">{gaps.length}</span></WsRow>
+        </WsList>
+      )}
     </WsSection>
   );
 }
