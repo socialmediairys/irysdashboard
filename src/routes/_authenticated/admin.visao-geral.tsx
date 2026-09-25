@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import Painel360 from "@/components/Painel360";
+import { Overview } from "@/components/overview/Overview";
 
 export const Route = createFileRoute("/_authenticated/admin/visao-geral")({
   head: () => ({ meta: [{ title: "Visão geral — Irys" }] }),
@@ -8,5 +8,5 @@ export const Route = createFileRoute("/_authenticated/admin/visao-geral")({
     const tab = (location.search as Record<string, unknown>)?.tab;
     if (tab === "integracoes") throw redirect({ to: "/admin/configuracoes", search: { tab: "integracoes" } as never });
   },
-  component: () => <Painel360 section="dash" />,
+  component: Overview,
 });
