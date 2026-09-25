@@ -144,7 +144,7 @@ export function FinanceTab({ ws }: { ws: Workspace }) {
         </div>
       </WsSection>
 
-      <WsSection title="Lançamentos" description="Entradas vinculadas a este cliente." action={<Link to="/admin/financeiro" className={btnOutline}>Financeiro <ExternalLink size={13} strokeWidth={1.6} /></Link>}>
+      <WsSection title="Lançamentos" description="Entradas vinculadas a este cliente." action={<Link to="/admin/financeiro" search={{ cliente: c.id }} className={btnOutline}>Financeiro global <ExternalLink size={13} strokeWidth={1.6} /></Link>}>
         {ws.entradas.length ? (
           <WsList>
             {ws.entradas.map((e) => (
