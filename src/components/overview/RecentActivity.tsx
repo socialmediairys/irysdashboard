@@ -29,7 +29,7 @@ export function RecentActivity({ items }: { items: ActivityItem[] }) {
         return (
           <li key={a.id}>
             {a.to ? (
-              <Link to={a.to} params={a.params as never} search={a.params ? ({ tab: "dados" } as never) : undefined} className="block transition-colors hover:bg-accent/60">
+              <Link to={a.to} params={a.params as never} search={a.params ? ({ tab: "visao-geral" } as never) : undefined} className="block transition-colors hover:bg-accent/60">
                 {body}
               </Link>
             ) : body}

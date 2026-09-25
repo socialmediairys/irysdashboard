@@ -62,7 +62,7 @@ function PortalConteudosPage() {
               <Link
                 to="/admin/clientes/$clienteId"
                 params={{ clienteId: selectedId }}
-                search={{ tab: "dados" as const }}
+                search={{ tab: "visao-geral" as const }}
                 className="inline-flex items-center gap-1 text-sm font-semibold text-foreground underline decoration-border underline-offset-4 hover:decoration-foreground"
               >
                 Abrir perfil completo <ExternalLink className="h-3.5 w-3.5" strokeWidth={1.6} />

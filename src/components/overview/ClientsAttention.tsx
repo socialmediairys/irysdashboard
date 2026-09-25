@@ -12,7 +12,7 @@ export function ClientsAttention({ clients }: { clients: AttentionClient[] }) {
           <Link
             to="/admin/clientes/$clienteId"
             params={{ clienteId: c.id }}
-            search={{ tab: "dados" }}
+            search={{ tab: "visao-geral" }}
             className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-accent/60"
           >
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-muted-foreground">
