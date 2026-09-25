@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { criarSolicitacao, registrarSolicitacaoPublica } from "@/lib/cadastros.functions";
@@ -101,7 +102,8 @@ function CadastroPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-border">
+      <div className="w-full max-w-md bg-card rounded-2xl shadow-xl p-6 sm:p-8 border border-border">
+        <BrandLogo className="mb-6 h-8" />
         <h1 className="text-2xl font-bold text-foreground mb-1">Solicitar acesso</h1>
         <p className="text-sm text-muted-foreground mb-6">
           Preencha para pedir acesso ao seu portal do cliente. A liberação é feita manualmente pela
