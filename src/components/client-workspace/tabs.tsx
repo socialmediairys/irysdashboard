@@ -95,7 +95,7 @@ const CONTEXTO: Record<string, string> = {
 export function FilesTab({ ws }: { ws: Workspace }) {
   return (
     <div className="space-y-10">
-      <WsSection title="Documentos" description="Contratos e documentos jurídicos." action={<Link to="/admin/juridico" className={btnOutline}>Jurídico</Link>}>
+      <WsSection title="Documentos" description="Contratos e documentos jurídicos." action={<div className="flex gap-2"><Link to="/admin/biblioteca-midia" search={{ cliente: ws.cliente.id }} className={btnOutline}>Biblioteca</Link><Link to="/admin/juridico" className={btnOutline}>Jurídico</Link></div>}>
         {ws.documentos.length ? (
           <WsList>
             {ws.documentos.map((d) => (
