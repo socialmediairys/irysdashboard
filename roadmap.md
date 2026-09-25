@@ -1,14 +1,16 @@
 # Roadmap — Evolução IRYS
-- [x] Fase 1 — Base visual (shell, menu, topbar, tokens, tipografia)
-- [x] Fase 2 — Visão Geral
-- [x] Fase 3 — Clientes + workspace
-- [x] Fase 4 — Estratégia
-- [x] Fase 5 — Conteúdo ligado ao Sistema Editorial
-- [x] Fase 6 — Portal do Cliente, aprovação, versões
-- [x] Fases 7–11 — Sprints, Comercial, Financeiro, Biblioteca, Relatórios
-- [ ] Fase 12 — Revisão geral (celular, erros de carregamento, estados vazios)
+- [x] Fases 1–11
+- [ ] Fase 12 — Rodada final
+  - [ ] Configurações: cabeçalho antigo
+  - [ ] Receita por cliente no celular
+  - [ ] Financeiro: cliente opcional nos lançamentos + filtros/indicadores
+  - [ ] Portal: comentários "Para o cliente" visíveis; histórico próprio; internos bloqueados no banco
+  - [ ] Versionamento de mídia preserva V1, V2
+  - [ ] Sprints e resto: textos em inglês → PT-BR
+  - [ ] Relatórios: blocos coloridos do Instagram
+  - [ ] Logo: revisar (não redesenhar)
+  - [ ] QA funcional dos fluxos principais
 
 ## Backlog técnico
 - Busca global: clientes, conteúdos, tarefas e arquivos
-- "Sem atividade": contar publicação, aprovação e comentário
-- Definir função própria da aba Planejamento (hoje = pipeline mensal)
+- Definir função própria da aba Planejamento
