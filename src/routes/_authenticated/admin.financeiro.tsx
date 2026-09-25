@@ -115,7 +115,6 @@ function FinanceiroPage() {
   useEffect(() => {
     void supabase.from("clientes").select("id,nome").order("nome").then(({ data }) => setClientes(data ?? []));
   }, []);
-  const nomeCliente = (id?: string | null) => clientes.find((c) => c.id === id)?.nome;
 
   async function vincularCliente(id: string, cliente_id: string) {
     const { error } = await supabase.from("entradas_financeiras").update({ cliente_id: cliente_id || null }).eq("id", id);
