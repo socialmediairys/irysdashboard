@@ -14,7 +14,12 @@ class ReporteiError extends Error {
   constructor(message: string, public status = 0) { super(message); }
 }
 
+let lastCall = 0;
 async function rp<T>(path: string, init?: RequestInit): Promise<T> {
+  // Espaça chamadas (limite oficial: 4 req/s).
+  const wait = lastCall + 300 - Date.now();
+  lastCall = Math.max(Date.now(), lastCall + 300);
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
   const token = process.env["REPORTEI_API_TOKEN"];
   if (!token) throw new ReporteiError("Token do Reportei não configurado.", 0);
   let res: Response;
@@ -30,7 +35,7 @@ async function rp<T>(path: string, init?: RequestInit): Promise<T> {
   }
   if (res.status === 401 || res.status === 403) throw new ReporteiError("Credencial do Reportei inválida ou sem permissão.", res.status);
   if (res.status === 429 && !(init as { _retry?: boolean } | undefined)?._retry) {
-    await new Promise((r) => setTimeout(r, 1500));
+    await new Promise((r) => setTimeout(r, 2500));
     return rp<T>(path, { ...init, _retry: true } as RequestInit);
   }
   if (res.status === 429) throw new ReporteiError("Limite de requisições do Reportei atingido. Tente em instantes.", 429);
