@@ -61,7 +61,7 @@ function EstrategiaRoute() {
                 return (
                   <tr key={r.id} className="hover:bg-accent">
                     <td className="px-4 py-3">
-                      <Link to="/admin/clientes/$clienteId" params={{ clienteId: r.id }} search={{ tab: "estrategia" } as never} className="font-medium text-foreground hover:underline">{r.nome}</Link>
+                      <Link to="/admin/clientes/$clienteId" params={{ clienteId: r.id }} search={{ tab: "estrategia" }} className="font-medium text-foreground hover:underline">{r.nome}</Link>
                     </td>
                     <td className="px-4 py-3"><div className="flex items-center gap-2"><Progress value={p.pct} className="h-1.5 w-20" /><span className="text-muted-foreground">{p.pct}%</span></div></td>
                     <td className="px-4 py-3 text-foreground">{p.atual ? `${p.atual.n}. ${p.atual.titulo}` : "Concluída"}</td>
