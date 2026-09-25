@@ -37,7 +37,9 @@ export type PriorityKind =
   | "contrato"
   | "conteudo_atrasado"
   | "conteudo_incompleto"
-  | "conteudo_revisao";
+  | "conteudo_revisao"
+  | "aprovacao_pendente"
+  | "alteracao_solicitada";
 
 export type Priority = {
   id: string;
@@ -120,10 +122,10 @@ async function load(): Promise<OverviewData> {
   const cn = (id: string | null) => (id ? nomeDe.get(id) ?? null : null);
   for (const t of atrasadas) {
     const d = parseDate(t.prazo!);
-    p.push({ id: `ta-${t.id}`, kind: "tarefa_atrasada", title: t.titulo, clienteId: t.cliente_id, clienteNome: cn(t.cliente_id), due: d, rank: 0 + d.getTime() / 1e13, action: { label: "Abrir tarefa", to: "/admin/sprints" } });
+    p.push({ id: `ta-${t.id}`, kind: "tarefa_atrasada", title: t.titulo, clienteId: t.cliente_id, clienteNome: cn(t.cliente_id), due: d, rank: 0 + d.getTime() / 1e13, action: { label: "Abrir tarefa", to: "/admin/sprints", search: { task: t.id } } });
   }
   for (const t of hoje) {
-    p.push({ id: `th-${t.id}`, kind: "tarefa_hoje", title: t.titulo, clienteId: t.cliente_id, clienteNome: cn(t.cliente_id), due: parseDate(t.prazo!), rank: 2, action: { label: "Abrir tarefa", to: "/admin/sprints" } });
+    p.push({ id: `th-${t.id}`, kind: "tarefa_hoje", title: t.titulo, clienteId: t.cliente_id, clienteNome: cn(t.cliente_id), due: parseDate(t.prazo!), rank: 2, action: { label: "Abrir tarefa", to: "/admin/sprints", search: { task: t.id } } });
   }
   for (const r of (pipe.data ?? []) as { cliente_id: string; etapa: PipelineEtapa }[]) {
     p.push({ id: `pt-${r.cliente_id}-${r.etapa}`, kind: "etapa_travada", title: `Etapa ${ETAPA_LABEL[r.etapa]} travada`, clienteId: r.cliente_id, clienteNome: cn(r.cliente_id), due: null, rank: 1, action: { label: "Ver cliente", to: "/admin/clientes/$clienteId", params: { clienteId: r.cliente_id }, search: { tab: "planejamento" } } });
@@ -155,7 +157,11 @@ async function load(): Promise<OverviewData> {
   for (const c of conteudos) {
     const d = c.data_prevista ? parseDate(c.data_prevista) : null;
     const action = { label: "Abrir conteúdo", to: "/admin/conteudo" };
-    if (d && d < today && !["publicado", "agendado"].includes(c.status)) {
+    if (c.status === "alteracao_solicitada") {
+      p.push({ id: `as-${c.id}`, kind: "alteracao_solicitada", title: c.titulo || "Conteúdo", clienteId: c.cliente_id, clienteNome: cn(c.cliente_id), due: d, rank: 0.8, action });
+    } else if (c.status === "com_cliente") {
+      p.push({ id: `ap-${c.id}`, kind: "aprovacao_pendente", title: c.titulo || "Conteúdo", clienteId: c.cliente_id, clienteNome: cn(c.cliente_id), due: d, rank: d && d < in3 ? 1.2 : 3.5, action });
+    } else if (d && d < today && !["publicado", "agendado", "aprovado"].includes(c.status)) {
       p.push({ id: `ca-${c.id}`, kind: "conteudo_atrasado", title: c.titulo || "Conteúdo sem título", clienteId: c.cliente_id, clienteNome: cn(c.cliente_id), due: d, rank: 0.5, action });
     } else if (d && d <= in3 && ["planejado", "em_producao", "revisao_interna"].includes(c.status) && (!c.legenda?.trim() || !c.midias?.length)) {
       p.push({ id: `ci-${c.id}`, kind: "conteudo_incompleto", title: `${c.titulo || "Conteúdo"} — ${!c.midias?.length ? "sem mídia" : "sem legenda"}`, clienteId: c.cliente_id, clienteNome: cn(c.cliente_id), due: d, rank: 1.5, action });

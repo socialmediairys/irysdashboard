@@ -15,6 +15,8 @@ const KIND: Record<PriorityKind, { icon: LucideIcon; label: string; urgent?: boo
   conteudo_atrasado: { icon: AlertCircle, label: "Conteúdo atrasado", urgent: true },
   conteudo_incompleto: { icon: Clock, label: "Conteúdo incompleto" },
   conteudo_revisao: { icon: Clock, label: "Revisão interna" },
+  aprovacao_pendente: { icon: Clock, label: "Aguardando cliente" },
+  alteracao_solicitada: { icon: AlertCircle, label: "Alteração solicitada", urgent: true },
 };
 
 function formatDue(d: Date | null, kind: PriorityKind) {

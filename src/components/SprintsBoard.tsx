@@ -392,7 +392,7 @@ function NewTaskDialog({
               autoFocus
             />
           </div>
-          <p className="text-xs" style={{ color: C.textMuted }}>
+          <p className="text-xs text-muted-foreground">
             Os demais campos podem ser editados no painel de detalhes.
           </p>
         </div>
@@ -411,7 +411,7 @@ function NewTaskDialog({
 
 /* ---------------- Main page ---------------- */
 
-export function SprintsBoard() {
+export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {}) {
   const [sprints, setSprints] = useState<SprintRow[]>([]);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [tagsByTask, setTagsByTask] = useState<Record<string, TagRow[]>>({});
@@ -423,7 +423,7 @@ export function SprintsBoard() {
   const [override, setOverride] = useState<Record<string, string>>({});
   const [newSprintOpen, setNewSprintOpen] = useState(false);
   const [newTaskCol, setNewTaskCol] = useState<string | null>(null);
-  const [openTaskId, setOpenTaskId] = useState<string | null>(null);
+  const [openTaskId, setOpenTaskId] = useState<string | null>(initialTaskId ?? null);
 
   const clientes = useClientes();
   const clientNameById = useMemo(() => {
