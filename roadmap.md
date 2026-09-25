@@ -12,3 +12,5 @@
 ## Adiado
 - Logo IRYS fiel: aguarda arquivo vetorial oficial (PDF enviado é imagem)
 - Tema escuro (fora do escopo)
+
+- [x] Integração Reportei (métricas no workspace, Relatórios e Portal)

@@ -2583,6 +2583,86 @@ export type Database = {
           },
         ]
       }
+      reportei_connections: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          enabled: boolean
+          last_checked_at: string | null
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          enabled?: boolean
+          last_checked_at?: string | null
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          enabled?: boolean
+          last_checked_at?: string | null
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reportei_connections_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reportei_links: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          id: string
+          org_id: string
+          project_id: number
+          project_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          id?: string
+          org_id?: string
+          project_id: number
+          project_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          org_id?: string
+          project_id?: number
+          project_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reportei_links_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: true
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reportei_links_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saidas_financeiras: {
         Row: {
           categoria: string | null

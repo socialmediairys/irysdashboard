@@ -1,3 +1,4 @@
+import { ReporteiIntegration } from "@/components/metricas/ReporteiIntegration";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -296,6 +297,8 @@ export function IntegrationsTab() {
           Conecte serviços externos à sua conta. Os tokens ficam vinculados ao seu usuário.
         </p>
       </div>
+
+      <ReporteiIntegration />
 
       {/* Google Calendar */}
       <div className="rounded-xl border p-4 bg-card">

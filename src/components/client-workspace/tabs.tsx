@@ -9,6 +9,7 @@ import { ContentModule } from "@/components/content/ContentModule";
 import { PlannedItems } from "@/components/content/PlannedItems";
 import { StrategyWorkspace } from "@/components/strategy/StrategyWorkspace";
 import { cn } from "@/lib/utils";
+import { ReporteiMetrics, periodRange } from "@/components/metricas/ReporteiMetrics";
 import { brl, fmtDate, parseDate, type Workspace } from "./useClientWorkspace";
 import { WsEmpty, WsList, WsRow, WsSection, btnOutline } from "./ui";
 
@@ -53,7 +54,15 @@ export function PlanningTab({ ws }: { ws: Workspace }) {
 
 /* ---------- Métricas (contexto do cliente) ---------- */
 export function MetricsTab({ ws }: { ws: Workspace }) {
+  const [dias, setDias] = useState(30);
   return (
+    <div className="space-y-6">
+    <div className="flex justify-end">
+      <select className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground" value={dias} onChange={(e) => setDias(Number(e.target.value))}>
+        <option value={30}>Últimos 30 dias</option><option value={90}>Últimos 90 dias</option><option value={365}>Últimos 12 meses</option>
+      </select>
+    </div>
+    <ReporteiMetrics clienteId={ws.cliente.id} {...periodRange(dias)} />
     <WsSection
       title="Redes sociais"
       description="Último registro de cada conta. A análise completa fica em Relatórios."
@@ -81,6 +90,7 @@ export function MetricsTab({ ws }: { ws: Workspace }) {
         </WsList>
       ) : <WsEmpty>Nenhuma conta social vinculada a este cliente.</WsEmpty>}
     </WsSection>
+    </div>
   );
 }
 function Metric({ label, v }: { label: string; v?: string }) {

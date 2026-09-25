@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DataTable, Thead, Tbody, Tr, Th, Td } from "@/components/ui/data-table";
 import { BarChart3 } from "lucide-react";
+import { ReporteiMetrics, periodRange } from "@/components/metricas/ReporteiMetrics";
 
 type Conta = { id: string; client_id: string | null; platform: string; username: string | null };
 type Snap = { social_account_id: string; snapshot_date: string; followers: number | null; engagement_rate: number | null; reach: number | null; impressions: number | null };
@@ -80,6 +81,7 @@ export function RelatorioGlobal() {
           </Tbody>
         </DataTable>
       )}
+      {cliente && <ReporteiMetrics clienteId={cliente} network={rede.toLowerCase()} {...periodRange(DIAS[periodo])} />}
     </section>
   );
 }
