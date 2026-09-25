@@ -1,16 +1,14 @@
-# Roadmap — Evolução IRYS
-- [x] Fases 1–11
-- [ ] Fase 12 — Rodada final
-  - [ ] Configurações: cabeçalho antigo
-  - [ ] Receita por cliente no celular
-  - [ ] Financeiro: cliente opcional nos lançamentos + filtros/indicadores
-  - [ ] Portal: comentários "Para o cliente" visíveis; histórico próprio; internos bloqueados no banco
-  - [ ] Versionamento de mídia preserva V1, V2
-  - [ ] Sprints e resto: textos em inglês → PT-BR
-  - [ ] Relatórios: blocos coloridos do Instagram
-  - [ ] Logo: revisar (não redesenhar)
-  - [ ] QA funcional dos fluxos principais
+# Roadmap
 
-## Backlog técnico
-- Busca global: clientes, conteúdos, tarefas e arquivos
-- Definir função própria da aba Planejamento
+## Fase 12 — QA final (concluída)
+- [x] Configurações, Receita por cliente mobile, Portal desktop/mobile
+- [x] Financeiro com cliente opcional em lançamentos
+- [x] Comentários para o cliente no portal; internos bloqueados no banco
+- [x] Versionamento de mídia preservando V1/V2
+- [x] Traduções PT-BR em Sprints
+- [x] Blocos antigos em Relatórios e cabeçalho do portal neutralizados
+- [x] Correção: cadastro de cliente atribui organização automaticamente
+
+## Adiado
+- Logo IRYS fiel: aguarda arquivo vetorial oficial (PDF enviado é imagem)
+- Tema escuro (fora do escopo)
