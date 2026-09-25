@@ -9,14 +9,14 @@
 - **Estratégia:** já existem as tabelas de briefing, evidências e estratégias, mas sem tela de 13 etapas.
 
 ## 2. O que será mantido
-Tudo acima. Nada é removido: cada tela atual ganha um lugar no novo menu (Jurídico e Equipe vão para Configurações/Financeiro; Métricas Sociais vira parte de Relatórios; Gerenciar Portais vira a aba Portal dentro do cliente).
+Tudo acima. Nada é removido: cada tela atual ganha um lugar no novo menu (Equipe e Jurídico/Documentos vão para Configurações; Métricas Sociais vira parte de Relatórios; Gerenciar Portais vira a aba Portal dentro do cliente).
 
 ## 3. Novo menu lateral (igual à referência)
 Visão geral · Clientes · Estratégia · Conteúdo · Sprints · Comercial · Financeiro · Biblioteca · Relatórios · Configurações — com barra superior de busca, seletor de mês, notificações e avatar.
 
 ## 4. Mudanças no banco (novas, sem apagar dados)
-- `estrategia_etapas`: progresso das 13 etapas por cliente (status + dados de cada etapa).
-- `conteudos`: posts com data, formato, legenda, mídia, status (ideia → produção → aprovação → publicado).
+- `estrategia_etapas`: só controle da jornada (cliente, etapa, status, progresso, datas, metadados). Os dados continuam nas tabelas existentes de briefing, evidências e estratégias, de forma estruturada.
+- `conteudos`: posts com data, formato, legenda, mídia, status, ligados ao Sistema Editorial (pilar, tema, jornada, mensagem/argumento, prova, objetivo, CTA).
 - `conteudo_versoes` e `conteudo_comentarios` (com marcação interno/visível ao cliente).
 - `conteudo_aprovacoes`: aprovar / pedir alteração pelo cliente, inclusive em lote.
 - `propostas` no Comercial (valor, validade, status), ligadas aos leads atuais.
@@ -27,7 +27,7 @@ Visão geral · Clientes · Estratégia · Conteúdo · Sprints · Comercial · 
 2. **Visão Geral:** saudação, 4 indicadores, Prioridades de hoje, Clientes que precisam de atenção, Sua semana.
 3. **Clientes + workspace do cliente:** lista com filtros (Todos/Ativos/Onboarding/Pausados) e cabeçalho do cliente com abas (Visão geral, Estratégia, Conteúdos, Planejamento, Métricas, Arquivos, Financeiro, Portal).
 4. **Estratégia:** trilha das 13 etapas com progresso salvo, fontes/evidências e checklist "O que investigar"; IA para sugestões.
-5. **Conteúdo:** calendário semanal, produção, aprovação, publicados, ideias + detalhe do conteúdo.
+5. **Conteúdo:** calendário mensal e semanal, produção, aprovação, publicados, ideias + detalhe do conteúdo.
 6. **Portal do Cliente:** aprovações, versões, aprovação em lote (mantendo o conteúdo rico atual).
 7. **Sprints** (ajuste visual por etapas), 8. **Comercial** (propostas, contratos, oportunidades), 9. **Financeiro** (Receitas/Despesas/Metas), 10. **Biblioteca** (pastas + filtros), 11. **Relatórios** (visualizações, engajamento, seguidores, performance por cliente).
 12. **Revisão geral:** celular, modo escuro, carregamento, estados vazios, acessibilidade.

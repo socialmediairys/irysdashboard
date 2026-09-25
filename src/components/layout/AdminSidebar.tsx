@@ -2,152 +2,142 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Users,
+  Compass,
   FileText,
+  KanbanSquare,
   TrendingUp,
   CreditCard,
   Library,
-  Scale,
   BarChart3,
-  Menu,
-  ArrowLeft,
-  KanbanSquare,
+  Settings,
+  PanelLeftClose,
+  PanelLeftOpen,
+  X,
 } from "lucide-react";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
-type NavGroup = { label: string; items: NavItem[] };
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  /** Extra path prefixes that should also mark this item as active. */
+  match?: string[];
+};
 
-const ADMIN_NAV_GROUPS: NavGroup[] = [
-  {
-    label: "Operação",
-    items: [
-      { to: "/admin/visao-geral", label: "Visão geral", icon: LayoutDashboard },
-      { to: "/admin/cadastros", label: "Cadastros pendentes", icon: Users },
-      { to: "/admin/equipe", label: "Equipe", icon: Users },
-    ],
-  },
-  {
-    label: "Produção",
-    items: [
-      { to: "/admin/sprints", label: "Sprints", icon: KanbanSquare },
-    ],
-  },
-  {
-    label: "Conteúdo",
-    items: [
-      { to: "/admin/portal-conteudos", label: "Gerenciar portais", icon: FileText },
-      { to: "/admin/biblioteca-midia", label: "Biblioteca", icon: Library },
-    ],
-  },
-  { label: "Comercial", items: [{ to: "/admin/crm", label: "Comercial", icon: TrendingUp }] },
-  { label: "Métricas", items: [{ to: "/admin/metricas-sociais", label: "Métricas sociais", icon: BarChart3 }] },
-  {
-    label: "Financeiro",
-    items: [
-      { to: "/admin/financeiro", label: "Financeiro", icon: CreditCard },
-      { to: "/admin/juridico", label: "Jurídico", icon: Scale },
-    ],
-  },
+export const ADMIN_NAV: NavItem[] = [
+  { to: "/admin/visao-geral", label: "Visão geral", icon: LayoutDashboard },
+  { to: "/admin/clientes", label: "Clientes", icon: Users },
+  { to: "/admin/estrategia", label: "Estratégia", icon: Compass },
+  { to: "/admin/conteudo", label: "Conteúdo", icon: FileText, match: ["/admin/portal-conteudos"] },
+  { to: "/admin/sprints", label: "Sprints", icon: KanbanSquare },
+  { to: "/admin/crm", label: "Comercial", icon: TrendingUp },
+  { to: "/admin/financeiro", label: "Financeiro", icon: CreditCard },
+  { to: "/admin/biblioteca-midia", label: "Biblioteca", icon: Library },
+  { to: "/admin/relatorios", label: "Relatórios", icon: BarChart3, match: ["/admin/metricas-sociais"] },
 ];
 
-export function AdminSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+export const ADMIN_SETTINGS: NavItem = {
+  to: "/admin/configuracoes",
+  label: "Configurações",
+  icon: Settings,
+  match: ["/admin/equipe", "/admin/cadastros", "/admin/juridico", "/admin/agenda"],
+};
+
+function isActive(pathname: string, item: NavItem) {
+  return [item.to, ...(item.match ?? [])].some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  );
+}
+
+export function AdminSidebar({
+  collapsed,
+  onToggleCollapsed,
+  mobileOpen,
+  onCloseMobile,
+}: {
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  mobileOpen: boolean;
+  onCloseMobile: () => void;
+}) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const width = collapsed ? "md:w-16" : "md:w-60";
+  const renderItem = (n: NavItem) => {
+    const Icon = n.icon;
+    const active = isActive(pathname, n);
+    return (
+      <Link
+        key={n.to}
+        to={n.to}
+        onClick={onCloseMobile}
+        title={collapsed ? n.label : undefined}
+        aria-current={active ? "page" : undefined}
+        className={cn(
+          "relative flex h-9 items-center gap-3 rounded-md px-2.5 text-sm transition-colors",
+          active
+            ? "bg-sidebar-accent font-medium text-foreground"
+            : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground",
+          collapsed && "md:justify-center md:px-0",
+        )}
+      >
+        {active && (
+          <span className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary" />
+        )}
+        <Icon size={17} strokeWidth={1.6} className={cn("shrink-0", active && "text-primary")} />
+        <span className={cn("truncate", collapsed && "md:hidden")}>{n.label}</span>
+      </Link>
+    );
+  };
 
   return (
     <>
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/50 md:hidden"
-          onClick={() => setMobileOpen(false)}
+          className="fixed inset-0 z-30 bg-foreground/30 md:hidden"
+          onClick={onCloseMobile}
           aria-hidden="true"
         />
       )}
-
-      {/* Mobile top bar */}
-      <header
-        className="md:hidden sticky top-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 text-sidebar-foreground"
-      >
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary"
-          aria-label="Abrir menu"
-        >
-          <Menu size={22} />
-        </button>
-        <span className="font-extrabold tracking-tight">Irys OS — Admin</span>
-        <div className="w-10" />
-      </header>
-
       <aside
-        className={`fixed left-0 top-0 z-40 flex h-screen w-60 ${width} flex-col justify-between border-r border-sidebar-border bg-sidebar py-3 transition-transform md:transition-[width,transform] duration-200 ${mobileOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
+        className={cn(
+          "fixed left-0 top-0 z-40 flex h-screen w-60 flex-col border-r border-sidebar-border bg-sidebar transition-[width,transform] duration-200",
+          collapsed ? "md:w-16" : "md:w-60",
+          mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+        )}
       >
-        <div className="flex flex-col gap-1 overflow-y-auto px-2">
+        <div className={cn("flex h-16 shrink-0 items-center justify-between px-4", collapsed && "md:justify-center md:px-0")}>
+          <Link to="/admin/visao-geral" className="flex items-center gap-2" onClick={onCloseMobile}>
+            <span className="h-5 w-1 rounded-full bg-primary" />
+            <span className={cn("text-base font-semibold tracking-[0.2em] text-foreground", collapsed && "md:hidden")}>
+              IRYS
+            </span>
+          </Link>
           <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="mb-2 hidden md:flex h-10 items-center gap-2 rounded-lg px-2 text-foreground hover:bg-secondary"
+            onClick={onCloseMobile}
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-sidebar-accent md:hidden"
+            aria-label="Fechar menu"
+          >
+            <X size={18} strokeWidth={1.6} />
+          </button>
+        </div>
+
+        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-2" aria-label="Menu principal">
+          {ADMIN_NAV.map(renderItem)}
+        </nav>
+
+        <div className="flex flex-col gap-0.5 border-t border-sidebar-border px-3 py-3">
+          {renderItem(ADMIN_SETTINGS)}
+          <button
+            onClick={onToggleCollapsed}
+            className={cn(
+              "hidden h-9 items-center gap-3 rounded-md px-2.5 text-sm text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground md:flex",
+              collapsed && "md:justify-center md:px-0",
+            )}
             title={collapsed ? "Expandir menu" : "Recolher menu"}
           >
-            <Menu size={18} />
-            {!collapsed && <span className="text-sm font-bold">Irys OS — Admin</span>}
+            {collapsed ? <PanelLeftOpen size={17} strokeWidth={1.6} /> : <PanelLeftClose size={17} strokeWidth={1.6} />}
+            {!collapsed && <span>Recolher</span>}
           </button>
-
-          <div className="md:hidden mb-2 flex h-10 items-center justify-between px-2">
-            <span className="text-sm font-bold text-foreground">Irys OS — Admin</span>
-            <button
-              onClick={() => setMobileOpen(false)}
-              className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary"
-              aria-label="Fechar menu"
-            >
-              <ArrowLeft size={18} />
-            </button>
-          </div>
-
-          <Link
-            to="/app"
-            className="mb-2 flex min-h-9 items-center gap-2 rounded-lg px-2.5 text-sm font-semibold text-muted-foreground hover:bg-secondary"
-          >
-            <ArrowLeft size={16} />
-            {!collapsed && "Voltar ao painel"}
-          </Link>
-
-          {ADMIN_NAV_GROUPS.map((g) => (
-            <div key={g.label} className="mt-2">
-              {!collapsed && (
-                <div className="px-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                  {g.label}
-                </div>
-              )}
-              {g.items.map((n) => {
-                const Icon = n.icon;
-                const isActive = pathname === n.to || pathname.startsWith(`${n.to}/`);
-                return (
-                  <Link
-                    key={n.to}
-                    to={n.to}
-                    onClick={() => setMobileOpen(false)}
-                    title={collapsed ? n.label : undefined}
-                    className={cn(
-                      "group relative flex min-h-11 w-full items-center gap-3 rounded-lg px-2.5 text-left transition-colors",
-                      isActive
-                        ? "bg-primary-soft font-semibold text-sidebar-accent-foreground"
-                        : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                      collapsed && "md:justify-center",
-                    )}
-                  >
-                    <Icon size={18} strokeWidth={2} className="shrink-0" />
-                    <span className={`text-sm font-semibold ${collapsed ? "md:hidden" : ""}`}>
-                      {n.label}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
         </div>
       </aside>
     </>

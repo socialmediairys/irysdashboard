@@ -8,3 +8,4 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Admin shell: `_authenticated/admin.tsx` renders the single AdminSidebar + AdminTopbar for every /admin route; Painel360 sections are mounted per-route via `<Painel360 section=... />` — one shell, no nested sidebars.

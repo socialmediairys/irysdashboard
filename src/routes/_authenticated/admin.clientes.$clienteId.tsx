@@ -112,7 +112,7 @@ function ClienteProfilePage() {
         <p className="text-sm" style={{ color: C.textMid }}>Cliente não encontrado.</p>
         <button
           type="button"
-          onClick={() => navigate({ to: "/admin/visao-geral" })}
+          onClick={() => navigate({ to: "/admin/clientes" })}
           className="inline-flex items-center gap-1 text-sm font-semibold"
           style={{ color: C.mid }}
         >
@@ -128,7 +128,7 @@ function ClienteProfilePage() {
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-5">
       <Link
-        to="/admin/visao-geral"
+        to="/admin/clientes"
         className="inline-flex items-center gap-1 text-sm font-semibold hover:underline"
         style={{ color: C.mid }}
       >

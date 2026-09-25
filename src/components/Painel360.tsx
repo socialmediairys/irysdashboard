@@ -13,7 +13,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-
 import { CSS } from "@dnd-kit/utilities";
 
 import { useServerFn } from "@tanstack/react-start";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   startGoogleCalendarAuth,
   getGoogleCalendarStatus,
@@ -3133,10 +3133,41 @@ function Painel360Inner() {
   );
 }
 
-export default function Painel360() {
+export type Painel360Section = PageKey;
+
+const SECTION_ROUTES: Record<PageKey, string> = {
+  dash: "/admin/visao-geral",
+  agenda: "/admin/agenda",
+  clientes: "/admin/clientes",
+  conteudo: "/admin/conteudo",
+  social: "/admin/relatorios",
+  crm: "/admin/crm",
+  financas: "/admin/financeiro",
+  biblioteca: "/admin/biblioteca-midia",
+  config: "/admin/configuracoes",
+};
+
+/** Renders a single Painel360 section inside the global admin shell. */
+function SectionView({ section }: { section: PageKey }) {
+  const navigate = useNavigate();
+  const go = (k: PageKey) => navigate({ to: SECTION_ROUTES[k] });
+  switch (section) {
+    case "dash": return <DashboardPage go={go} />;
+    case "agenda": return <AgendaPage />;
+    case "clientes": return <ClientesPage />;
+    case "conteudo": return <ConteudoPage />;
+    case "social": return <SocialPage />;
+    case "crm": return <CRMPage />;
+    case "financas": return <FinancasPage />;
+    case "biblioteca": return <BibliotecaPage />;
+    case "config": return <ConfigPage />;
+  }
+}
+
+export default function Painel360({ section }: { section?: PageKey } = {}) {
   return (
     <CrudProvider>
-      <Painel360Inner />
+      {section ? <SectionView section={section} /> : <Painel360Inner />}
     </CrudProvider>
   );
 }

@@ -17,16 +17,23 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedMeuPortalRouteImport } from './routes/_authenticated/meu-portal'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminVisaoGeralRouteImport } from './routes/_authenticated/admin.visao-geral'
 import { Route as AuthenticatedAdminSprintsRouteImport } from './routes/_authenticated/admin.sprints'
+import { Route as AuthenticatedAdminRelatoriosRouteImport } from './routes/_authenticated/admin.relatorios'
 import { Route as AuthenticatedAdminPortalConteudosRouteImport } from './routes/_authenticated/admin.portal-conteudos'
 import { Route as AuthenticatedAdminMetricasSociaisRouteImport } from './routes/_authenticated/admin.metricas-sociais'
 import { Route as AuthenticatedAdminJuridicoRouteImport } from './routes/_authenticated/admin.juridico'
 import { Route as AuthenticatedAdminFinanceiroRouteImport } from './routes/_authenticated/admin.financeiro'
+import { Route as AuthenticatedAdminEstrategiaRouteImport } from './routes/_authenticated/admin.estrategia'
 import { Route as AuthenticatedAdminEquipeRouteImport } from './routes/_authenticated/admin.equipe'
 import { Route as AuthenticatedAdminCrmRouteImport } from './routes/_authenticated/admin.crm'
+import { Route as AuthenticatedAdminConteudoRouteImport } from './routes/_authenticated/admin.conteudo'
+import { Route as AuthenticatedAdminConfiguracoesRouteImport } from './routes/_authenticated/admin.configuracoes'
 import { Route as AuthenticatedAdminCadastrosRouteImport } from './routes/_authenticated/admin.cadastros'
 import { Route as AuthenticatedAdminBibliotecaMidiaRouteImport } from './routes/_authenticated/admin.biblioteca-midia'
+import { Route as AuthenticatedAdminAgendaRouteImport } from './routes/_authenticated/admin.agenda'
+import { Route as AuthenticatedAdminClientesIndexRouteImport } from './routes/_authenticated/admin.clientes.index'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp.webhook'
 import { Route as ApiPublicMetaBusinessCallbackRouteImport } from './routes/api/public/meta-business.callback'
 import { Route as ApiPublicGoogleCalendarCallbackRouteImport } from './routes/api/public/google-calendar.callback'
@@ -71,6 +78,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminVisaoGeralRoute =
   AuthenticatedAdminVisaoGeralRouteImport.update({
     id: '/visao-geral',
@@ -81,6 +93,12 @@ const AuthenticatedAdminSprintsRoute =
   AuthenticatedAdminSprintsRouteImport.update({
     id: '/sprints',
     path: '/sprints',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminRelatoriosRoute =
+  AuthenticatedAdminRelatoriosRouteImport.update({
+    id: '/relatorios',
+    path: '/relatorios',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminPortalConteudosRoute =
@@ -107,6 +125,12 @@ const AuthenticatedAdminFinanceiroRoute =
     path: '/financeiro',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminEstrategiaRoute =
+  AuthenticatedAdminEstrategiaRouteImport.update({
+    id: '/estrategia',
+    path: '/estrategia',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminEquipeRoute =
   AuthenticatedAdminEquipeRouteImport.update({
     id: '/equipe',
@@ -118,6 +142,18 @@ const AuthenticatedAdminCrmRoute = AuthenticatedAdminCrmRouteImport.update({
   path: '/crm',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminConteudoRoute =
+  AuthenticatedAdminConteudoRouteImport.update({
+    id: '/conteudo',
+    path: '/conteudo',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminConfiguracoesRoute =
+  AuthenticatedAdminConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminCadastrosRoute =
   AuthenticatedAdminCadastrosRouteImport.update({
     id: '/cadastros',
@@ -128,6 +164,18 @@ const AuthenticatedAdminBibliotecaMidiaRoute =
   AuthenticatedAdminBibliotecaMidiaRouteImport.update({
     id: '/biblioteca-midia',
     path: '/biblioteca-midia',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminAgendaRoute =
+  AuthenticatedAdminAgendaRouteImport.update({
+    id: '/agenda',
+    path: '/agenda',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminClientesIndexRoute =
+  AuthenticatedAdminClientesIndexRouteImport.update({
+    id: '/clientes/',
+    path: '/clientes/',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const ApiPublicWhatsappWebhookRoute =
@@ -163,43 +211,56 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
   '/meu-portal': typeof AuthenticatedMeuPortalRoute
+  '/admin/agenda': typeof AuthenticatedAdminAgendaRoute
   '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
   '/admin/cadastros': typeof AuthenticatedAdminCadastrosRoute
+  '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
+  '/admin/conteudo': typeof AuthenticatedAdminConteudoRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
+  '/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
   '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/metricas-sociais': typeof AuthenticatedAdminMetricasSociaisRoute
   '/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
+  '/admin/relatorios': typeof AuthenticatedAdminRelatoriosRoute
   '/admin/sprints': typeof AuthenticatedAdminSprintsRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
   '/api/public/meta-business/callback': typeof ApiPublicMetaBusinessCallbackRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
+  '/admin/clientes/': typeof AuthenticatedAdminClientesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/cadastro': typeof CadastroRoute
   '/login': typeof LoginRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/app': typeof AuthenticatedAppRoute
   '/meu-portal': typeof AuthenticatedMeuPortalRoute
+  '/admin/agenda': typeof AuthenticatedAdminAgendaRoute
   '/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
   '/admin/cadastros': typeof AuthenticatedAdminCadastrosRoute
+  '/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
+  '/admin/conteudo': typeof AuthenticatedAdminConteudoRoute
   '/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/admin/equipe': typeof AuthenticatedAdminEquipeRoute
+  '/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
   '/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/admin/metricas-sociais': typeof AuthenticatedAdminMetricasSociaisRoute
   '/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
+  '/admin/relatorios': typeof AuthenticatedAdminRelatoriosRoute
   '/admin/sprints': typeof AuthenticatedAdminSprintsRoute
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
   '/api/public/meta-business/callback': typeof ApiPublicMetaBusinessCallbackRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
+  '/admin/clientes': typeof AuthenticatedAdminClientesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -211,20 +272,27 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/app': typeof AuthenticatedAppRoute
   '/_authenticated/meu-portal': typeof AuthenticatedMeuPortalRoute
+  '/_authenticated/admin/agenda': typeof AuthenticatedAdminAgendaRoute
   '/_authenticated/admin/biblioteca-midia': typeof AuthenticatedAdminBibliotecaMidiaRoute
   '/_authenticated/admin/cadastros': typeof AuthenticatedAdminCadastrosRoute
+  '/_authenticated/admin/configuracoes': typeof AuthenticatedAdminConfiguracoesRoute
+  '/_authenticated/admin/conteudo': typeof AuthenticatedAdminConteudoRoute
   '/_authenticated/admin/crm': typeof AuthenticatedAdminCrmRoute
   '/_authenticated/admin/equipe': typeof AuthenticatedAdminEquipeRoute
+  '/_authenticated/admin/estrategia': typeof AuthenticatedAdminEstrategiaRoute
   '/_authenticated/admin/financeiro': typeof AuthenticatedAdminFinanceiroRoute
   '/_authenticated/admin/juridico': typeof AuthenticatedAdminJuridicoRoute
   '/_authenticated/admin/metricas-sociais': typeof AuthenticatedAdminMetricasSociaisRoute
   '/_authenticated/admin/portal-conteudos': typeof AuthenticatedAdminPortalConteudosRoute
+  '/_authenticated/admin/relatorios': typeof AuthenticatedAdminRelatoriosRoute
   '/_authenticated/admin/sprints': typeof AuthenticatedAdminSprintsRoute
   '/_authenticated/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
   '/api/public/meta-business/callback': typeof ApiPublicMetaBusinessCallbackRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
+  '/_authenticated/admin/clientes/': typeof AuthenticatedAdminClientesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -236,43 +304,56 @@ export interface FileRouteTypes {
     | '/admin'
     | '/app'
     | '/meu-portal'
+    | '/admin/agenda'
     | '/admin/biblioteca-midia'
     | '/admin/cadastros'
+    | '/admin/configuracoes'
+    | '/admin/conteudo'
     | '/admin/crm'
     | '/admin/equipe'
+    | '/admin/estrategia'
     | '/admin/financeiro'
     | '/admin/juridico'
     | '/admin/metricas-sociais'
     | '/admin/portal-conteudos'
+    | '/admin/relatorios'
     | '/admin/sprints'
     | '/admin/visao-geral'
+    | '/admin/'
     | '/admin/clientes/$clienteId'
     | '/api/public/google-calendar/callback'
     | '/api/public/meta-business/callback'
     | '/api/public/whatsapp/webhook'
+    | '/admin/clientes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/cadastro'
     | '/login'
-    | '/admin'
     | '/app'
     | '/meu-portal'
+    | '/admin/agenda'
     | '/admin/biblioteca-midia'
     | '/admin/cadastros'
+    | '/admin/configuracoes'
+    | '/admin/conteudo'
     | '/admin/crm'
     | '/admin/equipe'
+    | '/admin/estrategia'
     | '/admin/financeiro'
     | '/admin/juridico'
     | '/admin/metricas-sociais'
     | '/admin/portal-conteudos'
+    | '/admin/relatorios'
     | '/admin/sprints'
     | '/admin/visao-geral'
+    | '/admin'
     | '/admin/clientes/$clienteId'
     | '/api/public/google-calendar/callback'
     | '/api/public/meta-business/callback'
     | '/api/public/whatsapp/webhook'
+    | '/admin/clientes'
   id:
     | '__root__'
     | '/'
@@ -283,20 +364,27 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/app'
     | '/_authenticated/meu-portal'
+    | '/_authenticated/admin/agenda'
     | '/_authenticated/admin/biblioteca-midia'
     | '/_authenticated/admin/cadastros'
+    | '/_authenticated/admin/configuracoes'
+    | '/_authenticated/admin/conteudo'
     | '/_authenticated/admin/crm'
     | '/_authenticated/admin/equipe'
+    | '/_authenticated/admin/estrategia'
     | '/_authenticated/admin/financeiro'
     | '/_authenticated/admin/juridico'
     | '/_authenticated/admin/metricas-sociais'
     | '/_authenticated/admin/portal-conteudos'
+    | '/_authenticated/admin/relatorios'
     | '/_authenticated/admin/sprints'
     | '/_authenticated/admin/visao-geral'
+    | '/_authenticated/admin/'
     | '/_authenticated/admin/clientes/$clienteId'
     | '/api/public/google-calendar/callback'
     | '/api/public/meta-business/callback'
     | '/api/public/whatsapp/webhook'
+    | '/_authenticated/admin/clientes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -368,6 +456,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/visao-geral': {
       id: '/_authenticated/admin/visao-geral'
       path: '/visao-geral'
@@ -380,6 +475,13 @@ declare module '@tanstack/react-router' {
       path: '/sprints'
       fullPath: '/admin/sprints'
       preLoaderRoute: typeof AuthenticatedAdminSprintsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/relatorios': {
+      id: '/_authenticated/admin/relatorios'
+      path: '/relatorios'
+      fullPath: '/admin/relatorios'
+      preLoaderRoute: typeof AuthenticatedAdminRelatoriosRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/portal-conteudos': {
@@ -410,6 +512,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFinanceiroRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/estrategia': {
+      id: '/_authenticated/admin/estrategia'
+      path: '/estrategia'
+      fullPath: '/admin/estrategia'
+      preLoaderRoute: typeof AuthenticatedAdminEstrategiaRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/equipe': {
       id: '/_authenticated/admin/equipe'
       path: '/equipe'
@@ -424,6 +533,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCrmRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/conteudo': {
+      id: '/_authenticated/admin/conteudo'
+      path: '/conteudo'
+      fullPath: '/admin/conteudo'
+      preLoaderRoute: typeof AuthenticatedAdminConteudoRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/configuracoes': {
+      id: '/_authenticated/admin/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/admin/configuracoes'
+      preLoaderRoute: typeof AuthenticatedAdminConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/cadastros': {
       id: '/_authenticated/admin/cadastros'
       path: '/cadastros'
@@ -436,6 +559,20 @@ declare module '@tanstack/react-router' {
       path: '/biblioteca-midia'
       fullPath: '/admin/biblioteca-midia'
       preLoaderRoute: typeof AuthenticatedAdminBibliotecaMidiaRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/agenda': {
+      id: '/_authenticated/admin/agenda'
+      path: '/agenda'
+      fullPath: '/admin/agenda'
+      preLoaderRoute: typeof AuthenticatedAdminAgendaRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/clientes/': {
+      id: '/_authenticated/admin/clientes/'
+      path: '/clientes'
+      fullPath: '/admin/clientes/'
+      preLoaderRoute: typeof AuthenticatedAdminClientesIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/api/public/whatsapp/webhook': {
@@ -470,35 +607,49 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAgendaRoute: typeof AuthenticatedAdminAgendaRoute
   AuthenticatedAdminBibliotecaMidiaRoute: typeof AuthenticatedAdminBibliotecaMidiaRoute
   AuthenticatedAdminCadastrosRoute: typeof AuthenticatedAdminCadastrosRoute
+  AuthenticatedAdminConfiguracoesRoute: typeof AuthenticatedAdminConfiguracoesRoute
+  AuthenticatedAdminConteudoRoute: typeof AuthenticatedAdminConteudoRoute
   AuthenticatedAdminCrmRoute: typeof AuthenticatedAdminCrmRoute
   AuthenticatedAdminEquipeRoute: typeof AuthenticatedAdminEquipeRoute
+  AuthenticatedAdminEstrategiaRoute: typeof AuthenticatedAdminEstrategiaRoute
   AuthenticatedAdminFinanceiroRoute: typeof AuthenticatedAdminFinanceiroRoute
   AuthenticatedAdminJuridicoRoute: typeof AuthenticatedAdminJuridicoRoute
   AuthenticatedAdminMetricasSociaisRoute: typeof AuthenticatedAdminMetricasSociaisRoute
   AuthenticatedAdminPortalConteudosRoute: typeof AuthenticatedAdminPortalConteudosRoute
+  AuthenticatedAdminRelatoriosRoute: typeof AuthenticatedAdminRelatoriosRoute
   AuthenticatedAdminSprintsRoute: typeof AuthenticatedAdminSprintsRoute
   AuthenticatedAdminVisaoGeralRoute: typeof AuthenticatedAdminVisaoGeralRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
   AuthenticatedAdminClientesClienteIdRoute: typeof AuthenticatedAdminClientesClienteIdRoute
+  AuthenticatedAdminClientesIndexRoute: typeof AuthenticatedAdminClientesIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAgendaRoute: AuthenticatedAdminAgendaRoute,
   AuthenticatedAdminBibliotecaMidiaRoute:
     AuthenticatedAdminBibliotecaMidiaRoute,
   AuthenticatedAdminCadastrosRoute: AuthenticatedAdminCadastrosRoute,
+  AuthenticatedAdminConfiguracoesRoute: AuthenticatedAdminConfiguracoesRoute,
+  AuthenticatedAdminConteudoRoute: AuthenticatedAdminConteudoRoute,
   AuthenticatedAdminCrmRoute: AuthenticatedAdminCrmRoute,
   AuthenticatedAdminEquipeRoute: AuthenticatedAdminEquipeRoute,
+  AuthenticatedAdminEstrategiaRoute: AuthenticatedAdminEstrategiaRoute,
   AuthenticatedAdminFinanceiroRoute: AuthenticatedAdminFinanceiroRoute,
   AuthenticatedAdminJuridicoRoute: AuthenticatedAdminJuridicoRoute,
   AuthenticatedAdminMetricasSociaisRoute:
     AuthenticatedAdminMetricasSociaisRoute,
   AuthenticatedAdminPortalConteudosRoute:
     AuthenticatedAdminPortalConteudosRoute,
+  AuthenticatedAdminRelatoriosRoute: AuthenticatedAdminRelatoriosRoute,
   AuthenticatedAdminSprintsRoute: AuthenticatedAdminSprintsRoute,
   AuthenticatedAdminVisaoGeralRoute: AuthenticatedAdminVisaoGeralRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   AuthenticatedAdminClientesClienteIdRoute:
     AuthenticatedAdminClientesClienteIdRoute,
+  AuthenticatedAdminClientesIndexRoute: AuthenticatedAdminClientesIndexRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
