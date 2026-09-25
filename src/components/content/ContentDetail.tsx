@@ -207,7 +207,7 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
           {data.versoes.length > 0 && (
             <ul className="mb-4 space-y-1 text-[13px]">
               {data.versoes.map((v) => (
-                <li key={v.id} className="flex gap-3"><span className="w-8 font-medium text-foreground">V{v.numero}</span><span className="text-muted-foreground">Enviada {new Date(v.enviada_em).toLocaleDateString("pt-BR")} · Arte: {v.status_arte} · Legenda: {v.status_legenda}</span></li>
+                <li key={v.id} className="flex gap-3"><span className="w-8 font-medium text-foreground">V{v.numero}</span><span className="text-muted-foreground">Enviada {new Date(v.enviada_em).toLocaleDateString("pt-BR")} · Arte: {PART[v.status_arte]} · Legenda: {PART[v.status_legenda]}</span></li>
               ))}
             </ul>
           )}
