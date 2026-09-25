@@ -2999,6 +2999,7 @@ export type Database = {
           arquivo_url: string | null
           assignee_id: string | null
           cliente_id: string | null
+          conteudo_id: string | null
           created_at: string
           criado_por: string | null
           descricao: string | null
@@ -3019,6 +3020,7 @@ export type Database = {
           arquivo_url?: string | null
           assignee_id?: string | null
           cliente_id?: string | null
+          conteudo_id?: string | null
           created_at?: string
           criado_por?: string | null
           descricao?: string | null
@@ -3039,6 +3041,7 @@ export type Database = {
           arquivo_url?: string | null
           assignee_id?: string | null
           cliente_id?: string | null
+          conteudo_id?: string | null
           created_at?: string
           criado_por?: string | null
           descricao?: string | null
@@ -3068,6 +3071,13 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefas_conteudo_id_fkey"
+            columns: ["conteudo_id"]
+            isOneToOne: false
+            referencedRelation: "conteudos"
             referencedColumns: ["id"]
           },
           {
@@ -3335,6 +3345,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cliente_avaliar_conteudo: {
+        Args: {
+          _comentario?: string
+          _decisao: string
+          _parte: string
+          _versao_id: string
+        }
+        Returns: string
+      }
       current_cliente_id: { Args: never; Returns: string }
       has_role: {
         Args: {
