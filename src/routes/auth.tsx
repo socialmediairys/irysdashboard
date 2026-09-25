@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -67,6 +68,7 @@ function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-lg">
+        <BrandLogo className="mb-6 h-8" />
         <h1 className="text-2xl font-bold text-foreground mb-1">Painel 360°</h1>
         <p className="text-sm text-muted-foreground mb-6">
           {mode === "login" ? "Entre para acessar seu painel" : "Crie sua conta"}

@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import {
   LayoutDashboard,
   Users,
@@ -106,11 +107,8 @@ export function AdminSidebar({
         )}
       >
         <div className={cn("flex h-16 shrink-0 items-center justify-between px-4", collapsed && "md:justify-center md:px-0")}>
-          <Link to="/admin/visao-geral" className="flex items-center gap-2" onClick={onCloseMobile}>
-            <span className="h-5 w-1 rounded-full bg-primary" />
-            <span className={cn("text-base font-semibold tracking-[0.2em] text-foreground", collapsed && "md:hidden")}>
-              IRYS
-            </span>
+          <Link to="/admin/visao-geral" className="flex items-center" onClick={onCloseMobile} aria-label="AIRYS — Visão geral">
+            <BrandLogo className={cn("h-6", collapsed && "md:h-3.5")} />
           </Link>
           <button
             onClick={onCloseMobile}

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { criarSolicitacao } from "@/lib/cadastros.functions";
@@ -61,6 +62,7 @@ function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8">
+        <BrandLogo className="mb-6 h-8" />
         <h1 className="text-2xl font-bold text-foreground mb-1">Portal do cliente</h1>
         <p className="text-sm text-muted-foreground mb-6">Entre com seu e-mail e senha.</p>
 
