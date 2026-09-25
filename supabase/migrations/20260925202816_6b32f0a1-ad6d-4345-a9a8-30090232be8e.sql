@@ -1,0 +1,1 @@
+ALTER TABLE public.clientes ALTER COLUMN org_id SET DEFAULT private.current_org_id();
