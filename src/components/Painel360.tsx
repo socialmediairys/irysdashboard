@@ -721,7 +721,7 @@ function AtencaoNecessariaCard({
                 key={p.id}
                 to="/admin/clientes/$clienteId"
                 params={{ clienteId: p.cliente_id }}
-                search={{ tab: "pipeline" as const }}
+                search={{ tab: "planejamento" as const }}
                 className="flex items-center justify-between gap-3 rounded-[10px] px-3 py-2.5 transition-colors hover:bg-muted"
                 style={{ border: "1px solid var(--border)" }}
               >
@@ -1265,7 +1265,7 @@ export function CobrancaWhatsappButton({ clienteId, nome }: { clienteId: string;
   );
 }
 
-function CobrancaLoteButton({ clientes }: { clientes: Array<{ id: string; nome: string }> }) {
+export function CobrancaLoteButton({ clientes }: { clientes: Array<{ id: string; nome: string }> }) {
   const send = useServerFn(sendWhatsappCobrancaLote);
   const check = useServerFn(getWhatsappStatus);
   const [open, setOpen] = useState(false);
@@ -1495,7 +1495,7 @@ function ClientesPage() {
                 <Link
                   to="/admin/clientes/$clienteId"
                   params={{ clienteId: c.id }}
-                  search={{ tab: "dados" as const }}
+                  search={{ tab: "visao-geral" as const }}
                   className="flex items-center gap-3 flex-1 min-w-0 group"
                   aria-label={`Abrir perfil de ${c.nome}`}
                 >
@@ -1535,7 +1535,7 @@ function ClientesPage() {
                 <Link
                   to="/admin/clientes/$clienteId"
                   params={{ clienteId: c.id }}
-                  search={{ tab: "dados" as const }}
+                  search={{ tab: "visao-geral" as const }}
                   className="inline-flex items-center gap-1 text-xs font-bold hover:underline"
                   style={{ color: "var(--muted-foreground)" }}
                 >

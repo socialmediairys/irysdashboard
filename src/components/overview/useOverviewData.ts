@@ -118,7 +118,7 @@ async function load(): Promise<OverviewData> {
     p.push({ id: `th-${t.id}`, kind: "tarefa_hoje", title: t.titulo, clienteId: t.cliente_id, clienteNome: cn(t.cliente_id), due: parseDate(t.prazo!), rank: 2, action: { label: "Abrir tarefa", to: "/admin/sprints" } });
   }
   for (const r of (pipe.data ?? []) as { cliente_id: string; etapa: PipelineEtapa }[]) {
-    p.push({ id: `pt-${r.cliente_id}-${r.etapa}`, kind: "etapa_travada", title: `Etapa ${ETAPA_LABEL[r.etapa]} travada`, clienteId: r.cliente_id, clienteNome: cn(r.cliente_id), due: null, rank: 1, action: { label: "Ver cliente", to: "/admin/clientes/$clienteId", params: { clienteId: r.cliente_id }, search: { tab: "pipeline" } } });
+    p.push({ id: `pt-${r.cliente_id}-${r.etapa}`, kind: "etapa_travada", title: `Etapa ${ETAPA_LABEL[r.etapa]} travada`, clienteId: r.cliente_id, clienteNome: cn(r.cliente_id), due: null, rank: 1, action: { label: "Ver cliente", to: "/admin/clientes/$clienteId", params: { clienteId: r.cliente_id }, search: { tab: "planejamento" } } });
   }
   for (const a of agenda) {
     const d = new Date(a.data_hora);
@@ -126,13 +126,13 @@ async function load(): Promise<OverviewData> {
     p.push({ id: `ag-${a.id}`, kind: "reuniao", title: a.titulo, clienteId: a.cliente_id, clienteNome: cn(a.cliente_id), due: d, rank: 3 + d.getTime() / 1e13, action: { label: "Ver agenda", to: "/admin/agenda" } });
   }
   for (const t of (tick.data ?? []) as { id: string; assunto: string; cliente_id: string; data_abertura: string }[]) {
-    p.push({ id: `tk-${t.id}`, kind: "ticket", title: `Ticket: ${t.assunto}`, clienteId: t.cliente_id, clienteNome: cn(t.cliente_id), due: new Date(t.data_abertura), rank: 4, action: { label: "Ver cliente", to: "/admin/clientes/$clienteId", params: { clienteId: t.cliente_id }, search: { tab: "dados" } } });
+    p.push({ id: `tk-${t.id}`, kind: "ticket", title: `Ticket: ${t.assunto}`, clienteId: t.cliente_id, clienteNome: cn(t.cliente_id), due: new Date(t.data_abertura), rank: 4, action: { label: "Ver cliente", to: "/admin/clientes/$clienteId", params: { clienteId: t.cliente_id }, search: { tab: "visao-geral" } } });
   }
   for (const e of entradas) {
     if (e.status_pagamento === "pago") continue;
     const d = parseDate(e.data_ref);
     if (d > today) continue;
-    p.push({ id: `fi-${e.id}`, kind: "recebimento", title: `Recebimento pendente: ${e.descricao}`, clienteId: e.cliente_id, clienteNome: cn(e.cliente_id), due: d, rank: 5, action: { label: "Ver financeiro", to: "/admin/financeiro" } });
+    p.push({ id: `fi-${e.id}`, kind: "recebimento", title: `Recebimento pendente: ${e.descricao}`, clienteId: e.cliente_id, clienteNome: cn(e.cliente_id), due: d, rank: 5, action: { label: "Ver financeiro", ...(e.cliente_id ? { to: "/admin/clientes/$clienteId", params: { clienteId: e.cliente_id }, search: { tab: "financeiro" } } : { to: "/admin/financeiro" }) } });
   }
   for (const c of clientes) {
     const venc = c.data_vencimento_contrato ? parseDate(c.data_vencimento_contrato) : null;
@@ -141,7 +141,7 @@ async function load(): Promise<OverviewData> {
     if (!pendente && !vencendo && c.status_contrato !== "vencido") continue;
     const passou = venc && venc < today;
     const title = pendente ? "Contrato aguardando assinatura" : c.status_contrato === "vencido" || passou ? "Contrato vencido — renovar" : "Contrato vence em breve";
-    p.push({ id: `ct-${c.id}`, kind: "contrato", title, clienteId: c.id, clienteNome: c.nome, due: venc, rank: 6, action: { label: "Ver cliente", to: "/admin/clientes/$clienteId", params: { clienteId: c.id }, search: { tab: "dados" } } });
+    p.push({ id: `ct-${c.id}`, kind: "contrato", title, clienteId: c.id, clienteNome: c.nome, due: venc, rank: 6, action: { label: "Ver cliente", to: "/admin/clientes/$clienteId", params: { clienteId: c.id }, search: { tab: "visao-geral" } } });
   }
   p.sort((a, b) => a.rank - b.rank);
 
