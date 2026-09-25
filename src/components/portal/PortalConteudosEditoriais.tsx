@@ -1,3 +1,4 @@
+import { ReporteiMetrics, periodRange } from "@/components/metricas/ReporteiMetrics";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ExternalLink, Film, RotateCcw } from "lucide-react";
 import { useState } from "react";
@@ -78,7 +79,7 @@ export function PortalResultados({ clienteId }: { clienteId: string }) {
           ))}
         </div>
       ) : <Empty>Nenhuma publicação ainda.</Empty>}
-      <p className="text-[12px] text-muted-foreground">Métricas por publicação serão adicionadas em uma próxima etapa.</p>
+      <ReporteiMetrics start={periodRange(30).start} end={periodRange(30).end} hideWhenUnlinked />
     </div>
   );
 }
