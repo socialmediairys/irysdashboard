@@ -95,7 +95,7 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
   return (
     <div>
       <SheetHeader className="space-y-3 border-b border-border px-6 py-5 text-left">
-        <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+        <div className="flex items-center gap-2 pr-8 text-[13px] text-muted-foreground">
           <span>{data.cliente}</span><span>·</span><span>{fmtShort(c.data_prevista)}{c.horario ? ` ${c.horario.slice(0, 5)}` : ""}</span>
           <span>·</span><span>{[c.canal, c.formato].filter(Boolean).join(" / ") || "Sem canal"}</span>
           <span className="ml-auto">V{c.versao_atual}</span>
