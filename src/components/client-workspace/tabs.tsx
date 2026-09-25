@@ -5,35 +5,14 @@ import { CobrancaWaMeButton, CobrancaWhatsappButton, type ClienteRow } from "@/c
 import { PipelineMatrix } from "@/components/pipeline/PipelineMatrix";
 import { PortalConteudosManager } from "@/components/portal/PortalConteudosManager";
 import { PortalPreview } from "@/components/portal/PortalPreview";
+import { StrategyWorkspace } from "@/components/strategy/StrategyWorkspace";
 import { cn } from "@/lib/utils";
 import { brl, fmtDate, parseDate, type Workspace } from "./useClientWorkspace";
 import { WsEmpty, WsList, WsRow, WsSection, btnOutline } from "./ui";
 
-/* ---------- Estratégia (entrada para a Fase 4) ---------- */
+/* ---------- Estratégia (Fase 4) ---------- */
 export function StrategyTab({ ws }: { ws: Workspace }) {
-  const pilares = Array.isArray(ws.estrategia?.pilares) ? (ws.estrategia!.pilares as unknown[]) : [];
-  return (
-    <div className="space-y-10">
-      <WsSection title="Jornada estratégica" description="13 etapas, do briefing ao calendário estratégico.">
-        <WsEmpty title="Chega na próxima fase">
-          A trilha completa será construída sobre os dados já existentes deste cliente (briefing, evidências e estratégia).
-        </WsEmpty>
-      </WsSection>
-      <WsSection title="O que já existe">
-        <WsList>
-          <WsRow><span className="flex-1 text-sm text-foreground">Briefing</span><span className="text-[13px] text-muted-foreground">{ws.briefing ? `Atualizado em ${fmtDate(new Date(ws.briefing.updated_at))}` : "Não iniciado"}</span></WsRow>
-          <WsRow><span className="flex-1 text-sm text-foreground">Evidências</span><span className="text-[13px] text-muted-foreground">{ws.evidencias}</span></WsRow>
-          <WsRow>
-            <span className="flex-1 text-sm text-foreground">Estratégia</span>
-            <span className="text-[13px] text-muted-foreground">
-              {ws.estrategia ? `${pilares.length} pilar(es) · ${ws.estrategia.qtd_entregaveis} entregáveis` : "Não definida"}
-            </span>
-          </WsRow>
-          {ws.estrategia?.objetivo && <WsRow><span className="text-sm text-muted-foreground">Objetivo: <span className="text-foreground">{ws.estrategia.objetivo}</span></span></WsRow>}
-        </WsList>
-      </WsSection>
-    </div>
-  );
+  return <StrategyWorkspace clienteId={ws.cliente.id} clienteNome={ws.cliente.nome} />;
 }
 
 /* ---------- Conteúdos (dados antigos preservados) ---------- */
