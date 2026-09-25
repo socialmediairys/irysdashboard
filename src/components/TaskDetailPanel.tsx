@@ -29,15 +29,15 @@ const TAG_PALETTE = [
 ];
 
 const STATUS_OPTIONS = [
-  { value: "not_started", label: "Not started" },
-  { value: "in_progress", label: "In progress" },
-  { value: "done", label: "Done" },
+  { value: "not_started", label: "Não iniciada" },
+  { value: "in_progress", label: "Em andamento" },
+  { value: "done", label: "Concluída" },
 ];
 
 const PRIORITY_OPTIONS = [
-  { value: "low", label: "Low", bg: "#E5E7EB", fg: "#4B5563" },
-  { value: "medium", label: "Medium", bg: "#FEF3C7", fg: "#92400E" },
-  { value: "high", label: "High", bg: "#FEE2E2", fg: "#B91C1C" },
+  { value: "low", label: "Baixa", bg: "#E5E7EB", fg: "#4B5563" },
+  { value: "medium", label: "Média", bg: "#FEF3C7", fg: "#92400E" },
+  { value: "high", label: "Alta", bg: "#FEE2E2", fg: "#B91C1C" },
 ];
 
 type TaskRow = {
@@ -199,7 +199,7 @@ function FieldsSection({
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs font-semibold" style={{ color: C.textMid }}>Assignee</label>
+          <label className="text-xs font-semibold" style={{ color: C.textMid }}>Responsável</label>
           <Select value={task.assignee_id ?? "none"} onValueChange={(v) => setField("assignee_id", v === "none" ? null : v)}>
             <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
@@ -224,7 +224,7 @@ function FieldsSection({
         </div>
 
         <div>
-          <label className="text-xs font-semibold" style={{ color: C.textMid }}>Due date</label>
+          <label className="text-xs font-semibold" style={{ color: C.textMid }}>Prazo</label>
           <Input
             type="date"
             value={task.prazo ?? ""}
