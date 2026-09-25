@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 import { ACHADO_LABEL, type AchadoTipo } from "@/lib/strategy";
 import type { StepProps } from "../StrategyWorkspace";
 import { Block, Empty, btn, btnPrimary, inputCls } from "../ui";
-import { useStrategyActions, type Achado } from "../useStrategy";
+import { toast } from "sonner";
+import { db, useStrategyActions, type Achado } from "../useStrategy";
 
 const GROUPS: { title: string; tipos: AchadoTipo[]; desc: string }[] = [
   { title: "Leitura das evidências", tipos: ["padrao", "tensao", "problema", "oportunidade"], desc: "O que as evidências mostram." },
@@ -109,8 +110,12 @@ function AchadoSheet({ achado, onClose, data, clienteId }: { achado: Achado | nu
                 </>}
                 {achado.tipo !== "decisao" && (
                   <button className={btnPrimary} onClick={async () => {
-                    await a.insert("estrategia_achados", { etapa: 7, tipo: "decisao", titulo: achado.titulo, status: "aprovado", deriva_de: achado.id });
-                    for (const id of linked) await a.link("__pending__", id, false).catch(() => {});
+                    // Decisão herda a rastreabilidade: mesmas evidências do achado de origem.
+                    const { data: row, error } = await db("estrategia_achados").insert({ cliente_id: clienteId, etapa: 7, tipo: "decisao", titulo: achado.titulo, status: "aprovado", deriva_de: achado.id }).select("id").single();
+                    if (error) { toast.error("Não foi possível criar a decisão."); return; }
+                    if (linked.size) await db("estrategia_achado_evidencias").insert([...linked].map((evidencia_id) => ({ achado_id: row.id, evidencia_id, cliente_id: clienteId })));
+                    if (achado.tipo === "hipotese") await a.update("estrategia_achados", achado.id, { status: "validado" });
+                    a.refresh(); onClose();
                   }}>Transformar em decisão</button>
                 )}
                 <button className="text-[13px] text-destructive hover:underline" onClick={async () => { await a.remove("estrategia_achados", achado.id); onClose(); }}>Excluir</button>
