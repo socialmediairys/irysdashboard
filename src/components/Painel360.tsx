@@ -3069,7 +3069,7 @@ function ConfigPage() {
   });
   return (
     <>
-      <PageHeader eyebrow="Sistema" title="Configurações &" accent="conta" />
+      <h2 className="mb-3 text-sm font-medium text-muted-foreground">Conta e integrações</h2>
       <TabBar
         active={tab}
         onChange={setTab}
@@ -3094,18 +3094,18 @@ function ConfigPage() {
       )}
       {tab === "juridico" && (
         <Card>
-          <h3 className="font-extrabold text-lg mb-2">Modelos de contrato e termos</h3>
+          <h3 className="mb-2 text-base font-semibold text-foreground">Modelos de contrato e termos</h3>
           <p className="text-sm mb-4" style={{ color: "var(--muted-foreground)" }}>Gerencie contratos, termos e políticas com dados do CNPJ.</p>
-          <a href="/admin/juridico" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
+          <a href="/admin/juridico" className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary-hover">
             Abrir módulo jurídico <ArrowRight size={14} />
           </a>
         </Card>
       )}
       {tab === "equipe" && (
         <Card>
-          <h3 className="font-extrabold text-lg mb-2">Equipe & papéis</h3>
+          <h3 className="mb-2 text-base font-semibold text-foreground">Equipe & papéis</h3>
           <p className="text-sm mb-4" style={{ color: "var(--muted-foreground)" }}>Atribua papéis (admin, gestor, editor, social, financeiro, jurídico, cliente) aos membros.</p>
-          <a href="/admin/equipe" className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
+          <a href="/admin/equipe" className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary-hover">
             Gerenciar equipe <ArrowRight size={14} />
           </a>
         </Card>

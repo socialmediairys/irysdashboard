@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { CalendarDays, FileText, Scale, UserCheck, Users, type LucideIcon } from "lucide-react";
 import Painel360 from "@/components/Painel360";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export const Route = createFileRoute("/_authenticated/admin/configuracoes")({
   head: () => ({ meta: [{ title: "Configurações — Irys" }] }),
@@ -18,6 +19,7 @@ const LINKS: { to: string; label: string; desc: string; icon: LucideIcon }[] = [
 function ConfigRoute() {
   return (
     <div className="space-y-8">
+      <PageHeader title="Configurações" description="Equipe, cadastros, documentos, integrações e sua conta." className="mb-0" />
       <section>
         <h2 className="mb-3 text-sm font-medium text-muted-foreground">Administração</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
