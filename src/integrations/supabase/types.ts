@@ -402,6 +402,416 @@ export type Database = {
           },
         ]
       }
+      conteudo_comentarios: {
+        Row: {
+          alvo: string
+          autor_id: string | null
+          cliente_id: string
+          conteudo_id: string
+          created_at: string
+          id: string
+          org_id: string
+          texto: string
+          tipo: string
+          versao_id: string | null
+        }
+        Insert: {
+          alvo?: string
+          autor_id?: string | null
+          cliente_id: string
+          conteudo_id: string
+          created_at?: string
+          id?: string
+          org_id: string
+          texto: string
+          tipo?: string
+          versao_id?: string | null
+        }
+        Update: {
+          alvo?: string
+          autor_id?: string | null
+          cliente_id?: string
+          conteudo_id?: string
+          created_at?: string
+          id?: string
+          org_id?: string
+          texto?: string
+          tipo?: string
+          versao_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conteudo_comentarios_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudo_comentarios_conteudo_id_fkey"
+            columns: ["conteudo_id"]
+            isOneToOne: false
+            referencedRelation: "conteudos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudo_comentarios_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudo_comentarios_versao_id_fkey"
+            columns: ["versao_id"]
+            isOneToOne: false
+            referencedRelation: "conteudo_versoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conteudo_eventos: {
+        Row: {
+          autor_id: string | null
+          conteudo_id: string
+          created_at: string
+          de: string | null
+          detalhe: string | null
+          id: string
+          org_id: string
+          para: string | null
+          tipo: string
+        }
+        Insert: {
+          autor_id?: string | null
+          conteudo_id: string
+          created_at?: string
+          de?: string | null
+          detalhe?: string | null
+          id?: string
+          org_id: string
+          para?: string | null
+          tipo: string
+        }
+        Update: {
+          autor_id?: string | null
+          conteudo_id?: string
+          created_at?: string
+          de?: string | null
+          detalhe?: string | null
+          id?: string
+          org_id?: string
+          para?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conteudo_eventos_conteudo_id_fkey"
+            columns: ["conteudo_id"]
+            isOneToOne: false
+            referencedRelation: "conteudos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudo_eventos_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conteudo_midias: {
+        Row: {
+          bucket: string
+          conteudo_id: string
+          created_at: string
+          id: string
+          mime: string | null
+          nome_original: string | null
+          ordem: number
+          org_id: string
+          storage_path: string
+          tamanho_bytes: number | null
+          tipo: string
+        }
+        Insert: {
+          bucket?: string
+          conteudo_id: string
+          created_at?: string
+          id?: string
+          mime?: string | null
+          nome_original?: string | null
+          ordem?: number
+          org_id: string
+          storage_path: string
+          tamanho_bytes?: number | null
+          tipo: string
+        }
+        Update: {
+          bucket?: string
+          conteudo_id?: string
+          created_at?: string
+          id?: string
+          mime?: string | null
+          nome_original?: string | null
+          ordem?: number
+          org_id?: string
+          storage_path?: string
+          tamanho_bytes?: number | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conteudo_midias_conteudo_id_fkey"
+            columns: ["conteudo_id"]
+            isOneToOne: false
+            referencedRelation: "conteudos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudo_midias_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conteudo_versoes: {
+        Row: {
+          conteudo_id: string
+          created_at: string
+          enviada_em: string
+          enviada_por: string | null
+          hashtags: string | null
+          id: string
+          legenda: string | null
+          midias: Json
+          numero: number
+          org_id: string
+          recebida_em: string | null
+          recebida_por: string | null
+          status: string
+          status_arte: string
+          status_legenda: string
+        }
+        Insert: {
+          conteudo_id: string
+          created_at?: string
+          enviada_em?: string
+          enviada_por?: string | null
+          hashtags?: string | null
+          id?: string
+          legenda?: string | null
+          midias?: Json
+          numero: number
+          org_id: string
+          recebida_em?: string | null
+          recebida_por?: string | null
+          status?: string
+          status_arte?: string
+          status_legenda?: string
+        }
+        Update: {
+          conteudo_id?: string
+          created_at?: string
+          enviada_em?: string
+          enviada_por?: string | null
+          hashtags?: string | null
+          id?: string
+          legenda?: string | null
+          midias?: Json
+          numero?: number
+          org_id?: string
+          recebida_em?: string | null
+          recebida_por?: string | null
+          status?: string
+          status_arte?: string
+          status_legenda?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conteudo_versoes_conteudo_id_fkey"
+            columns: ["conteudo_id"]
+            isOneToOne: false
+            referencedRelation: "conteudos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudo_versoes_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conteudos: {
+        Row: {
+          argumento_id: string | null
+          calendario_item_id: string | null
+          canal: string | null
+          cliente_id: string
+          created_at: string
+          created_by: string | null
+          cta: string | null
+          data_prevista: string | null
+          enviado_cliente_em: string | null
+          evidencia_id: string | null
+          formato: string | null
+          hashtags: string | null
+          horario: string | null
+          id: string
+          jornada: string | null
+          legenda: string | null
+          mensagem_id: string | null
+          objetivo: string | null
+          org_id: string
+          origem: string
+          pilar_id: string | null
+          pipeline_mes: string | null
+          plataforma: string | null
+          plataforma_post_id: string | null
+          publicacao_url: string | null
+          publicado_em: string | null
+          status: string
+          status_arte: string
+          status_legenda: string
+          tema_id: string | null
+          titulo: string
+          updated_at: string
+          versao_atual: number
+        }
+        Insert: {
+          argumento_id?: string | null
+          calendario_item_id?: string | null
+          canal?: string | null
+          cliente_id: string
+          created_at?: string
+          created_by?: string | null
+          cta?: string | null
+          data_prevista?: string | null
+          enviado_cliente_em?: string | null
+          evidencia_id?: string | null
+          formato?: string | null
+          hashtags?: string | null
+          horario?: string | null
+          id?: string
+          jornada?: string | null
+          legenda?: string | null
+          mensagem_id?: string | null
+          objetivo?: string | null
+          org_id: string
+          origem?: string
+          pilar_id?: string | null
+          pipeline_mes?: string | null
+          plataforma?: string | null
+          plataforma_post_id?: string | null
+          publicacao_url?: string | null
+          publicado_em?: string | null
+          status?: string
+          status_arte?: string
+          status_legenda?: string
+          tema_id?: string | null
+          titulo?: string
+          updated_at?: string
+          versao_atual?: number
+        }
+        Update: {
+          argumento_id?: string | null
+          calendario_item_id?: string | null
+          canal?: string | null
+          cliente_id?: string
+          created_at?: string
+          created_by?: string | null
+          cta?: string | null
+          data_prevista?: string | null
+          enviado_cliente_em?: string | null
+          evidencia_id?: string | null
+          formato?: string | null
+          hashtags?: string | null
+          horario?: string | null
+          id?: string
+          jornada?: string | null
+          legenda?: string | null
+          mensagem_id?: string | null
+          objetivo?: string | null
+          org_id?: string
+          origem?: string
+          pilar_id?: string | null
+          pipeline_mes?: string | null
+          plataforma?: string | null
+          plataforma_post_id?: string | null
+          publicacao_url?: string | null
+          publicado_em?: string | null
+          status?: string
+          status_arte?: string
+          status_legenda?: string
+          tema_id?: string | null
+          titulo?: string
+          updated_at?: string
+          versao_atual?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conteudos_argumento_id_fkey"
+            columns: ["argumento_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_argumentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudos_calendario_item_id_fkey"
+            columns: ["calendario_item_id"]
+            isOneToOne: false
+            referencedRelation: "calendario_estrategico_itens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudos_evidencia_id_fkey"
+            columns: ["evidencia_id"]
+            isOneToOne: false
+            referencedRelation: "estrategia_evidencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudos_mensagem_id_fkey"
+            columns: ["mensagem_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_mensagens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudos_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudos_pilar_id_fkey"
+            columns: ["pilar_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_pilares"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudos_tema_id_fkey"
+            columns: ["tema_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_temas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conteudos_cliente: {
         Row: {
           cliente_id: string
@@ -518,6 +928,42 @@ export type Database = {
             columns: ["topico_id"]
             isOneToOne: false
             referencedRelation: "topicos_fase"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conteudos_internos: {
+        Row: {
+          conteudo_id: string
+          observacoes: string | null
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          conteudo_id: string
+          observacoes?: string | null
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          conteudo_id?: string
+          observacoes?: string | null
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conteudos_internos_conteudo_id_fkey"
+            columns: ["conteudo_id"]
+            isOneToOne: true
+            referencedRelation: "conteudos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conteudos_internos_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
