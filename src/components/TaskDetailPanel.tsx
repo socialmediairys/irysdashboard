@@ -360,7 +360,7 @@ function TagsSection({ taskId }: { taskId: string }) {
 
   return (
     <div>
-      <label className="text-xs font-semibold" style={{ color: C.textMid }}>Tags</label>
+      <label className="text-xs font-semibold" style={{ color: C.textMid }}>Etiquetas</label>
       <div className="flex flex-wrap items-center gap-1.5 mt-1 min-h-[36px] rounded-md border border-input bg-background p-2">
         {selected.map((t) => (
           <span
