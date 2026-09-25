@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/admin/biblioteca-midia")({
       { name: "description", content: "Gerenciamento centralizado de arquivos, áudios, vídeos e documentos." },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { cliente?: string } => ({ cliente: typeof s.cliente === "string" ? s.cliente : undefined }),
   component: BibliotecaMidiaPage,
 });
 
@@ -54,6 +55,12 @@ const BUCKETS = [
   { id: "recursos-marca", label: "Recursos de marca" },
   { id: "geral", label: "Geral" },
 ] as const;
+
+const TIPOS = [["todos","Todos os tipos"],["imagem","Imagens"],["design","Design"],["video","Vídeos"],["audio","Áudios"],["documento","Documentos"],["outro","Outros"]] as const;
+const CONTEXTOS: Record<string, string> = {
+  central_cliente: "Central do Cliente", onboarding_sistema: "Onboarding", tarefa: "Tarefa",
+  recurso_marca: "Recursos de marca", documento_juridico: "Jurídico", geral: "Geral",
+};
 
 function fmtBytes(n: number | null) {
   if (!n) return "—";
@@ -87,6 +94,15 @@ function BibliotecaMidiaPage() {
   const [mostraUpload, setMostraUpload] = useState(false);
   const [bucketUpload, setBucketUpload] = useState<Arquivo["bucket"]>("geral");
   const [copiado, setCopiado] = useState<string | null>(null);
+  const search = Route.useSearch();
+  const [clienteFiltro, setClienteFiltro] = useState(search.cliente ?? "");
+  const [tipoFiltro, setTipoFiltro] = useState("todos");
+  const [ctxFiltro, setCtxFiltro] = useState("todos");
+  const [clientes, setClientes] = useState<{ id: string; nome: string }[]>([]);
+  useEffect(() => {
+    void supabase.from("clientes").select("id,nome").order("nome").then(({ data }) => setClientes(data ?? []));
+  }, []);
+  const nomeCliente = (id: string | null) => clientes.find((c) => c.id === id)?.nome;
 
   async function carregar() {
     setLoading(true);
@@ -106,11 +122,14 @@ function BibliotecaMidiaPage() {
   const filtrados = useMemo(() => {
     return arquivos.filter((a) => {
       if (bucketFiltro !== "todos" && a.bucket !== bucketFiltro) return false;
+      if (clienteFiltro === "__sem" ? !!a.cliente_id : clienteFiltro && a.cliente_id !== clienteFiltro) return false;
+      if (tipoFiltro !== "todos" && a.tipo_arquivo !== tipoFiltro) return false;
+      if (ctxFiltro !== "todos" && a.contexto !== ctxFiltro) return false;
       if (busca && !`${a.nome_original} ${a.titulo ?? ""}`.toLowerCase().includes(busca.toLowerCase()))
         return false;
       return true;
     });
-  }, [arquivos, bucketFiltro, busca]);
+  }, [arquivos, bucketFiltro, busca, clienteFiltro, tipoFiltro, ctxFiltro]);
 
   const totalBytes = arquivos.reduce((acc, a) => acc + (a.tamanho_bytes ?? 0), 0);
 
@@ -138,7 +157,7 @@ function BibliotecaMidiaPage() {
     <div>
       <PageHeader
         title="Biblioteca de Mídia"
-        description={`${arquivos.length} arquivos · ${fmtBytes(totalBytes)} usados`}
+        description={`${filtrados.length} de ${arquivos.length} arquivos · ${fmtBytes(totalBytes)} usados. Mídias de conteúdos ficam no próprio conteúdo.`}
         actions={
           <Button variant={mostraUpload ? "outline" : "default"} onClick={() => setMostraUpload((v) => !v)}>
             {mostraUpload ? "Fechar" : "+ Novo arquivo"}
@@ -186,7 +205,17 @@ function BibliotecaMidiaPage() {
               className="pl-9"
             />
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          {([
+            [clienteFiltro, setClienteFiltro, [["", "Todos os clientes"], ["__sem", "Sem cliente (institucional)"], ...clientes.map((c) => [c.id, c.nome])]],
+            [tipoFiltro, setTipoFiltro, TIPOS],
+            [ctxFiltro, setCtxFiltro, [["todos", "Todos os contextos"], ...Object.entries(CONTEXTOS)]],
+          ] as const).map(([v, set, opts], i) => (
+            <select key={i} value={v} onChange={(e) => (set as (x: string) => void)(e.target.value)}
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground">
+              {(opts as readonly (readonly [string, string])[]).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+            </select>
+          ))}
+          <div className="flex w-full flex-wrap gap-1.5">
             {BUCKETS.map((b) => (
               <button
                 key={b.id}
@@ -237,9 +266,14 @@ function BibliotecaMidiaPage() {
                     </p>
                     <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground">
                       <StatusBadge variant="neutral" dot={false}>{a.bucket}</StatusBadge>
+                      <span>{CONTEXTOS[a.contexto] ?? a.contexto}</span>
                       <span>{fmtBytes(a.tamanho_bytes)}</span>
                       {a.duracao_segundos ? <span>· {fmtDur(a.duracao_segundos)}</span> : null}
                     </div>
+                    {a.cliente_id && nomeCliente(a.cliente_id) && (
+                      <Link to="/admin/clientes/$clienteId" params={{ clienteId: a.cliente_id }} search={{ tab: "arquivos" } as never}
+                        className="mt-1 block text-[12px] text-muted-foreground hover:text-foreground">{nomeCliente(a.cliente_id)} →</Link>
+                    )}
                   </div>
                   <div className="mt-auto flex gap-1.5">
                     {a.url_publica && (

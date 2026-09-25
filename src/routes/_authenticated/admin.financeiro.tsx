@@ -12,9 +12,11 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { DataTable, Thead, Tbody, Tr, Th, Td } from "@/components/ui/data-table";
 import { CreditCard, TrendingUp, TrendingDown, Trash2, Repeat } from "lucide-react";
 import { FinanceiroCharts } from "@/components/charts/FinanceiroCharts";
+import { FinanceiroResumo, type Periodo } from "@/components/finance/FinanceiroResumo";
 
 export const Route = createFileRoute("/_authenticated/admin/financeiro")({
   head: () => ({ meta: [{ title: "Financeiro — Irys OS" }] }),
+  validateSearch: (s: Record<string, unknown>): { cliente?: string } => ({ cliente: typeof s.cliente === "string" ? s.cliente : undefined }),
   component: FinanceiroPage,
 });
 
@@ -29,6 +31,7 @@ type Mov = {
   status_pagamento?: string;
   is_fixed?: boolean;
   conta_fixa_id?: string | null;
+  cliente_id?: string | null;
 };
 
 type ContaFixa = {
@@ -93,6 +96,9 @@ function FinanceiroPage() {
   const [contasFixas, setContasFixas] = useState<ContaFixa[]>([]);
   const [aba, setAba] = useState<Aba>("entradas");
   const [filtro, setFiltro] = useState<Filtro>("todas");
+  const search = Route.useSearch();
+  const [periodo, setPeriodo] = useState<Periodo>("mes");
+  const [clienteId, setClienteId] = useState(search.cliente ?? "");
   const [form, setForm] = useState({
     descricao: "",
     categoria: "",
@@ -205,10 +211,13 @@ function FinanceiroPage() {
     <>
       <PageHeader
         title="Financeiro"
-        description="Entradas, saídas e contas fixas da organização."
+        description="Visão financeira global: previsto, recebido, pendente e atrasado, por cliente e período."
       />
 
       <div className="space-y-6">
+        <FinanceiroResumo entradas={entradas} periodo={periodo} setPeriodo={setPeriodo} clienteId={clienteId} setClienteId={setClienteId} />
+
+        <h3 className="pt-2 text-base font-semibold text-foreground">Caixa geral (todo o histórico)</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <MetricCard
             label="Entradas"

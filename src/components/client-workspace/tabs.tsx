@@ -95,7 +95,7 @@ const CONTEXTO: Record<string, string> = {
 export function FilesTab({ ws }: { ws: Workspace }) {
   return (
     <div className="space-y-10">
-      <WsSection title="Documentos" description="Contratos e documentos jurídicos." action={<Link to="/admin/juridico" className={btnOutline}>Jurídico</Link>}>
+      <WsSection title="Documentos" description="Contratos e documentos jurídicos." action={<div className="flex gap-2"><Link to="/admin/biblioteca-midia" search={{ cliente: ws.cliente.id }} className={btnOutline}>Biblioteca</Link><Link to="/admin/juridico" className={btnOutline}>Jurídico</Link></div>}>
         {ws.documentos.length ? (
           <WsList>
             {ws.documentos.map((d) => (
@@ -144,7 +144,7 @@ export function FinanceTab({ ws }: { ws: Workspace }) {
         </div>
       </WsSection>
 
-      <WsSection title="Lançamentos" description="Entradas vinculadas a este cliente." action={<Link to="/admin/financeiro" className={btnOutline}>Financeiro <ExternalLink size={13} strokeWidth={1.6} /></Link>}>
+      <WsSection title="Lançamentos" description="Entradas vinculadas a este cliente." action={<Link to="/admin/financeiro" search={{ cliente: c.id }} className={btnOutline}>Financeiro global <ExternalLink size={13} strokeWidth={1.6} /></Link>}>
         {ws.entradas.length ? (
           <WsList>
             {ws.entradas.map((e) => (

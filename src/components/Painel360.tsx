@@ -1792,6 +1792,7 @@ export function CRMPage() {
       <PageHeader eyebrow="Comercial" title="Funil" accent="comercial"
         actions={<PillBtn onClick={() => openCreate("lead")}><Plus size={14} className="inline mr-1" /> Novo lead</PillBtn>} />
 
+      <p className="-mt-2 mb-5 text-sm text-muted-foreground">Aquisição comercial: leads e oportunidades até virarem clientes. O planejamento de cada cliente fica em Clientes e Estratégia.</p>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6">
         <MetricCard variant="hero" value={brl(potencial)} label="Potencial no funil" />
         <MetricCard value={novos} label="Novos leads" />
@@ -1841,11 +1842,63 @@ export function CRMPage() {
           </DndContext>
         </ListState>
       </Card>
+
+      <OportunidadesTable leads={leads} onEdit={(l) => openEdit("lead", l)} />
     </>
   );
 }
 
-
+function OportunidadesTable({ leads, onEdit }: { leads: LeadRow[]; onEdit: (l: LeadRow) => void }) {
+  const { openCreate } = useCrud();
+  const clientesQ = useSupabaseList<{ id: string; nome: string; email: string | null }>("clientes", {});
+  const achar = (l: LeadRow) => clientesQ.rows.find((c) =>
+    (l.email && c.email && c.email.toLowerCase() === l.email.toLowerCase()) ||
+    c.nome.trim().toLowerCase() === l.nome.trim().toLowerCase());
+  const ativos = [...leads].sort((a, b) => (a.data_proxima_acao ?? "9999").localeCompare(b.data_proxima_acao ?? "9999"));
+  if (!ativos.length) return null;
+  return (
+    <Card className="mb-6">
+      <h3 className="font-extrabold text-lg mb-1">Oportunidades</h3>
+      <p className="text-sm text-muted-foreground mb-4">Estágio, próximo passo e valor potencial. Leads fechados podem ser convertidos usando o cadastro de clientes.</p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead><tr className="text-left text-[12px] text-muted-foreground border-b border-border">
+            <th className="py-2 pr-3 font-medium">Lead</th><th className="py-2 pr-3 font-medium">Estágio</th>
+            <th className="py-2 pr-3 font-medium">Próximo passo</th><th className="py-2 pr-3 font-medium">Último contato</th>
+            <th className="py-2 pr-3 font-medium text-right">Valor potencial</th><th className="py-2" />
+          </tr></thead>
+          <tbody>
+            {ativos.map((l) => {
+              const existente = achar(l);
+              const fu = followUpState(l.data_proxima_acao);
+              return (
+                <tr key={l.id} className="border-b border-border last:border-0">
+                  <td className="py-2.5 pr-3"><button className="font-medium text-foreground hover:underline" onClick={() => onEdit(l)}>{l.nome}</button>
+                    <div className="text-[12px] text-muted-foreground">{l.origem ?? "—"}</div></td>
+                  <td className="py-2.5 pr-3 text-muted-foreground">{l.etapa}</td>
+                  <td className="py-2.5 pr-3"><span className="text-foreground">{l.proxima_acao || "—"}</span>
+                    {l.data_proxima_acao && <span className={`ml-2 text-[12px] ${fu === "overdue" ? "text-destructive" : "text-muted-foreground"}`}>{new Date(l.data_proxima_acao + "T00:00:00").toLocaleDateString("pt-BR")}</span>}</td>
+                  <td className="py-2.5 pr-3 text-muted-foreground">{l.ultimo_contato ? new Date(l.ultimo_contato + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</td>
+                  <td className="py-2.5 pr-3 text-right">{l.valor ? brl(Number(l.valor)) : "—"}</td>
+                  <td className="py-2.5 text-right whitespace-nowrap">
+                    {existente ? (
+                      <Link to="/admin/clientes/$clienteId" params={{ clienteId: existente.id }} search={{ tab: "visao-geral" } as never} className="text-[13px] text-muted-foreground hover:text-foreground">Já é cliente →</Link>
+                    ) : l.etapa === "Fechado" ? (
+                      <button className="text-[13px] font-medium text-primary hover:underline"
+                        onClick={() => openCreate("cliente", { nome: l.nome, email: l.email, telefone: l.telefone, valor_mensal: l.valor ?? undefined })}>
+                        Converter em cliente
+                      </button>
+                    ) : null}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}
 
 type LancamentoRow = {
   id: string;
