@@ -16,7 +16,7 @@ import { FinanceiroResumo, type Periodo } from "@/components/finance/FinanceiroR
 
 export const Route = createFileRoute("/_authenticated/admin/financeiro")({
   head: () => ({ meta: [{ title: "Financeiro — Irys OS" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({ cliente: typeof s.cliente === "string" ? s.cliente : undefined }),
+  validateSearch: (s: Record<string, unknown>): { cliente?: string } => ({ cliente: typeof s.cliente === "string" ? s.cliente : undefined }),
   component: FinanceiroPage,
 });
 

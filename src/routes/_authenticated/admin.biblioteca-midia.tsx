@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/admin/biblioteca-midia")({
       { name: "description", content: "Gerenciamento centralizado de arquivos, áudios, vídeos e documentos." },
     ],
   }),
-  validateSearch: (s: Record<string, unknown>) => ({ cliente: typeof s.cliente === "string" ? s.cliente : undefined }),
+  validateSearch: (s: Record<string, unknown>): { cliente?: string } => ({ cliente: typeof s.cliente === "string" ? s.cliente : undefined }),
   component: BibliotecaMidiaPage,
 });
 

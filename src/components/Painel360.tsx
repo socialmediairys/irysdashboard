@@ -1790,9 +1790,9 @@ export function CRMPage() {
   return (
     <>
       <PageHeader eyebrow="Comercial" title="Funil" accent="comercial"
-        description="Aquisição comercial: leads e oportunidades até virarem clientes. O planejamento de cada cliente fica em Clientes e Estratégia."
         actions={<PillBtn onClick={() => openCreate("lead")}><Plus size={14} className="inline mr-1" /> Novo lead</PillBtn>} />
 
+      <p className="-mt-2 mb-5 text-sm text-muted-foreground">Aquisição comercial: leads e oportunidades até virarem clientes. O planejamento de cada cliente fica em Clientes e Estratégia.</p>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-6">
         <MetricCard variant="hero" value={brl(potencial)} label="Potencial no funil" />
         <MetricCard value={novos} label="Novos leads" />
@@ -1882,7 +1882,7 @@ function OportunidadesTable({ leads, onEdit }: { leads: LeadRow[]; onEdit: (l: L
                   <td className="py-2.5 pr-3 text-right">{l.valor ? brl(Number(l.valor)) : "—"}</td>
                   <td className="py-2.5 text-right whitespace-nowrap">
                     {existente ? (
-                      <Link to="/admin/clientes/$clienteId" params={{ clienteId: existente.id }} className="text-[13px] text-muted-foreground hover:text-foreground">Já é cliente →</Link>
+                      <Link to="/admin/clientes/$clienteId" params={{ clienteId: existente.id }} search={{ tab: "visao-geral" } as never} className="text-[13px] text-muted-foreground hover:text-foreground">Já é cliente →</Link>
                     ) : l.etapa === "Fechado" ? (
                       <button className="text-[13px] font-medium text-primary hover:underline"
                         onClick={() => openCreate("cliente", { nome: l.nome, email: l.email, telefone: l.telefone, valor_mensal: l.valor ?? undefined })}>
