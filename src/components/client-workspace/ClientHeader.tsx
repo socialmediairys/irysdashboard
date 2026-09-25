@@ -8,6 +8,8 @@ import {
 import { clientGroup, CONTRATO_LABEL } from "@/lib/client-workspace";
 import { brl, type Workspace } from "./useClientWorkspace";
 import { btnOutline } from "./ui";
+import { cn } from "@/lib/utils";
+import { parseDate } from "./useClientWorkspace";
 
 export function ClientHeader({ ws }: { ws: Workspace }) {
   const { openEdit, openDelete } = useCrud();
@@ -17,7 +19,9 @@ export function ClientHeader({ ws }: { ws: Workspace }) {
   const meta = [
     c.plano_label || c.plano_atual,
     c.valor_mensal != null ? `${brl(Number(c.valor_mensal))}/mês` : null,
-    CONTRATO_LABEL[c.status_contrato],
+    c.status_contrato === "ativo" && c.data_vencimento_contrato && parseDate(c.data_vencimento_contrato) < new Date()
+      ? "Contrato vencido"
+      : CONTRATO_LABEL[c.status_contrato],
   ].filter(Boolean);
 
   return (
@@ -37,7 +41,7 @@ export function ClientHeader({ ws }: { ws: Workspace }) {
           <p className="mt-1 text-sm text-muted-foreground">{meta.join(" · ")}</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <button onClick={() => openEdit("cliente", c)} className={`${btnOutline} hidden sm:inline-flex`}>
+          <button onClick={() => openEdit("cliente", c)} className={cn(btnOutline, "hidden sm:inline-flex")}>
             <Pencil size={14} strokeWidth={1.6} /> Editar
           </button>
           <DropdownMenu>

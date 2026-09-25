@@ -9,3 +9,4 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 - Admin shell: `_authenticated/admin.tsx` renders the single AdminSidebar + AdminTopbar for every /admin route; Painel360 sections are mounted per-route via `<Painel360 section=... />` — one shell, no nested sidebars.
+- Client workspace: `/admin/clientes/$clienteId?tab=` uses modular components in `src/components/client-workspace/`; legacy tab names are mapped in `src/lib/client-workspace.ts` so old links keep working.
