@@ -26,7 +26,7 @@ const C = {
   bg: "var(--background)",
   text: "var(--foreground)",
   textMid: "var(--muted-foreground)",
-  textMuted: "#BBA898",
+  textMuted: "var(--muted-foreground)",
 };
 const SHADOW = "var(--shadow-card)";
 
@@ -631,20 +631,19 @@ export function PortalRico({
   return (
     <div className="rounded-[20px] p-4 sm:p-6 lg:p-8 space-y-8 sm:space-y-10" style={{ background: C.bg, color: C.text }}>
       {/* Header do preview */}
-      <div className="rounded-[16px] px-5 py-4 sm:px-6 sm:py-5 flex items-center gap-3 sm:gap-4" style={{ background: C.dark, color: "#fff", boxShadow: SHADOW }}>
+      <div className="rounded-[16px] px-5 py-4 sm:px-6 sm:py-5 flex items-center gap-3 sm:gap-4 bg-card border border-border text-foreground" style={{ boxShadow: SHADOW }}>
         <div
-          className="h-11 w-11 rounded-full flex items-center justify-center text-sm font-extrabold shrink-0"
-          style={{ background: `linear-gradient(135deg, ${C.mid}, ${C.gold})`, color: "#fff" }}
+          className="h-11 w-11 rounded-full flex items-center justify-center text-sm font-extrabold shrink-0 bg-secondary text-foreground"
         >
           {cliente?.nome ? cliente.nome[0].toUpperCase() : "•"}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: "rgba(255,255,255,0.6)" }}>
+          <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
             {variant === "admin" ? "Preview · Portal exclusivo" : "Portal exclusivo"}
           </div>
           <div className="font-extrabold text-sm sm:text-base truncate">{cliente?.nome || "Cliente"}</div>
           {cliente?.plano && (
-            <div className="text-[11px] sm:text-xs mt-0.5" style={{ color: C.gold }}>Plano: {cliente.plano}</div>
+            <div className="text-[11px] sm:text-xs mt-0.5 text-muted-foreground">Plano: {cliente.plano}</div>
           )}
         </div>
       </div>

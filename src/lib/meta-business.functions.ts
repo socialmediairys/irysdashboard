@@ -169,6 +169,7 @@ export type InstagramAccountInsights = {
   periodDays: number;
   posts: InstagramPostMetrics[];
   postsInsightsError: string | null;
+  notice?: string | null; // aviso de estado esperado (ex.: sem página vinculada)
 };
 
 type FetchResult<T> = { data: T | null; error: string | null };
@@ -208,13 +209,17 @@ export const getInstagramAccountInsights = createServerFn({ method: "GET" })
       .eq("client_id", data.clientId)
       .maybeSingle();
     if (error) throw error;
+    // Estados esperados (sem vínculo) retornam aviso em vez de erro, para não quebrar a tela.
+    const empty = (notice: string): InstagramAccountInsights => ({
+      username: null, followersCount: null, followsCount: null, mediaCount: null,
+      avgEngagementRate: null, followerGrowth: null, periodDays: data.periodDays,
+      posts: [], postsInsightsError: null, notice,
+    });
     if (!page) {
-      throw new Error(
-        "Nenhuma Página do Meta Business vinculada a este cliente ainda. Vincule em Configurações → Integrações.",
-      );
+      return empty("Nenhuma Página do Meta Business vinculada a este cliente ainda. Vincule em Configurações → Integrações.");
     }
     if (!page.ig_user_id) {
-      throw new Error("A Página vinculada não tem uma Conta Business do Instagram.");
+      return empty("A Página vinculada não tem uma Conta Business do Instagram.");
     }
 
     const token = page.page_access_token;
