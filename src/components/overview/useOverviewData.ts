@@ -139,7 +139,8 @@ async function load(): Promise<OverviewData> {
     const pendente = c.status_contrato === "pendente_assinatura";
     const vencendo = c.status_contrato === "ativo" && venc && venc.getTime() - today.getTime() < 30 * DAY;
     if (!pendente && !vencendo && c.status_contrato !== "vencido") continue;
-    const title = pendente ? "Contrato aguardando assinatura" : c.status_contrato === "vencido" ? "Contrato vencido" : "Contrato vence em breve";
+    const passou = venc && venc < today;
+    const title = pendente ? "Contrato aguardando assinatura" : c.status_contrato === "vencido" || passou ? "Contrato vencido — renovar" : "Contrato vence em breve";
     p.push({ id: `ct-${c.id}`, kind: "contrato", title, clienteId: c.id, clienteNome: c.nome, due: venc, rank: 6, action: { label: "Ver cliente", to: "/admin/clientes/$clienteId", params: { clienteId: c.id }, search: { tab: "dados" } } });
   }
   p.sort((a, b) => a.rank - b.rank);

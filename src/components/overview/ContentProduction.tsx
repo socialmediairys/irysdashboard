@@ -21,10 +21,10 @@ const STAGES: { key: keyof ContentProductionCounts; label: string }[] = [
 export function ContentProduction({ counts }: { counts?: ContentProductionCounts }) {
   return (
     <div>
-      <div className="grid grid-cols-5 divide-x divide-border">
+      <div className="grid grid-cols-3 divide-x divide-border sm:grid-cols-5">
         {STAGES.map((s) => (
-          <div key={s.key} className="px-4 py-4">
-            <div className="truncate text-[12px] text-muted-foreground">{s.label}</div>
+          <div key={s.key} className="px-3 py-4">
+            <div className="text-[12px] leading-tight text-muted-foreground">{s.label}</div>
             <div className={counts ? "mt-1 text-xl font-semibold text-foreground" : "mt-1 text-xl font-semibold text-text-tertiary"}>
               {counts ? counts[s.key] : "—"}
             </div>
