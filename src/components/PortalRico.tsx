@@ -26,7 +26,7 @@ const C = {
   bg: "var(--background)",
   text: "var(--foreground)",
   textMid: "var(--muted-foreground)",
-  textMuted: "#BBA898",
+  textMuted: "var(--muted-foreground)",
 };
 const SHADOW = "var(--shadow-card)";
 
