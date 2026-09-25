@@ -327,4 +327,4 @@ function NewContentDialog({ mode, onClose, clienteId, clientes, onCreated }: {
   );
 }
 
-export { parseLocal };
+

@@ -5,6 +5,8 @@ import { CobrancaWaMeButton, CobrancaWhatsappButton, type ClienteRow } from "@/c
 import { PipelineMatrix } from "@/components/pipeline/PipelineMatrix";
 import { PortalConteudosManager } from "@/components/portal/PortalConteudosManager";
 import { PortalPreview } from "@/components/portal/PortalPreview";
+import { ContentModule } from "@/components/content/ContentModule";
+import { PlannedItems } from "@/components/content/PlannedItems";
 import { StrategyWorkspace } from "@/components/strategy/StrategyWorkspace";
 import { cn } from "@/lib/utils";
 import { brl, fmtDate, parseDate, type Workspace } from "./useClientWorkspace";
@@ -15,35 +17,37 @@ export function StrategyTab({ ws }: { ws: Workspace }) {
   return <StrategyWorkspace clienteId={ws.cliente.id} clienteNome={ws.cliente.nome} />;
 }
 
-/* ---------- Conteúdos (dados antigos preservados) ---------- */
+/* ---------- Conteúdos: mesma fonte do módulo global, filtrada pelo cliente ---------- */
 export function ContentsTab({ ws, goPortal }: { ws: Workspace; goPortal: () => void }) {
   return (
-    <WsSection
-      title="Conteúdos do portal"
-      description="Materiais já publicados na Central do Cliente. O novo fluxo de conteúdo (produção, aprovação, publicação) chega na Fase 5."
-      action={<button onClick={goPortal} className={btnOutline}>Gerenciar no Portal</button>}
-    >
-      {ws.conteudos.length ? (
-        <WsList>
-          {ws.conteudos.map((c) => (
-            <WsRow key={c.id}>
-              <FileText size={16} strokeWidth={1.6} className="shrink-0 text-muted-foreground" />
-              <span className="min-w-0 flex-1 truncate text-sm text-foreground">{c.titulo || "Sem título"}</span>
-              <span className="text-[12px] text-muted-foreground">{c.tipo}{c.created_at ? ` · ${fmtDate(new Date(c.created_at))}` : ""}</span>
-            </WsRow>
-          ))}
-        </WsList>
-      ) : <WsEmpty>Nenhum conteúdo cadastrado para este cliente.</WsEmpty>}
-    </WsSection>
+    <div className="space-y-10">
+      <ContentModule clienteId={ws.cliente.id} initialView="producao" />
+      {ws.conteudos.length > 0 && (
+        <WsSection title="Materiais da Central do Cliente" description="Documentos e vídeos de onboarding (briefing, contrato, tom de voz…). Preservados como estão — não são publicações." action={<button onClick={goPortal} className={btnOutline}>Gerenciar no Portal</button>}>
+          <WsList>
+            {ws.conteudos.map((c) => (
+              <WsRow key={c.id}>
+                <FileText size={16} strokeWidth={1.6} className="shrink-0 text-muted-foreground" />
+                <span className="min-w-0 flex-1 truncate text-sm text-foreground">{c.titulo || "Sem título"}</span>
+                <span className="text-[12px] text-muted-foreground">{c.tipo}{c.created_at ? ` · ${fmtDate(new Date(c.created_at))}` : ""}</span>
+              </WsRow>
+            ))}
+          </WsList>
+        </WsSection>
+      )}
+    </div>
   );
 }
 
 /* ---------- Planejamento (pipeline mensal atual) ---------- */
 export function PlanningTab({ ws }: { ws: Workspace }) {
   return (
+    <div className="space-y-10">
+    <PlannedItems clienteId={ws.cliente.id} />
     <WsSection title="Pipeline do mês" description="Etapas operacionais mensais (estratégia, linha editorial, design, copy, métricas). Clique numa célula para mudar o status. A linha destacada é deste cliente.">
       <div className="p-4"><PipelineMatrix highlightClienteId={ws.cliente.id} /></div>
     </WsSection>
+    </div>
   );
 }
 

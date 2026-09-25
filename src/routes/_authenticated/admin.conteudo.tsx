@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ExternalLink } from "lucide-react";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ContentModule } from "@/components/content/ContentModule";
 
 export const Route = createFileRoute("/_authenticated/admin/conteudo")({
