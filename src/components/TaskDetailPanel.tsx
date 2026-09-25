@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Play, Pause, Square, Send, X, Plus, Check } from "lucide-react";
 import { toast } from "sonner";
@@ -47,6 +48,7 @@ type TaskRow = {
   prioridade: string;
   prazo: string | null;
   cliente_id: string | null;
+  conteudo_id?: string | null;
   sprint_id: string | null;
   assignee_id: string | null;
   timer_status: "stopped" | "running" | "paused" | null;
@@ -618,6 +620,46 @@ function CommentsSection({ taskId }: { taskId: string }) {
   );
 }
 
+/* ---------------- Conteúdo relacionado (opcional) ---------------- */
+
+function ContentLinkSection({ task, onLocalChange }: { task: TaskRow; onLocalChange: (p: Partial<TaskRow>) => void }) {
+  const [opts, setOpts] = useState<{ id: string; titulo: string; data_prevista: string | null }[]>([]);
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let q = (supabase.from("conteudos" as any) as any).select("id,titulo,data_prevista").neq("status", "publicado").order("data_prevista", { ascending: false, nullsFirst: false }).limit(200);
+    if (task.cliente_id) q = q.eq("cliente_id", task.cliente_id);
+    q.then(({ data }: { data: typeof opts | null }) => {
+      const list = data ?? [];
+      if (task.conteudo_id && !list.some((c) => c.id === task.conteudo_id)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase.from("conteudos" as any) as any).select("id,titulo,data_prevista").eq("id", task.conteudo_id).maybeSingle()
+          .then(({ data: one }: { data: (typeof opts)[number] | null }) => setOpts(one ? [one, ...list] : list));
+      } else setOpts(list);
+    });
+  }, [task.cliente_id, task.conteudo_id]);
+  const set = async (v: string | null) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.from("tarefas" as any) as any).update({ conteudo_id: v }).eq("id", task.id);
+    if (error) return toast.error("Não foi possível vincular.");
+    onLocalChange({ conteudo_id: v });
+  };
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium text-foreground">Conteúdo relacionado</span>
+        {task.conteudo_id && <Link to="/admin/conteudo" search={{ c: task.conteudo_id }} className="text-[13px] text-muted-foreground hover:text-foreground">Abrir conteúdo</Link>}
+      </div>
+      <Select value={task.conteudo_id ?? "none"} onValueChange={(v) => set(v === "none" ? null : v)}>
+        <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none">Nenhum (tarefa avulsa)</SelectItem>
+          {opts.map((c) => <SelectItem key={c.id} value={c.id}>{c.titulo || "Sem título"}{c.data_prevista ? ` · ${c.data_prevista.slice(8, 10)}/${c.data_prevista.slice(5, 7)}` : ""}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 /* ---------------- Main panel ---------------- */
 
 function ErrorBoundary({ children }: { children: React.ReactNode }) {
@@ -693,6 +735,9 @@ export function TaskDetailPanel({
                 profiles={profiles}
                 onLocalChange={applyLocal}
               />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <ContentLinkSection task={task} onLocalChange={applyLocal} />
             </ErrorBoundary>
             <ErrorBoundary>
               <TagsSection taskId={task.id} />

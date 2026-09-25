@@ -156,7 +156,7 @@ async function load(): Promise<OverviewData> {
   const in3 = new Date(today.getTime() + 3 * DAY);
   for (const c of conteudos) {
     const d = c.data_prevista ? parseDate(c.data_prevista) : null;
-    const action = { label: "Abrir conteúdo", to: "/admin/conteudo" };
+    const action = { label: "Abrir conteúdo", to: "/admin/conteudo", search: { c: c.id } };
     if (c.status === "alteracao_solicitada") {
       p.push({ id: `as-${c.id}`, kind: "alteracao_solicitada", title: c.titulo || "Conteúdo", clienteId: c.cliente_id, clienteNome: cn(c.cliente_id), due: d, rank: 0.8, action });
     } else if (c.status === "com_cliente") {
