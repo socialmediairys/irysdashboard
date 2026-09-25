@@ -85,6 +85,23 @@ export function FinanceiroResumo({
         {porCliente.length === 0 ? (
           <EmptyState icon={<Wallet size={24} strokeWidth={1.6} />} title="Sem receita vinculada" description="Cadastre o valor mensal no cliente ou vincule entradas a um cliente." />
         ) : (
+          <>
+          <ul className="divide-y divide-border md:hidden">
+            {porCliente.map((c) => (
+              <li key={c.id} className="py-3">
+                <div className="flex items-baseline justify-between gap-2">
+                  <Link to="/admin/clientes/$clienteId" params={{ clienteId: c.id }} search={{ tab: "financeiro" } as never} className="font-medium text-foreground hover:underline">{c.nome}</Link>
+                  <span className="text-xs text-muted-foreground">{c.status_contrato?.replace(/_/g, " ") ?? "—"}</span>
+                </div>
+                <dl className="mt-2 grid grid-cols-3 gap-2 text-[13px]">
+                  <div><dt className="text-muted-foreground">Mensal</dt><dd className="text-foreground">{c.valor_mensal ? brl(Number(c.valor_mensal)) : "—"}</dd></div>
+                  <div><dt className="text-muted-foreground">Recebido</dt><dd className="text-foreground">{brl(c.recebido)}</dd></div>
+                  <div><dt className="text-muted-foreground">Em aberto</dt><dd className="text-foreground">{c.aberto ? brl(c.aberto) : "—"}</dd></div>
+                </dl>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden md:block">
           <DataTable>
             <Thead><Th>Cliente</Th><Th>Contrato</Th><Th align="right">Mensal contratado</Th><Th align="right">Recebido no período</Th><Th align="right">Em aberto</Th></Thead>
             <Tbody>
@@ -99,6 +116,8 @@ export function FinanceiroResumo({
               ))}
             </Tbody>
           </DataTable>
+          </div>
+          </>
         )}
         {semCliente > 0 && <p className="mt-3 text-[13px] text-muted-foreground">{semCliente} entrada(s) do período não estão vinculadas a nenhum cliente.</p>}
       </div>
