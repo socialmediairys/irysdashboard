@@ -18,8 +18,9 @@ import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { Card, PillBtn, PageHeader } from "@/components/Painel360";
-import { C } from "@/lib/ui-tokens";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { StatusBadge, type StatusVariant } from "@/components/ui/status-badge";
+const Card = ({ children }: { children: React.ReactNode }) => <div className="rounded-lg border border-border bg-card p-3">{children}</div>;
 import { ListState } from "@/components/ListState";
 import { useClientes } from "@/components/crud/forms";
 import { TaskDetailPanel } from "@/components/TaskDetailPanel";
@@ -40,7 +41,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const SHADOW = "var(--shadow-card)";
 
 type SprintRow = {
   id: string;
@@ -70,10 +70,10 @@ const COLS: { key: string; label: string }[] = [
 ];
 
 
-const PRIORITY_STYLES: Record<string, { bg: string; fg: string; label: string }> = {
-  high: { bg: "#FEE2E2", fg: "#B91C1C", label: "High" },
-  medium: { bg: "#FEF3C7", fg: "#92400E", label: "Medium" },
-  low: { bg: "#E5E7EB", fg: "#4B5563", label: "Low" },
+const PRIORITY_STYLES: Record<string, { variant: StatusVariant; label: string }> = {
+  high: { variant: "danger", label: "Alta" },
+  medium: { variant: "neutral", label: "Média" },
+  low: { variant: "neutral", label: "Baixa" },
 };
 
 function normalizeStatus(s: string | null | undefined): string {
@@ -94,14 +94,7 @@ function normalizePriority(p: string | null | undefined): "high" | "medium" | "l
 
 function PriorityBadge({ priority }: { priority: string }) {
   const s = PRIORITY_STYLES[normalizePriority(priority)];
-  return (
-    <span
-      className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold"
-      style={{ background: s.bg, color: s.fg }}
-    >
-      {s.label}
-    </span>
-  );
+  return <StatusBadge variant={s.variant}>{s.label}</StatusBadge>;
 }
 
 function TagChip({ tag }: { tag: TagRow }) {
@@ -118,8 +111,7 @@ function TagChip({ tag }: { tag: TagRow }) {
 function Avatar({ label }: { label: string }) {
   return (
     <span
-      className="inline-flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold"
-      style={{ background: C.beigeLight, color: C.textMid }}
+      className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-[10px] font-semibold text-muted-foreground"
       title={label}
     >
       {label.slice(0, 2).toUpperCase()}
@@ -140,12 +132,12 @@ type CardData = {
 function TaskCard({ data, onOpen, dragHandle }: { data: CardData; onOpen: () => void; dragHandle: React.HTMLAttributes<HTMLButtonElement> }) {
   const { task, clientName, tags, commentCount, assigneeName } = data;
   return (
-    <div className="rounded-[10px] bg-white p-3" style={{ boxShadow: SHADOW }}>
+    <div className="rounded-md border border-border bg-card p-2.5 transition-colors hover:border-foreground/30">
       <div className="flex items-start justify-between gap-2">
         <button type="button" onClick={onOpen} className="flex-1 min-w-0 text-left">
-          <div className="font-semibold text-sm">{task.titulo}</div>
+          <div className="text-[13px] font-medium leading-snug text-foreground">{task.titulo}</div>
           {clientName && (
-            <div className="text-[11px] mt-0.5" style={{ color: C.textMuted }}>
+            <div className="mt-0.5 text-[11px] text-muted-foreground">
               {clientName}
             </div>
           )}
@@ -159,8 +151,7 @@ function TaskCard({ data, onOpen, dragHandle }: { data: CardData; onOpen: () => 
             {assigneeName && <Avatar label={assigneeName} />}
             {commentCount > 0 && (
               <span
-                className="inline-flex items-center gap-1 text-[11px]"
-                style={{ color: C.textMuted }}
+                className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"
               >
                 <MessageCircle size={12} />
                 {commentCount}
@@ -171,8 +162,7 @@ function TaskCard({ data, onOpen, dragHandle }: { data: CardData; onOpen: () => 
         <button
           type="button"
           aria-label="Arrastar"
-          className="cursor-grab active:cursor-grabbing rounded p-1 text-xs shrink-0"
-          style={{ color: C.textMid }}
+          className="shrink-0 cursor-grab rounded p-1 text-xs text-muted-foreground active:cursor-grabbing"
           {...dragHandle}
         >
           ⋮⋮
@@ -217,23 +207,21 @@ function DroppableColumn({
   return (
     <div
       ref={setNodeRef}
-      className="rounded-[12px] p-3 flex flex-col min-h-[320px]"
-      style={{ background: isOver ? "#F7F0E0" : C.beigeLight, transition: "background 120ms" }}
+      className={`flex min-h-[320px] flex-col rounded-lg p-2 transition-colors ${isOver ? "bg-accent" : "bg-muted/40"}`}
     >
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-bold uppercase tracking-wider" style={{ color: C.textMid }}>
+        <span className="px-1 text-[12px] font-medium text-muted-foreground">
           {label}
         </span>
         <span
-          className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-          style={{ background: "#fff", color: C.textMid }}
+          className="px-1 text-[12px] text-muted-foreground"
         >
           {count}
         </span>
       </div>
       <div className="space-y-2 flex-1">
         {count === 0 && (
-          <div className="text-xs italic text-center py-6" style={{ color: C.textMuted }}>
+          <div className="py-6 text-center text-xs text-muted-foreground">
             Solte um card aqui
           </div>
         )}
@@ -242,10 +230,9 @@ function DroppableColumn({
       <button
         type="button"
         onClick={onNewTask}
-        className="mt-3 w-full rounded-[8px] border border-dashed py-2 text-xs font-semibold hover:bg-white/60"
-        style={{ borderColor: C.textMuted, color: C.textMid }}
+        className="mt-2 w-full rounded-md border border-dashed border-border py-2 text-xs text-muted-foreground hover:bg-card hover:text-foreground"
       >
-        <Plus size={12} className="inline mr-1" /> New task
+        <Plus size={12} className="inline mr-1" /> Nova tarefa
       </button>
     </div>
   );
@@ -591,13 +578,12 @@ export function SprintsBoard() {
   return (
     <>
       <PageHeader
-        eyebrow="Produção"
-        title="Sprint"
-        accent="comercial"
+        title="Sprints"
+        description="O trabalho necessário para executar os conteúdos e demais entregas."
         actions={
-          <PillBtn onClick={() => setNewSprintOpen(true)}>
-            <Plus size={14} className="inline mr-1" /> New sprint
-          </PillBtn>
+          <Button onClick={() => setNewSprintOpen(true)} size="sm">
+            <Plus size={14} className="mr-1" /> Nova sprint
+          </Button>
         }
       />
 
@@ -626,24 +612,11 @@ export function SprintsBoard() {
                   key={s.id}
                   type="button"
                   onClick={() => setSelectedSprintId(s.id)}
-                  className="rounded-full px-4 py-1.5 text-sm font-semibold transition"
-                  style={{
-                    background: active ? C.mid : "#fff",
-                    color: active ? "#fff" : C.textMid,
-                    boxShadow: SHADOW,
-                  }}
+                  className={`rounded-md border px-3 py-1.5 text-[13px] transition-colors ${active ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
                 >
                   {s.name}
                   {s.status === "current" && (
-                    <span
-                      className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-bold"
-                      style={{
-                        background: active ? "rgba(255,255,255,0.25)" : "#FEF3C7",
-                        color: active ? "#fff" : "#92400E",
-                      }}
-                    >
-                      Current
-                    </span>
+                    <span className="ml-2 text-[11px] opacity-70">atual</span>
                   )}
                 </button>
               );
@@ -652,11 +625,11 @@ export function SprintsBoard() {
 
           <Card>
             {loading ? (
-              <div className="py-10 text-center text-sm" style={{ color: C.textMuted }}>
+              <div className="py-10 text-center text-sm text-muted-foreground">
                 Carregando tarefas...
               </div>
             ) : error ? (
-              <div className="py-10 text-center text-sm text-red-600">
+              <div className="py-10 text-center text-sm text-destructive">
                 {error}{" "}
                 <button
                   type="button"
