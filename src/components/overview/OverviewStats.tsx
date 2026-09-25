@@ -24,7 +24,7 @@ export function OverviewStats({ stats }: { stats: OverviewData["stats"] }) {
         value={String(stats.tarefasSemana)}
         hint={stats.tarefasAtrasadas ? `${stats.tarefasAtrasadas} atrasada${stats.tarefasAtrasadas > 1 ? "s" : ""}` : "Nenhuma atrasada"}
       />
-      <Stat label="Conteúdos em produção" value="—" hint="Disponível com o módulo Conteúdo" muted />
+      <Stat label="Conteúdos em produção" value={String(stats.conteudosProducao)} hint="Planejado → revisão interna" />
       <Stat
         label="Faturamento previsto"
         value={brl(stats.faturamentoPrevisto)}

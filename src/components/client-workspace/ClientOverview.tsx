@@ -1,3 +1,5 @@
+import { StatusBadge } from "@/components/ui/status-badge";
+import { CONTENT_STATUS_LABEL, CONTENT_STATUS_VARIANT, fmtShort, type ContentStatus } from "@/lib/content";
 import { Link } from "@tanstack/react-router";
 import { AlertCircle, CalendarClock, Clock, FileSignature, LifeBuoy, ListChecks, OctagonAlert, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
@@ -43,16 +45,18 @@ export function ClientOverview({ ws, goTab }: { ws: Workspace; goTab: GoTab }) {
       </div>
 
       <WsSection title="Conteúdos recentes" action={<button onClick={() => goTab("conteudos")} className="text-[13px] text-muted-foreground hover:text-foreground">Ver todos</button>}>
-        {ws.conteudos.length ? (
+        {ws.editoriais.length ? (
           <WsList>
-            {ws.conteudos.slice(0, 4).map((c) => (
+            {ws.editoriais.map((c) => (
               <WsRow key={c.id}>
+                <span className="w-16 shrink-0 text-[13px] text-muted-foreground">{fmtShort(c.data_prevista)}</span>
                 <span className="min-w-0 flex-1 truncate text-sm text-foreground">{c.titulo || "Sem título"}</span>
-                <span className="text-[12px] text-muted-foreground">{c.tipo}</span>
+                <span className="hidden text-[12px] text-muted-foreground sm:inline">{[c.canal, c.formato].filter(Boolean).join(" · ")}</span>
+                <StatusBadge variant={CONTENT_STATUS_VARIANT[c.status as ContentStatus]}>{CONTENT_STATUS_LABEL[c.status as ContentStatus]}</StatusBadge>
               </WsRow>
             ))}
           </WsList>
-        ) : <WsEmpty>Nenhum conteúdo no portal ainda. O novo módulo Conteúdo chega na Fase 5.</WsEmpty>}
+        ) : <WsEmpty>Nenhum conteúdo editorial ainda.</WsEmpty>}
       </WsSection>
 
       <WsSection title="Dados do cliente">
