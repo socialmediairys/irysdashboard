@@ -7,11 +7,13 @@ import { PriorityList } from "./PriorityList";
 import { RecentActivity } from "./RecentActivity";
 import { WeekView } from "./WeekView";
 import { useOverviewData } from "./useOverviewData";
+import { useWeekWithCalendar } from "./useWeekWithCalendar";
 
 const linkCls = "text-[13px] text-muted-foreground hover:text-foreground";
 
 export function Overview() {
   const { data, isLoading, error } = useOverviewData();
+  const week = useWeekWithCalendar(data?.week);
 
   return (
     <div className="space-y-10">
@@ -42,7 +44,7 @@ export function Overview() {
             description="Reuniões e prazos dos próximos 7 dias."
             action={<Link to="/admin/agenda" className={linkCls}>Abrir agenda</Link>}
           >
-            <WeekView week={data.week} />
+            <WeekView week={week ?? data.week} />
           </OverviewSection>
 
           <div className="grid gap-10 lg:grid-cols-2">

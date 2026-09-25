@@ -69,7 +69,7 @@ export type OverviewData = {
   };
   production: { producao: number; revisao: number; comCliente: number; aprovados: number; publicados: number };
   priorities: Priority[];
-  week: { date: Date; items: { id: string; kind: "reuniao" | "tarefa"; title: string; time?: string; cliente?: string; to: string }[] }[];
+  week: { date: Date; items: { id: string; kind: "reuniao" | "tarefa"; title: string; time?: string; cliente?: string; to: string; search?: Record<string, string>; href?: string; sort?: number }[] }[];
   attention: AttentionClient[];
   activity: ActivityItem[];
 };
@@ -177,11 +177,11 @@ async function load(): Promise<OverviewData> {
   const idx = (d: Date) => Math.floor((startOfDay(d).getTime() - today.getTime()) / DAY);
   for (const a of agenda) {
     const d = new Date(a.data_hora); const i = idx(d);
-    if (i >= 0 && i < 7) week[i].items.push({ id: `a-${a.id}`, kind: "reuniao", title: a.titulo, time: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }), cliente: cn(a.cliente_id) ?? undefined, to: "/admin/agenda" });
+    if (i >= 0 && i < 7) week[i].items.push({ id: `a-${a.id}`, kind: "reuniao", title: a.titulo, time: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }), cliente: cn(a.cliente_id) ?? undefined, to: "/admin/agenda", sort: d.getTime() });
   }
   for (const t of semana) {
-    const i = idx(parseDate(t.prazo!));
-    if (i >= 0 && i < 7) week[i].items.push({ id: `t-${t.id}`, kind: "tarefa", title: t.titulo, cliente: cn(t.cliente_id) ?? undefined, to: "/admin/sprints" });
+    const d = parseDate(t.prazo!); const i = idx(d);
+    if (i >= 0 && i < 7) week[i].items.push({ id: `t-${t.id}`, kind: "tarefa", title: t.titulo, cliente: cn(t.cliente_id) ?? undefined, to: "/admin/sprints", search: { task: t.id }, sort: d.getTime() + DAY - 1 });
   }
 
   // Clients needing attention — explicit reasons only
