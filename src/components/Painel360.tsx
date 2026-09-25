@@ -2036,7 +2036,12 @@ function SocialPage() {
     });
 
     Promise.race([insightsFn({ data: { clientId: clienteId, periodDays } }), timeout])
-      .then((res) => { if (!cancel) setInsights(res as typeof insights); })
+      .then((res) => {
+        if (cancel) return;
+        const r = res as { notice?: string | null };
+        if (r?.notice) { setInsights(null); setIgError(r.notice); return; }
+        setInsights(res as typeof insights);
+      })
       .catch((e) => { if (!cancel) setIgError(e instanceof Error ? e.message : "Não foi possível buscar as métricas agora."); })
       .finally(() => { if (!cancel) setIgLoading(false); });
 
