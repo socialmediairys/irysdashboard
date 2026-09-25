@@ -1,0 +1,2 @@
+DELETE FROM public.estrategia_briefing WHERE cliente_id = '1b49b581-98c4-4397-a902-25c6fb442698' AND mapa = '{}'::jsonb;
+DELETE FROM public.estrategia_etapas WHERE cliente_id = '1b49b581-98c4-4397-a902-25c6fb442698' AND etapa = 1 AND status = 'em_andamento' AND concluido_em IS NULL;
