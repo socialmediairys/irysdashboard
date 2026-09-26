@@ -1,3 +1,4 @@
+import { statusLabel } from "@/lib/tasks";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight, ChevronDown, Film, ImagePlus, Loader2, Plus, Send, Trash2 } from "lucide-react";
@@ -272,7 +273,7 @@ function RelatedTasks({ c, items, onDone }: { c: Conteudo; items: Detail["tarefa
             <li key={x.id}>
               <Link to="/admin/sprints" search={{ task: x.id }} className="flex items-center gap-3 px-3 py-2 text-[13px] hover:bg-accent/50">
                 <span className="min-w-0 flex-1 truncate text-foreground">{x.titulo}</span>
-                <span className="text-muted-foreground">{x.status}</span>
+                <span className="text-muted-foreground">{statusLabel(x.status)}</span>
               </Link>
             </li>
           ))}
