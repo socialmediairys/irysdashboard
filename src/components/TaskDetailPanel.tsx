@@ -370,13 +370,12 @@ export function TaskDetailPanel({
   /** Salva no banco e só então avisa as views (Kanban etc.) para recarregar. */
   const save = useCallback(async (patch: Partial<TaskRow>) => {
     if (!task) return false;
-    const prev = task;
-    setTask({ ...task, ...patch });
+    setTask((p) => (p ? { ...p, ...patch } : p));
     const { error } = await db("tarefas").update(patch).eq("id", task.id);
-    if (error) { setTask(prev); toast.error("Não foi possível salvar."); return false; }
+    if (error) { void reload(); toast.error("Não foi possível salvar."); return false; }
     changedRef.current?.();
     return true;
-  }, [task]);
+  }, [task, reload]);
 
   const reloadAndNotify = useCallback(async () => { await reload(); changedRef.current?.(); }, [reload]);
 
