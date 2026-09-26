@@ -401,7 +401,7 @@ export function TaskDetailPanel({
   const remove = async () => {
     if (!task) return;
     const { error } = await db("tarefas").delete().eq("id", task.id);
-    if (error) return toast.error("Não foi possível excluir.");
+    if (error) { toast.error("Não foi possível excluir."); return; }
     toast.success("Tarefa excluída");
     setConfirmDel(false);
     changedRef.current?.();
