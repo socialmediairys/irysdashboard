@@ -206,7 +206,8 @@ export function TaskComments({ taskId, members, onCount }: { taskId: string; mem
     setDel(null); done();
   };
 
-  const One = ({ c, child }: { c: Comment; child?: boolean }) => (
+  const renderOne = (c: Comment, child?: boolean) => (
+    <div key={c.id}>
     <div className={child ? "ml-6 border-l border-border pl-3" : ""}>
       <div className="flex items-baseline gap-2">
         <span className="text-[13px] font-medium text-foreground">{c.author?.nome ?? "Usuário"}</span>
@@ -226,6 +227,7 @@ export function TaskComments({ taskId, members, onCount }: { taskId: string; mem
         </>
       )}
     </div>
+    </div>
   );
 
   return (
@@ -234,8 +236,8 @@ export function TaskComments({ taskId, members, onCount }: { taskId: string; mem
         : roots.length === 0 ? <div className="text-[13px] text-muted-foreground">Nenhum comentário ainda.</div>
         : roots.map((c) => (
           <div key={c.id} className="space-y-3">
-            <One c={c} />
-            {replies(c.id).map((r) => <One key={r.id} c={r} child />)}
+            {renderOne(c)}
+            {replies(c.id).map((r) => renderOne(r, true))}
             {replying === c.id && (
               <div className="ml-6 flex gap-2"><CornerDownRight size={14} className="mt-2 shrink-0 text-muted-foreground" />
                 <div className="flex-1"><Composer taskId={taskId} members={members} parentId={c.id} onDone={done} onCancel={() => setReplying(null)} compact /></div>
