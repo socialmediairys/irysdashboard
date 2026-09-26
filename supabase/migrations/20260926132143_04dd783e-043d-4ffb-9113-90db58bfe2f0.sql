@@ -1,0 +1,1 @@
+ALTER FUNCTION public.list_team_members() SECURITY INVOKER;
