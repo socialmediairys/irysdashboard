@@ -68,7 +68,10 @@ export function parseDuration(input: string): number | null {
 export const DATE_MIN = "1900-01-01";
 export const DATE_MAX = "9999-12-31";
 export function isValidDateInput(v: string) {
-  return v === "" || /^\d{4}-\d{2}-\d{2}$/.test(v);
+  if (v === "") return true;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+  const y = Number(v.slice(0, 4));
+  return y >= 1900 && y <= 9999 && !Number.isNaN(Date.parse(v));
 }
 
 export type Member = { id: string; nome: string };
