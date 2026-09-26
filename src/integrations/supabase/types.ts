@@ -3074,6 +3074,105 @@ export type Database = {
           },
         ]
       }
+      tarefa_subtarefas: {
+        Row: {
+          concluida: boolean
+          created_at: string
+          id: string
+          ordem: number
+          org_id: string
+          tarefa_id: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          concluida?: boolean
+          created_at?: string
+          id?: string
+          ordem?: number
+          org_id?: string
+          tarefa_id: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          concluida?: boolean
+          created_at?: string
+          id?: string
+          ordem?: number
+          org_id?: string
+          tarefa_id?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefa_subtarefas_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefa_subtarefas_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tarefa_tempo_registros: {
+        Row: {
+          created_at: string
+          data: string
+          duracao_segundos: number
+          id: string
+          observacao: string | null
+          org_id: string
+          origem: string
+          tarefa_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          duracao_segundos: number
+          id?: string
+          observacao?: string | null
+          org_id?: string
+          origem?: string
+          tarefa_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          duracao_segundos?: number
+          id?: string
+          observacao?: string | null
+          org_id?: string
+          origem?: string
+          tarefa_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tarefa_tempo_registros_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tarefa_tempo_registros_tarefa_id_fkey"
+            columns: ["tarefa_id"]
+            isOneToOne: false
+            referencedRelation: "tarefas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tarefas: {
         Row: {
           arquivo_url: string | null
@@ -3089,7 +3188,9 @@ export type Database = {
           prioridade: string
           sprint_id: string | null
           status: string
+          tempo_estimado_minutos: number | null
           tempo_total_segundos: number
+          timer_acumulado_segundos: number
           timer_iniciado_em: string | null
           timer_status: string | null
           tipo: string
@@ -3110,7 +3211,9 @@ export type Database = {
           prioridade?: string
           sprint_id?: string | null
           status?: string
+          tempo_estimado_minutos?: number | null
           tempo_total_segundos?: number
+          timer_acumulado_segundos?: number
           timer_iniciado_em?: string | null
           timer_status?: string | null
           tipo?: string
@@ -3131,7 +3234,9 @@ export type Database = {
           prioridade?: string
           sprint_id?: string | null
           status?: string
+          tempo_estimado_minutos?: number | null
           tempo_total_segundos?: number
+          timer_acumulado_segundos?: number
           timer_iniciado_em?: string | null
           timer_status?: string | null
           tipo?: string
@@ -3178,24 +3283,36 @@ export type Database = {
       }
       task_comments: {
         Row: {
+          attachments: Json
           author_id: string | null
           content: string
           created_at: string
+          edited_at: string | null
           id: string
+          mentions: string[]
+          parent_id: string | null
           task_id: string
         }
         Insert: {
+          attachments?: Json
           author_id?: string | null
           content: string
           created_at?: string
+          edited_at?: string | null
           id?: string
+          mentions?: string[]
+          parent_id?: string | null
           task_id: string
         }
         Update: {
+          attachments?: Json
           author_id?: string | null
           content?: string
           created_at?: string
+          edited_at?: string | null
           id?: string
+          mentions?: string[]
+          parent_id?: string | null
           task_id?: string
         }
         Relationships: [
@@ -3204,6 +3321,13 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "task_comments"
             referencedColumns: ["id"]
           },
           {
@@ -3441,6 +3565,13 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      list_team_members: {
+        Args: never
+        Returns: {
+          id: string
+          nome: string
+        }[]
       }
     }
     Enums: {
