@@ -60,18 +60,54 @@ export function RichTextEditor({ value, onSave, placeholder }: { value: string; 
     document.execCommand(cmd, false, arg);
     schedule();
   };
+  const caretAt = (el: Node, end = true) => {
+    const r = document.createRange(); r.selectNodeContents(el); r.collapse(!end);
+    const sel = window.getSelection(); sel?.removeAllRanges(); sel?.addRange(r);
+  };
+  const currentBlock = (): HTMLElement | null => {
+    let n: Node | null = window.getSelection()?.anchorNode ?? null;
+    while (n && n.parentNode && n.parentNode !== ref.current) n = n.parentNode;
+    return n && n.parentNode === ref.current && n.nodeType === 1 ? (n as HTMLElement) : null;
+  };
+  const closestLi = (): HTMLLIElement | null => {
+    let n: Node | null = window.getSelection()?.anchorNode ?? null;
+    while (n && n !== ref.current) { if ((n as HTMLElement).tagName === "LI") return n as HTMLLIElement; n = n.parentNode; }
+    return null;
+  };
+  /** Transforma somente o bloco atual em checklist (nunca aninha lista dentro de parágrafo). */
   const checklist = () => {
-    ref.current?.focus();
-    document.execCommand("insertUnorderedList");
-    const sel = window.getSelection();
-    let n: Node | null = sel?.anchorNode ?? null;
-    while (n && n !== ref.current && (n as HTMLElement).tagName !== "UL") n = n.parentNode;
-    if (n && (n as HTMLElement).tagName === "UL") {
-      const ul = n as HTMLElement;
-      ul.setAttribute("data-checklist", "true");
-      ul.querySelectorAll(":scope > li").forEach((li) => { if (!li.hasAttribute("data-checked")) li.setAttribute("data-checked", "false"); });
+    const root = ref.current; if (!root) return;
+    root.focus();
+    const block = currentBlock();
+    if (block && (block.tagName === "UL" || block.tagName === "OL")) {
+      block.setAttribute("data-checklist", "true");
+      block.querySelectorAll(":scope > li").forEach((li) => { if (!li.hasAttribute("data-checked")) li.setAttribute("data-checked", "false"); });
+      schedule(); return;
     }
-    schedule();
+    const ul = document.createElement("ul"); ul.setAttribute("data-checklist", "true");
+    const li = document.createElement("li"); li.setAttribute("data-checked", "false");
+    li.innerHTML = block && block.textContent?.trim() ? block.innerHTML : "<br>";
+    ul.appendChild(li);
+    if (block) block.replaceWith(ul); else root.appendChild(ul);
+    caretAt(li); schedule();
+  };
+  /** Enter em item vazio sai da lista e cria um parágrafo abaixo. */
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== "Enter" || e.shiftKey) return;
+    const li = closestLi(); if (!li) return;
+    const list = li.parentElement as HTMLElement;
+    if (!li.textContent?.trim()) {
+      e.preventDefault();
+      const p = document.createElement("p"); p.innerHTML = "<br>";
+      const after = Array.from(list.children).slice(Array.from(list.children).indexOf(li) + 1);
+      li.remove();
+      list.after(p);
+      if (after.length) { const rest = list.cloneNode(false) as HTMLElement; after.forEach((x) => rest.appendChild(x)); p.after(rest); }
+      if (!list.children.length) list.remove();
+      caretAt(p, false); schedule();
+    } else if (list.hasAttribute("data-checklist")) {
+      window.setTimeout(() => { const n = closestLi(); if (n && n !== li) n.setAttribute("data-checked", "false"); }, 0);
+    }
   };
   const link = () => {
     const url = window.prompt("Endereço do link (https://...)");
@@ -128,6 +164,7 @@ export function RichTextEditor({ value, onSave, placeholder }: { value: string; 
         data-placeholder={placeholder ?? "Briefing, roteiro, instruções, referências, anotações…"}
         onFocus={() => { document.execCommand("defaultParagraphSeparator", false, "p"); if (ref.current && !ref.current.innerHTML.trim()) { ref.current.innerHTML = "<p><br></p>"; } }}
         onInput={schedule}
+        onKeyDown={onKeyDown}
         onBlur={commit}
         onClick={onClick}
         className="rte min-h-[160px] px-3 py-2 text-[14px] leading-relaxed text-foreground outline-none"

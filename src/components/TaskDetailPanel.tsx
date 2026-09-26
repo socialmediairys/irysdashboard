@@ -502,13 +502,16 @@ export function TaskDetailPanel({
                   </Prop>
                   <Prop label="Prazo">
                     <input
+                      key={`${task.id}-${task.prazo ?? ""}`}
                       type="date" min={DATE_MIN} max={DATE_MAX} aria-label="Prazo"
-                      value={task.prazo ?? ""}
-                      onChange={(e) => {
+                      defaultValue={task.prazo ?? ""}
+                      onBlur={(e) => {
                         const v = e.target.value;
-                        if (!isValidDateInput(v)) return;
+                        if (v === (task.prazo ?? "")) return;
+                        if (!isValidDateInput(v)) { e.target.value = task.prazo ?? ""; return; }
                         void save({ prazo: v || null });
                       }}
+                      onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
                       className="h-8 rounded-md bg-transparent px-2 text-[13px] text-foreground outline-none hover:bg-muted"
                     />
                   </Prop>
