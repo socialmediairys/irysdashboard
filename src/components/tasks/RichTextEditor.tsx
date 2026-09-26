@@ -126,6 +126,7 @@ export function RichTextEditor({ value, onSave, placeholder }: { value: string; 
         contentEditable
         suppressContentEditableWarning
         data-placeholder={placeholder ?? "Briefing, roteiro, instruções, referências, anotações…"}
+        onFocus={() => { document.execCommand("defaultParagraphSeparator", false, "p"); if (ref.current && !ref.current.innerHTML.trim()) { ref.current.innerHTML = "<p><br></p>"; } }}
         onInput={schedule}
         onBlur={commit}
         onClick={onClick}
