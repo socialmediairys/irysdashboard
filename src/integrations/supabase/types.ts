@@ -74,6 +74,51 @@ export type Database = {
           },
         ]
       }
+      ai_usage_logs: {
+        Row: {
+          acao: string
+          cliente_id: string | null
+          created_at: string
+          erro: string | null
+          id: string
+          input_tokens: number | null
+          modelo: string
+          modulo: string
+          org_id: string
+          output_tokens: number | null
+          sucesso: boolean
+          user_id: string
+        }
+        Insert: {
+          acao: string
+          cliente_id?: string | null
+          created_at?: string
+          erro?: string | null
+          id?: string
+          input_tokens?: number | null
+          modelo: string
+          modulo: string
+          org_id?: string
+          output_tokens?: number | null
+          sucesso: boolean
+          user_id?: string
+        }
+        Update: {
+          acao?: string
+          cliente_id?: string | null
+          created_at?: string
+          erro?: string | null
+          id?: string
+          input_tokens?: number | null
+          modelo?: string
+          modulo?: string
+          org_id?: string
+          output_tokens?: number | null
+          sucesso?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       arquivos: {
         Row: {
           bucket: string
@@ -1496,6 +1541,7 @@ export type Database = {
           comunicacao: string | null
           conteudo: string | null
           created_at: string
+          cta: string | null
           diferenciais: string | null
           id: string
           nome: string
@@ -1505,6 +1551,7 @@ export type Database = {
           posicionamento: string | null
           preco: string | null
           provas: string | null
+          publico: string | null
           updated_at: string
         }
         Insert: {
@@ -1512,6 +1559,7 @@ export type Database = {
           comunicacao?: string | null
           conteudo?: string | null
           created_at?: string
+          cta?: string | null
           diferenciais?: string | null
           id?: string
           nome: string
@@ -1521,6 +1569,7 @@ export type Database = {
           posicionamento?: string | null
           preco?: string | null
           provas?: string | null
+          publico?: string | null
           updated_at?: string
         }
         Update: {
@@ -1528,6 +1577,7 @@ export type Database = {
           comunicacao?: string | null
           conteudo?: string | null
           created_at?: string
+          cta?: string | null
           diferenciais?: string | null
           id?: string
           nome?: string
@@ -1537,6 +1587,7 @@ export type Database = {
           posicionamento?: string | null
           preco?: string | null
           provas?: string | null
+          publico?: string | null
           updated_at?: string
         }
         Relationships: [
