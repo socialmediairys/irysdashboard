@@ -1,51 +1,94 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { CONCORRENTE_CAMPOS } from "@/lib/strategy";
+import { CONCORRENTE_CAMPOS, SINTESE_COMPETITIVA } from "@/lib/strategy";
 import type { StepProps } from "../StrategyWorkspace";
-import { Block, Empty, SaveState, btnPrimary, inputCls } from "../ui";
+import { AutoField, Block, Empty, SaveState, btnPrimary, inputCls } from "../ui";
 import { useAutosave, useStrategyActions, type Concorrente } from "../useStrategy";
 
-/** Matriz comparativa: concorrentes nas colunas, critérios nas linhas. Autosave por célula. */
+/** Matriz comparativa: critérios nas linhas, concorrentes nas colunas. Mobile: um concorrente por vez. */
 export function CompetitorsStep({ data, clienteId, touch }: StepProps) {
   const a = useStrategyActions(clienteId);
   const [nome, setNome] = useState("");
-  const add = async () => { if (!nome.trim()) return; await a.insert("estrategia_concorrentes", { nome: nome.trim() }); setNome(""); touch(); };
+  const [busy, setBusy] = useState(false);
+  const [sel, setSel] = useState<string | null>(null);
+  const add = async () => {
+    if (!nome.trim() || busy) return;
+    setBusy(true);
+    try { await a.insert("estrategia_concorrentes", { id: crypto.randomUUID(), nome: nome.trim() }); setNome(""); touch(); } finally { setBusy(false); }
+  };
+  const cs = data.concorrentes;
+  const mob = cs.find((c) => c.id === sel) ?? cs[0];
+  const save = (c: Concorrente, campo: string) => (v: string) => a.update("estrategia_concorrentes", c.id, { [campo]: v || null });
+  const def = (k: string) => data.definicoes.find((d) => d.etapa === 5 && d.campo === k)?.valor ?? "";
 
   return (
-    <Block title="Matriz de concorrência" description="Compare posicionamento, oferta e comunicação."
-      action={
-        <div className="flex gap-2">
-          <input value={nome} onChange={(e) => setNome(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder="Nome do concorrente" className={`${inputCls} h-8 w-48 py-1`} />
-          <button className={btnPrimary} onClick={add} disabled={!nome.trim()}><Plus size={14} /> Adicionar</button>
-        </div>
-      }>
-      {data.concorrentes.length ? (
-        <div className="overflow-x-auto rounded-lg border border-border bg-card">
-          <table className="w-full min-w-[640px] border-collapse text-[13px]">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="w-40 px-3 py-2.5 text-left font-medium text-muted-foreground">Critério</th>
-                {data.concorrentes.map((c) => (
-                  <th key={c.id} className="min-w-[200px] px-3 py-2.5 text-left font-semibold text-foreground">
-                    <div className="flex items-center justify-between gap-2">{c.nome}
-                      <button onClick={() => a.remove("estrategia_concorrentes", c.id)} className="text-muted-foreground hover:text-destructive" aria-label={`Remover ${c.nome}`}><Trash2 size={13} strokeWidth={1.6} /></button>
+    <div className="space-y-10">
+      <Block title="Matriz de concorrência" description="Critérios nas linhas, concorrentes nas colunas. Registre o que foi observado."
+        action={
+          <div className="flex gap-2">
+            <input value={nome} onChange={(e) => setNome(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder="Nome do concorrente" className={`${inputCls} h-8 w-44 py-1`} />
+            <button className={btnPrimary} onClick={add} disabled={!nome.trim() || busy}><Plus size={14} /> Adicionar</button>
+          </div>
+        }>
+        {cs.length ? (
+          <>
+            {/* Desktop */}
+            <div className="hidden overflow-x-auto rounded-lg border border-border bg-card md:block">
+              <table className="w-full border-separate border-spacing-0 text-[13px]">
+                <thead>
+                  <tr>
+                    <th className="sticky left-0 z-10 w-36 border-b border-r border-border bg-card px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Critério</th>
+                    {cs.map((c) => (
+                      <th key={c.id} className="min-w-[220px] border-b border-border px-3 py-2.5 text-left font-semibold text-foreground">
+                        <div className="flex items-center justify-between gap-2">{c.nome}
+                          <button onClick={() => a.remove("estrategia_concorrentes", c.id)} className="text-muted-foreground hover:text-destructive" aria-label={`Remover ${c.nome}`}><Trash2 size={13} strokeWidth={1.6} /></button>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {CONCORRENTE_CAMPOS.map((campo) => (
+                    <tr key={campo.key} className="align-top">
+                      <td className="sticky left-0 z-10 border-b border-r border-border bg-card px-3 py-2.5 font-medium text-muted-foreground">{campo.label}</td>
+                      {cs.map((c) => <td key={c.id} className="border-b border-border px-2 py-1.5"><Cell c={c} campo={campo.key} save={save(c, campo.key)} /></td>)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {/* Mobile */}
+            <div className="space-y-3 md:hidden">
+              <select aria-label="Concorrente" value={mob?.id} onChange={(e) => setSel(e.target.value)} className={inputCls}>
+                {cs.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+              </select>
+              {mob && (
+                <div key={mob.id} className="divide-y divide-border rounded-lg border border-border bg-card">
+                  {CONCORRENTE_CAMPOS.map((campo) => (
+                    <div key={campo.key} className="px-3 py-2.5">
+                      <div className="mb-1 text-xs font-medium text-muted-foreground">{campo.label}</div>
+                      <Cell c={mob} campo={campo.key} save={save(mob, campo.key)} />
                     </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {CONCORRENTE_CAMPOS.map((campo) => (
-                <tr key={campo.key} className="border-b border-border last:border-0 align-top">
-                  <td className="px-3 py-2 text-muted-foreground">{campo.label}</td>
-                  {data.concorrentes.map((c) => <Cell key={c.id} c={c} campo={campo.key} save={(v) => a.update("estrategia_concorrentes", c.id, { [campo.key]: v || null })} />)}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  ))}
+                  <div className="px-3 py-2.5 text-right">
+                    <button onClick={() => a.remove("estrategia_concorrentes", mob.id)} className="text-[13px] text-destructive hover:underline">Remover concorrente</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        ) : <Empty>Nenhum concorrente cadastrado.</Empty>}
+      </Block>
+
+      <Block title="Síntese competitiva" description="Conclusões a partir da matriz. Escreva apenas o que os dados mostram.">
+        <div className="max-w-3xl space-y-6">
+          {SINTESE_COMPETITIVA.map((s) => (
+            <AutoField key={s.key} label={s.label} hint={s.hint} initial={def(s.key)} rows={3}
+              onSave={async (v) => { await a.saveDefinicao(5, s.key, v); touch(); }} />
+          ))}
         </div>
-      ) : <Empty>Nenhum concorrente cadastrado.</Empty>}
-    </Block>
+      </Block>
+    </div>
   );
 }
 
@@ -53,9 +96,9 @@ function Cell({ c, campo, save }: { c: Concorrente; campo: string; save: (v: str
   const [v, setV] = useState(c[campo] ?? "");
   const st = useAutosave(v, save);
   return (
-    <td className="px-2 py-1.5">
-      <textarea rows={2} value={v} onChange={(e) => setV(e.target.value)} className="w-full resize-y rounded border border-transparent bg-transparent px-1.5 py-1 text-[13px] text-foreground hover:border-border focus:border-input focus:outline-none" />
+    <>
+      <textarea rows={2} value={v} onChange={(e) => setV(e.target.value)} placeholder="—" className="w-full resize-y rounded border border-transparent bg-transparent px-1.5 py-1 text-[13px] text-foreground placeholder:text-muted-foreground/60 hover:border-border focus:border-input focus:outline-none" />
       {st !== "idle" && st !== "saved" && <SaveState state={st} />}
-    </td>
+    </>
   );
 }
