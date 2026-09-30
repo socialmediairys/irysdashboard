@@ -1,5 +1,5 @@
-import { ChevronRight } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChevronRight, Download } from "lucide-react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { SECTIONS, STEPS, STATUS_LABEL, stepByN, strategyProgress, type EtapaStatus, type SectionKey } from "@/lib/strategy";
@@ -14,6 +14,7 @@ import { DiagnosisStep } from "./steps/DiagnosisStep";
 import { DefinitionStep } from "./steps/DefinitionStep";
 import { EditorialStep } from "./steps/EditorialStep";
 import { CalendarStep } from "./steps/CalendarStep";
+import { exportStrategyPdf } from "@/lib/strategy-pdf";
 
 export function StrategyWorkspace({ clienteId, clienteNome }: { clienteId: string; clienteNome: string }) {
   const { data, isLoading, error } = useStrategy(clienteId);
@@ -46,7 +47,10 @@ export function StrategyWorkspace({ clienteId, clienteNome }: { clienteId: strin
             {prog.last && ` · atualizado em ${new Date(prog.last).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}`}
           </div>
         </div>
-        <AiChip sugestoes={data.sugestoes} onDecide={(s, st) => void actions.update("estrategia_sugestoes_ia", s.id, { status: st })} />
+        <div className="flex items-center gap-2">
+          <button className={btn} onClick={() => exportStrategyPdf(clienteNome, data)}><Download size={14} /> Baixar estratégia em PDF</button>
+          <AiChip clienteId={clienteId} data={data} sugestoes={data.sugestoes} onGenerated={actions.refresh} onDecide={(s, st) => void actions.update("estrategia_sugestoes_ia", s.id, { status: st })} />
+        </div>
       </div>
 
       {/* Navegação simples: 5 áreas */}
@@ -85,7 +89,8 @@ export function StrategyWorkspace({ clienteId, clienteNome }: { clienteId: strin
           )}
 
           <StepHeader n={current.n} status={status}
-            onStatus={(s) => void actions.setStatus(current.n, s)} />
+            onStatus={(s) => void actions.setStatus(current.n, s)}
+            ai={<AiChip clienteId={clienteId} data={data} etapa={current.n} sugestoes={data.sugestoes} onGenerated={actions.refresh} onDecide={(s, st) => void actions.update("estrategia_sugestoes_ia", s.id, { status: st })} />} />
 
           <StepBody n={current.n} data={data} clienteId={clienteId} touch={() => void actions.touchStep(current.n, status)} />
 
@@ -102,7 +107,7 @@ export function StrategyWorkspace({ clienteId, clienteNome }: { clienteId: strin
   );
 }
 
-function StepHeader({ n, status, onStatus }: { n: number; status: EtapaStatus; onStatus: (s: EtapaStatus) => void }) {
+function StepHeader({ n, status, onStatus, ai }: { n: number; status: EtapaStatus; onStatus: (s: EtapaStatus) => void; ai?: ReactNode }) {
   const s = stepByN(n);
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
@@ -112,6 +117,7 @@ function StepHeader({ n, status, onStatus }: { n: number; status: EtapaStatus; o
         <p className="mt-1 max-w-2xl text-[13px] text-muted-foreground">{s.acao}</p>
       </div>
       <div className="flex items-center gap-2">
+        {ai}
         <EtapaBadge status={status} />
         <select aria-label="Status da etapa" value={status} onChange={(e) => onStatus(e.target.value as EtapaStatus)}
           className="h-8 rounded-md border border-border bg-card px-2 text-[13px] text-foreground">
