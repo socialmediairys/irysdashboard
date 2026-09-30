@@ -106,7 +106,10 @@ export function useStrategyActions(clienteId: string) {
 
   return {
     refresh, run, touchStep, setStatus,
-    insert: (t: string, row: Record<string, unknown>) => run(db(t).insert({ cliente_id: clienteId, ...row })),
+    /** Com `id` gerado no cliente o insert é idempotente: reenvio não cria segundo registro. */
+    insert: (t: string, row: Record<string, unknown>) => run(row.id
+      ? db(t).upsert({ cliente_id: clienteId, ...row }, { onConflict: "id", ignoreDuplicates: true })
+      : db(t).insert({ cliente_id: clienteId, ...row })),
     update: (t: string, id: string, patch: Record<string, unknown>) => run(db(t).update(patch).eq("id", id), true),
     remove: (t: string, id: string) => run(db(t).delete().eq("id", id)),
     link: (achado_id: string, evidencia_id: string, on: boolean) => run(on
