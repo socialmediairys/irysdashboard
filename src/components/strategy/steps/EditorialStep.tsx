@@ -5,6 +5,7 @@ import { JORNADA_OPCOES } from "@/lib/strategy";
 import type { StepProps } from "../StrategyWorkspace";
 import { Block, Empty, btn, btnGhost, inputCls } from "../ui";
 import { useStrategyActions, type Mensagem } from "../useStrategy";
+import { MethodArtifacts } from "./MethodArtifacts";
 
 const FORMATOS = ["Reels", "Carrossel", "Story", "Post", "Vídeo", "Live"];
 
@@ -20,9 +21,31 @@ export function EditorialStep({ data, clienteId, touch }: StepProps) {
   const addPilar = async (nome: string) => { if (!nome.trim()) return; await a.insert("editorial_pilares", { nome: nome.trim(), ordem: data.pilares.length }); setNovoPilar(""); touch(); };
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
+    <div className="space-y-8">
+      <MethodArtifacts etapa={12} data={data} clienteId={clienteId} substeps={[
+        { key: "inventario", title: "Inventário", question: "O que já foi aprovado na estratégia e precisa encontrar lugar no sistema editorial?", fields: [
+          { key: "e12_inventario", label: "Inventário editorial estratégico", hint: "Tese, argumentos, mensagens, objeções, provas e limites + função, prioridade e jornada.", rows: 8 },
+        ]},
+        { key: "temas", title: "Temas editoriais", question: "Quais grandes temas organizam a comunicação e qual função estratégica cada um cumpre?", fields: [
+          { key: "e12_temas", label: "Proposta de temas", hint: "Tema | o que reúne | argumento principal | crença enfrentada | função estratégica.", rows: 8 },
+        ]},
+        { key: "priorizacao", title: "Priorização", question: "Quais temas merecem mais presença no ciclo?", fields: [
+          { key: "e12_priorizacao", label: "Priorização editorial", hint: "Pontue Posicionamento, Gargalo, Decisão, Provas e Recorrência (0–2) e classifique a prioridade.", rows: 7 },
+        ]},
+        { key: "mensagens_provas", title: "Mensagens e provas", question: "Como mensagens, argumentos e provas se distribuem pelos temas?", fields: [
+          { key: "e12_mensagem_tema", label: "Mapa Mensagem → Tema", hint: "Mensagem | tipo | tema principal/secundário | argumento | prova | jornada.", rows: 7 },
+          { key: "e12_provas", label: "Banco de provas por tema", hint: "Quais provas existem e quais ainda precisam ser produzidas?", rows: 5 },
+        ]},
+        { key: "lacunas", title: "Lacunas", question: "Onde há redundância, tema sem prova, mensagem sem tema ou função descoberta?", fields: [
+          { key: "e12_lacunas", label: "Lacunas e sobreposições", hint: "Problema identificado + correção/produção recomendada.", rows: 7 },
+        ]},
+        { key: "consolidacao", title: "Consolidação", question: "Qual sistema editorial aprovado seguirá para o calendário?", fields: [
+          { key: "e12_consolidado", label: "Sistema editorial consolidado", hint: "Temas aprovados, função, prioridade, mensagens, argumentos, provas, jornada e limites.", rows: 9 },
+        ]},
+      ]} />
+      <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
       <aside className="space-y-3">
-        <div className="text-[13px] font-medium text-foreground">Pilares</div>
+        <div className="text-[13px] font-medium text-foreground">Grupos editoriais</div>
         <ul className="space-y-0.5">
           {data.pilares.map((p) => (
             <li key={p.id}>
@@ -34,23 +57,23 @@ export function EditorialStep({ data, clienteId, touch }: StepProps) {
           ))}
         </ul>
         <div className="flex gap-1">
-          <input value={novoPilar} onChange={(e) => setNovoPilar(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addPilar(novoPilar)} placeholder="Novo pilar" className={`${inputCls} h-8 py-1`} />
-          <button className={btn} onClick={() => addPilar(novoPilar)} aria-label="Adicionar pilar"><Plus size={14} /></button>
+          <input value={novoPilar} onChange={(e) => setNovoPilar(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addPilar(novoPilar)} placeholder="Novo grupo" className={`${inputCls} h-8 py-1`} />
+          <button className={btn} onClick={() => addPilar(novoPilar)} aria-label="Adicionar grupo"><Plus size={14} /></button>
         </div>
         {!data.pilares.length && legado.length > 0 && (
           <div className="rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">
-            Pilares da estratégia anterior: {legado.join(", ")}.
-            <button className="mt-2 block text-foreground underline" onClick={async () => { for (const [i, n] of legado.entries()) await a.insert("editorial_pilares", { nome: n, ordem: i }); touch(); }}>Importar como pilares</button>
+            Estrutura editorial anterior: {legado.join(", ")}.
+            <button className="mt-2 block text-foreground underline" onClick={async () => { for (const [i, n] of legado.entries()) await a.insert("editorial_pilares", { nome: n, ordem: i }); touch(); }}>Importar estrutura anterior</button>
           </div>
         )}
       </aside>
 
       <div className="min-w-0">
         {pilar ? (
-          <Block title={pilar.nome} description="Temas, mensagens e argumentos deste pilar"
+          <Block title={pilar.nome} description="Estrutura operacional existente: temas, mensagens, argumentos e provas. Use os artefatos acima para definir a lógica estratégica."
             action={<div className="flex gap-1">
               <AddInline label="Tema" onAdd={async (nome) => { await a.insert("editorial_temas", { pilar_id: pilar.id, nome }); touch(); }} />
-              <button className={btnGhost} onClick={() => a.remove("editorial_pilares", pilar.id)} aria-label="Excluir pilar"><Trash2 size={14} strokeWidth={1.6} /></button>
+              <button className={btnGhost} onClick={() => a.remove("editorial_pilares", pilar.id)} aria-label="Excluir grupo"><Trash2 size={14} strokeWidth={1.6} /></button>
             </div>}>
             {temas.length ? (
               <div className="space-y-6">
@@ -72,7 +95,8 @@ export function EditorialStep({ data, clienteId, touch }: StepProps) {
               </div>
             ) : <Empty>Adicione temas a este pilar.</Empty>}
           </Block>
-        ) : <Empty>Crie o primeiro pilar editorial.</Empty>}
+        ) : <Empty>Crie um grupo operacional para organizar os Temas Editoriais aprovados acima.</Empty>}
+      </div>
       </div>
     </div>
   );

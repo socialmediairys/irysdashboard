@@ -6,6 +6,7 @@ import { JORNADA_OPCOES } from "@/lib/strategy";
 import type { StepProps } from "../StrategyWorkspace";
 import { Block, Empty, btn, btnPrimary, inputCls } from "../ui";
 import { useStrategyActions } from "../useStrategy";
+import { MethodArtifacts } from "./MethodArtifacts";
 
 const CANAIS = ["Instagram", "TikTok", "YouTube", "LinkedIn", "Blog", "E-mail", "WhatsApp"];
 const FORMATOS = ["Reels", "Carrossel", "Story", "Post", "Vídeo", "Live"];
@@ -45,7 +46,24 @@ export function CalendarStep({ data, clienteId, touch }: StepProps) {
   };
 
   return (
-    <Block title="Calendário estratégico" description="Itens planejados. Cada item pode virar um conteúdo, mantendo os vínculos."
+    <div className="space-y-8">
+      <MethodArtifacts etapa={13} data={data} clienteId={clienteId} substeps={[
+        { key: "ciclo", title: "Ciclo estratégico", question: "Qual é a lógica de comunicação deste período antes de escolher publicações?", fields: [
+          { key: "e13_periodo_capacidade", label: "Período e capacidade", hint: "Ex.: 30 dias · 12 publicações principais.", rows: 2 },
+          { key: "e13_objetivo_ciclo", label: "Objetivo do ciclo", hint: "Transformação dominante que este ciclo deve favorecer.", rows: 3 },
+          { key: "e13_publico_jornada", label: "Público prioritário e jornada dominante", hint: "Quem é prioritário neste ciclo e em qual momento da jornada?", rows: 3 },
+          { key: "e13_crenca_mudanca", label: "Crença enfrentada → mudança esperada", hint: "De qual crença/comportamento para qual nova leitura/decisão?", rows: 4 },
+          { key: "e13_cta_principal", label: "CTA principal do ciclo", hint: "A ação coerente com o momento da jornada.", rows: 2 },
+        ]},
+        { key: "distribuicao", title: "Distribuição", question: "Quanto espaço cada Tema Editorial deve ocupar e por quê? A soma deve representar 100% do ciclo.", fields: [
+          { key: "e13_distribuicao", label: "Distribuição estratégica", hint: "Tema | participação % | nº de publicações | função. Valide total de 100%.", rows: 8 },
+          { key: "e13_ordem", label: "Lógica de sequência", hint: "Quais temas aparecem primeiro, quais se repetem e como a sequência conduz à ação?", rows: 5 },
+        ]},
+        { key: "validacao", title: "Validação", question: "O calendário respeita estratégia, provas, CTAs e capacidade real da equipe?", fields: [
+          { key: "e13_validacao", label: "Checklist do ciclo", hint: "Cobertura dos temas prioritários, mensagens, provas, limites, CTAs, capacidade e lacunas.", rows: 7 },
+        ]},
+      ]} />
+    <Block title="Publicações do calendário estratégico" description="Itens planejados. Cada item pode virar um conteúdo, mantendo os vínculos."
       action={
         <div className="flex items-center gap-2">
           <button className={btn} onClick={() => setMes(new Date(mes.getFullYear(), mes.getMonth() - 1, 1))} aria-label="Mês anterior"><ChevronLeft size={14} /></button>
@@ -56,13 +74,13 @@ export function CalendarStep({ data, clienteId, touch }: StepProps) {
       }>
       {adding && (
         <div className="mb-4 space-y-3 rounded-lg border border-border bg-card p-4">
-          {!data.pilares.length && <p className="text-xs text-muted-foreground">Dica: estruture o Sistema Editorial (etapa 12) para vincular pilar, tema e mensagem.</p>}
+          {!data.pilares.length && <p className="text-xs text-muted-foreground">Dica: consolide o Sistema Editorial (etapa 12) antes de transformar a distribuição estratégica em publicações.</p>}
           <div className="grid gap-2 sm:grid-cols-4">
             <input type="date" value={f.data} onChange={(e) => setF({ ...f, data: e.target.value })} className={sel} aria-label="Data" />
             <input value={f.titulo} onChange={(e) => setF({ ...f, titulo: e.target.value })} placeholder="Título (opcional)" className={`${sel} sm:col-span-3`} />
             <select value={f.canal} onChange={(e) => setF({ ...f, canal: e.target.value })} className={sel} aria-label="Canal">{CANAIS.map((c) => <option key={c}>{c}</option>)}</select>
             <select value={f.formato} onChange={(e) => setF({ ...f, formato: e.target.value })} className={sel} aria-label="Formato"><option value="">Formato</option>{FORMATOS.map((c) => <option key={c}>{c}</option>)}</select>
-            <select value={f.pilar_id} onChange={(e) => setF({ ...f, pilar_id: e.target.value, tema_id: "", mensagem_id: "", argumento_id: "" })} className={sel} aria-label="Pilar"><option value="">Pilar</option>{data.pilares.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}</select>
+            <select value={f.pilar_id} onChange={(e) => setF({ ...f, pilar_id: e.target.value, tema_id: "", mensagem_id: "", argumento_id: "" })} className={sel} aria-label="Grupo editorial"><option value="">Grupo editorial</option>{data.pilares.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}</select>
             <select value={f.tema_id} onChange={(e) => setF({ ...f, tema_id: e.target.value, mensagem_id: "", argumento_id: "" })} className={sel} aria-label="Tema"><option value="">Tema</option>{temas.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}</select>
             <select value={f.mensagem_id} onChange={(e) => onMsg(e.target.value)} className={`${sel} sm:col-span-2`} aria-label="Mensagem"><option value="">Mensagem</option>{msgs.map((p) => <option key={p.id} value={p.id}>{p.mensagem}</option>)}</select>
             <select value={f.argumento_id} onChange={(e) => setF({ ...f, argumento_id: e.target.value })} className={`${sel} sm:col-span-2`} aria-label="Argumento"><option value="">Argumento / prova</option>{args.map((p) => <option key={p.id} value={p.id}>{p.argumento}</option>)}</select>
@@ -80,7 +98,7 @@ export function CalendarStep({ data, clienteId, touch }: StepProps) {
         <div className="overflow-x-auto rounded-lg border border-border bg-card">
           <table className="w-full min-w-[720px] text-[13px]">
             <thead><tr className="border-b border-border text-left text-muted-foreground">
-              {["Data", "Canal · formato", "Pilar → tema", "Mensagem", "Jornada", "CTA", ""].map((h) => <th key={h} className="px-3 py-2.5 font-medium">{h}</th>)}
+              {["Data", "Canal · formato", "Grupo → tema", "Mensagem", "Jornada", "CTA", ""].map((h) => <th key={h} className="px-3 py-2.5 font-medium">{h}</th>)}
             </tr></thead>
             <tbody className="divide-y divide-border">
               {items.map((i) => (
@@ -99,5 +117,6 @@ export function CalendarStep({ data, clienteId, touch }: StepProps) {
         </div>
       ) : <Empty>Nenhum item planejado neste mês.</Empty>}
     </Block>
+    </div>
   );
 }
