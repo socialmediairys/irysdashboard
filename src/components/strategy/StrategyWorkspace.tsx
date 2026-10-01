@@ -107,6 +107,12 @@ export function StrategyWorkspace({ clienteId, clienteNome }: { clienteId: strin
   );
 }
 
+const PROMPTS_POR_ETAPA: Record<number, string> = {
+  4: "Prompt 1", 5: "Prompts 2–3", 6: "Prompts 4–7", 7: "Prompts 8–11",
+  8: "Prompts 12–15", 9: "Prompts 16–19", 10: "Prompts 20–24", 11: "Prompts 25–36",
+  12: "Prompts 37–41 e 43", 13: "Prompt 42",
+};
+
 function StepHeader({ n, status, onStatus, ai }: { n: number; status: EtapaStatus; onStatus: (s: EtapaStatus) => void; ai?: ReactNode }) {
   const s = stepByN(n);
   return (
@@ -115,6 +121,7 @@ function StepHeader({ n, status, onStatus, ai }: { n: number; status: EtapaStatu
         <div className="text-xs text-muted-foreground">Etapa {n} de 13</div>
         <h2 className="mt-0.5 text-xl font-semibold tracking-tight text-foreground">{s.titulo}</h2>
         <p className="mt-1 max-w-2xl text-[13px] text-muted-foreground">{s.acao}</p>
+        {PROMPTS_POR_ETAPA[n] && <div className="mt-2 inline-flex rounded-md border border-primary/20 bg-primary/5 px-2 py-1 text-xs font-medium text-primary">Aplicar {PROMPTS_POR_ETAPA[n]} do pacote QR</div>}
       </div>
       <div className="flex items-center gap-2">
         {ai}

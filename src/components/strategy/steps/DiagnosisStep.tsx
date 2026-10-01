@@ -33,17 +33,17 @@ export function DiagnosisStep({ data, clienteId, touch }: StepProps) {
   return (
     <div className="max-w-5xl space-y-8">
       <MethodArtifacts etapa={7} data={data} clienteId={clienteId} substeps={[
-        { key: "sintoma_causa", title: "Sintoma → Causa", question: "Quais sintomas observamos e quais causas podem explicá-los?", fields: [
+        { key: "sintoma_causa", prompt: "Prompt 8", title: "Sintoma → Causa", question: "Quais sintomas observamos e quais causas podem explicá-los?", fields: [
           { key: "e7_sintomas", label: "Sintomas observados", hint: "Sintomas concretos sustentados pelas evidências.", rows: 5 },
           { key: "e7_causas", label: "Causas possíveis", hint: "Causas prováveis, evidências e o que ainda falta saber.", rows: 5 },
         ]},
-        { key: "validacao", title: "Validação das hipóteses", question: "O que cada hipótese explica e o que a contradiz?", fields: [
+        { key: "validacao", prompt: "Prompt 9", title: "Validação das hipóteses", question: "O que cada hipótese explica e o que a contradiz?", fields: [
           { key: "e7_validacao", label: "Matriz de validação", hint: "Hipótese | explica | evidência favorável | evidência contrária | lacuna | resultado (mantida/em aberto/descartada).", rows: 8 },
         ]},
-        { key: "priorizacao", title: "Priorização dos gargalos", question: "Qual gargalo deve receber prioridade estratégica?", fields: [
+        { key: "priorizacao", prompt: "Prompt 10", title: "Priorização dos gargalos", question: "Qual gargalo deve receber prioridade estratégica?", fields: [
           { key: "e7_priorizacao", label: "Matriz de priorização", hint: "Avalie candidatos por Impacto, Abrangência, Evidência, Frequência, Dependência, Influência e Urgência (0–3 cada; máximo 21).", rows: 8 },
         ]},
-        { key: "veredito", title: "Veredito estratégico", question: "Qual é o problema estratégico que deve orientar a próxima decisão?", fields: [
+        { key: "veredito", prompt: "Prompt 11", title: "Veredito estratégico", question: "Qual é o problema estratégico que deve orientar a próxima decisão?", fields: [
           { key: "e7_problema_estrategico", label: "Problema estratégico", hint: "Formule o problema central em uma frase clara.", rows: 4 },
           { key: "e7_veredito", label: "Veredito", hint: "Objetivo inicial, resultado atual, gargalo prioritário, causas, evidências, hipóteses descartadas e lacunas.", rows: 7 },
         ]},

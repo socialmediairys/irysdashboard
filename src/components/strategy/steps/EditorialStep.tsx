@@ -6,6 +6,7 @@ import type { StepProps } from "../StrategyWorkspace";
 import { Block, Empty, btn, btnGhost, inputCls } from "../ui";
 import { useStrategyActions, type Mensagem } from "../useStrategy";
 import { MethodArtifacts } from "./MethodArtifacts";
+import { StrategyContext } from "../StrategyContext";
 
 const FORMATOS = ["Reels", "Carrossel", "Story", "Post", "Vídeo", "Live"];
 
@@ -22,24 +23,25 @@ export function EditorialStep({ data, clienteId, touch }: StepProps) {
 
   return (
     <div className="space-y-8">
+      <StrategyContext data={data} etapa={12} />
       <MethodArtifacts etapa={12} data={data} clienteId={clienteId} substeps={[
-        { key: "inventario", title: "Inventário", question: "O que já foi aprovado na estratégia e precisa encontrar lugar no sistema editorial?", fields: [
+        { key: "inventario", prompt: "Prompt 37 (arquivos 38–40 repetem)", title: "Inventário", question: "O que já foi aprovado na estratégia e precisa encontrar lugar no sistema editorial?", fields: [
           { key: "e12_inventario", label: "Inventário editorial estratégico", hint: "Tese, argumentos, mensagens, objeções, provas e limites + função, prioridade e jornada.", rows: 8 },
         ]},
-        { key: "temas", title: "Temas editoriais", question: "Quais grandes temas organizam a comunicação e qual função estratégica cada um cumpre?", fields: [
+        { key: "temas", prompt: "Prompt 37 (arquivos 38–40 repetem)", title: "Temas editoriais", question: "Quais grandes temas organizam a comunicação e qual função estratégica cada um cumpre?", fields: [
           { key: "e12_temas", label: "Proposta de temas", hint: "Tema | o que reúne | argumento principal | crença enfrentada | função estratégica.", rows: 8 },
         ]},
-        { key: "priorizacao", title: "Priorização", question: "Quais temas merecem mais presença no ciclo?", fields: [
+        { key: "priorizacao", prompt: "Prompt 37 (arquivos 38–40 repetem)", title: "Priorização", question: "Quais temas merecem mais presença no ciclo?", fields: [
           { key: "e12_priorizacao", label: "Priorização editorial", hint: "Pontue Posicionamento, Gargalo, Decisão, Provas e Recorrência (0–2) e classifique a prioridade.", rows: 7 },
         ]},
-        { key: "mensagens_provas", title: "Mensagens e provas", question: "Como mensagens, argumentos e provas se distribuem pelos temas?", fields: [
+        { key: "mensagens_provas", prompt: "Prompt 37 (arquivos 38–40 repetem)", title: "Mensagens e provas", question: "Como mensagens, argumentos e provas se distribuem pelos temas?", fields: [
           { key: "e12_mensagem_tema", label: "Mapa Mensagem → Tema", hint: "Mensagem | tipo | tema principal/secundário | argumento | prova | jornada.", rows: 7 },
           { key: "e12_provas", label: "Banco de provas por tema", hint: "Quais provas existem e quais ainda precisam ser produzidas?", rows: 5 },
         ]},
-        { key: "lacunas", title: "Lacunas", question: "Onde há redundância, tema sem prova, mensagem sem tema ou função descoberta?", fields: [
+        { key: "lacunas", prompt: "Prompt 37 (arquivos 38–40 repetem)", title: "Lacunas", question: "Onde há redundância, tema sem prova, mensagem sem tema ou função descoberta?", fields: [
           { key: "e12_lacunas", label: "Lacunas e sobreposições", hint: "Problema identificado + correção/produção recomendada.", rows: 7 },
         ]},
-        { key: "consolidacao", title: "Consolidação", question: "Qual sistema editorial aprovado seguirá para o calendário?", fields: [
+        { key: "consolidacao", prompt: "Prompt 41 (arquivo 43 repete)", title: "Consolidação", question: "Qual sistema editorial aprovado seguirá para o calendário?", fields: [
           { key: "e12_consolidado", label: "Sistema editorial consolidado", hint: "Temas aprovados, função, prioridade, mensagens, argumentos, provas, jornada e limites.", rows: 9 },
         ]},
       ]} />

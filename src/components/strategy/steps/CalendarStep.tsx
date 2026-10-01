@@ -7,6 +7,7 @@ import type { StepProps } from "../StrategyWorkspace";
 import { Block, Empty, btn, btnPrimary, inputCls } from "../ui";
 import { useStrategyActions } from "../useStrategy";
 import { MethodArtifacts } from "./MethodArtifacts";
+import { StrategyContext } from "../StrategyContext";
 
 const CANAIS = ["Instagram", "TikTok", "YouTube", "LinkedIn", "Blog", "E-mail", "WhatsApp"];
 const FORMATOS = ["Reels", "Carrossel", "Story", "Post", "Vídeo", "Live"];
@@ -47,19 +48,20 @@ export function CalendarStep({ data, clienteId, touch }: StepProps) {
 
   return (
     <div className="space-y-8">
+      <StrategyContext data={data} etapa={13} />
       <MethodArtifacts etapa={13} data={data} clienteId={clienteId} substeps={[
-        { key: "ciclo", title: "Ciclo estratégico", question: "Qual é a lógica de comunicação deste período antes de escolher publicações?", fields: [
+        { key: "ciclo", prompt: "Prompt 42", title: "Ciclo estratégico", question: "Qual é a lógica de comunicação deste período antes de escolher publicações?", fields: [
           { key: "e13_periodo_capacidade", label: "Período e capacidade", hint: "Ex.: 30 dias · 12 publicações principais.", rows: 2 },
           { key: "e13_objetivo_ciclo", label: "Objetivo do ciclo", hint: "Transformação dominante que este ciclo deve favorecer.", rows: 3 },
           { key: "e13_publico_jornada", label: "Público prioritário e jornada dominante", hint: "Quem é prioritário neste ciclo e em qual momento da jornada?", rows: 3 },
           { key: "e13_crenca_mudanca", label: "Crença enfrentada → mudança esperada", hint: "De qual crença/comportamento para qual nova leitura/decisão?", rows: 4 },
           { key: "e13_cta_principal", label: "CTA principal do ciclo", hint: "A ação coerente com o momento da jornada.", rows: 2 },
         ]},
-        { key: "distribuicao", title: "Distribuição", question: "Quanto espaço cada Tema Editorial deve ocupar e por quê? A soma deve representar 100% do ciclo.", fields: [
+        { key: "distribuicao", prompt: "Prompt 42", title: "Distribuição", question: "Quanto espaço cada Tema Editorial deve ocupar e por quê? A soma deve representar 100% do ciclo.", fields: [
           { key: "e13_distribuicao", label: "Distribuição estratégica", hint: "Tema | participação % | nº de publicações | função. Valide total de 100%.", rows: 8 },
           { key: "e13_ordem", label: "Lógica de sequência", hint: "Quais temas aparecem primeiro, quais se repetem e como a sequência conduz à ação?", rows: 5 },
         ]},
-        { key: "validacao", title: "Validação", question: "O calendário respeita estratégia, provas, CTAs e capacidade real da equipe?", fields: [
+        { key: "validacao", prompt: "Prompt 42", title: "Validação", question: "O calendário respeita estratégia, provas, CTAs e capacidade real da equipe?", fields: [
           { key: "e13_validacao", label: "Checklist do ciclo", hint: "Cobertura dos temas prioritários, mensagens, provas, limites, CTAs, capacidade e lacunas.", rows: 7 },
         ]},
       ]} />

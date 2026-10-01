@@ -73,19 +73,19 @@ export function EvidenceRepository({ data, clienteId, touch }: StepProps) {
   return (
     <div className="space-y-8">
       <MethodArtifacts etapa={6} data={data} clienteId={clienteId} substeps={[
-        { key: "banco", title: "Banco", question: "Quais evidências confiáveis temos antes de interpretar?", fields: [
+        { key: "banco", prompt: "Prompt 4", title: "Banco", question: "Quais evidências confiáveis temos antes de interpretar?", fields: [
           { key: "e6_banco_sintese", label: "Síntese do banco", hint: "Principais evidências, cobertura e qualidade do material.", rows: 4 },
           { key: "e6_lacunas", label: "Lacunas de evidência", hint: "O que ainda precisa ser investigado?", rows: 4 },
         ]},
-        { key: "convergencias", title: "Convergências e contradições", question: "O que se repete, se reforça ou entra em conflito entre as fontes?", fields: [
+        { key: "convergencias", prompt: "Prompt 5", title: "Convergências e contradições", question: "O que se repete, se reforça ou entra em conflito entre as fontes?", fields: [
           { key: "e6_convergencias", label: "Convergências", hint: "Padrões sustentados por múltiplas evidências.", rows: 5 },
           { key: "e6_contradicoes", label: "Contradições", hint: "Evidências que apontam em direções diferentes e precisam ser explicadas.", rows: 5 },
         ]},
-        { key: "hipoteses", title: "Hipóteses", question: "Quais explicações estratégicas emergem das evidências, sem tratá-las ainda como fatos?", fields: [
+        { key: "hipoteses", prompt: "Prompt 6", title: "Hipóteses", question: "Quais explicações estratégicas emergem das evidências, sem tratá-las ainda como fatos?", fields: [
           { key: "e6_hipoteses", label: "Hipóteses estratégicas", hint: "Hipótese + evidências favoráveis/contrárias + força percebida.", rows: 6 },
           { key: "e6_hipoteses_prioridade", label: "Hipóteses prioritárias", hint: "Quais merecem seguir para validação no diagnóstico?", rows: 4 },
         ]},
-        { key: "painel", title: "Painel final", question: "Qual é a leitura consolidada que deve alimentar o diagnóstico?", fields: [
+        { key: "painel", prompt: "Prompt 7", title: "Painel final", question: "Qual é a leitura consolidada que deve alimentar o diagnóstico?", fields: [
           { key: "e6_painel", label: "Painel de evidências estratégicas", hint: "Temas, evidências mais fortes, confiança, contradições, hipóteses e lacunas.", rows: 8 },
         ]},
       ]} />

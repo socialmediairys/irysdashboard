@@ -7,6 +7,7 @@ export type MethodSubstep = {
   key: string;
   title: string;
   question: string;
+  prompt?: string;
   fields: { key: string; label: string; hint?: string; rows?: number }[];
 };
 
@@ -28,7 +29,7 @@ export function MethodArtifacts({ etapa, data, clienteId, substeps }: { etapa: n
       </div>
       <div className="space-y-4 p-4">
         <div>
-          <h4 className="text-sm font-semibold text-foreground">{current.title}</h4>
+          <div className="flex flex-wrap items-center gap-2"><h4 className="text-sm font-semibold text-foreground">{current.title}</h4>{current.prompt && <span className="rounded border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-[11px] font-medium text-primary">{current.prompt}</span>}</div>
           <p className="mt-0.5 text-[13px] text-muted-foreground">{current.question}</p>
         </div>
         <div className="grid gap-4 md:grid-cols-2">

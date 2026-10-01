@@ -32,17 +32,17 @@ const RESEARCH_ARTIFACTS: Record<number, MethodSubstep[]> = {
     ]},
   ],
   4: [
-    { key: "recorte", title: "Recorte da Pesquisa", question: "Qual mercado estamos realmente observando?", fields: [
+    { key: "recorte", prompt: "Prompt 1", title: "Recorte da Pesquisa", question: "Qual mercado estamos realmente observando?", fields: [
       { key: "r4_categoria", label: "Categoria" }, { key: "r4_geografia", label: "Geografia" },
       { key: "r4_faixa_preco", label: "Faixa de preço" }, { key: "r4_publico_observado", label: "Público observado" },
       { key: "r4_horizonte", label: "Horizonte da análise" },
     ]},
-    { key: "mapa", title: "Mapa do Mercado", question: "O que mudou na demanda, comportamento, oferta e comunicação?", fields: [
+    { key: "mapa", prompt: "Prompt 1", title: "Mapa do Mercado", question: "O que mudou na demanda, comportamento, oferta e comunicação?", fields: [
       { key: "r4_demanda", label: "Demanda", rows: 4 }, { key: "r4_comportamento", label: "Comportamento", rows: 4 },
       { key: "r4_oferta", label: "Oferta", rows: 4 }, { key: "r4_comunicacao", label: "Comunicação", rows: 4 },
       { key: "r4_mudancas", label: "Mudanças relevantes", hint: "Tecnologia, cultura, economia ou regulação.", rows: 4 },
     ]},
-    { key: "relatorio", title: "Síntese de Mercado", question: "Quais movimentos realmente afetam a estratégia?", fields: [
+    { key: "relatorio", prompt: "Prompt 1", title: "Síntese de Mercado", question: "Quais movimentos realmente afetam a estratégia?", fields: [
       { key: "r4_resumo", label: "Resumo executivo", rows: 4 }, { key: "r4_tendencias", label: "Tendências / movimentos", rows: 4 },
       { key: "r4_oportunidades", label: "Oportunidades", rows: 4 }, { key: "r4_riscos", label: "Riscos", rows: 4 },
       { key: "r4_perguntas_concorrencia", label: "Perguntas para a análise da concorrência", rows: 4 },
