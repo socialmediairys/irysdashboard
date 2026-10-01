@@ -11,7 +11,7 @@ import { ResearchStep } from "./steps/ResearchStep";
 import { CompetitorsStep } from "./steps/CompetitorsStep";
 import { EvidenceRepository } from "./steps/EvidenceRepository";
 import { DiagnosisStep } from "./steps/DiagnosisStep";
-import { DefinitionStep } from "./steps/DefinitionStep";
+import { MethodDefinitionStep } from "./steps/MethodDefinitionStep";
 import { EditorialStep } from "./steps/EditorialStep";
 import { CalendarStep } from "./steps/CalendarStep";
 import { exportStrategyPdf } from "@/lib/strategy-pdf";
@@ -139,7 +139,7 @@ function StepBody({ n, data, clienteId, touch }: { n: number; data: StrategyData
     case "concorrencia": return <CompetitorsStep {...p} />;
     case "evidencias": return <EvidenceRepository {...p} />;
     case "diagnostico": return <DiagnosisStep {...p} />;
-    case "definicao": return <DefinitionStep key={n} etapa={n} {...p} />;
+    case "definicao": return <MethodDefinitionStep key={n} etapa={n} {...p} />;
     case "editorial": return <EditorialStep {...p} />;
     case "calendario": return <CalendarStep {...p} />;
   }

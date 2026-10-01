@@ -14,14 +14,14 @@ export const STEPS: StepDef[] = [
   { n: 2, titulo: "Pesquisa da Empresa", macro: "investigar", section: "pesquisa", kind: "fontes", acao: "Mapear fontes da empresa e registrar evidências observadas.", porque: "Entender como a empresa se apresenta hoje, a partir de fontes reais, e não da percepção interna." },
   { n: 3, titulo: "Pesquisa do Consumidor", macro: "investigar", section: "pesquisa", kind: "consumidor", acao: "Coletar a voz do cliente: dores, desejos, objeções e linguagem.", porque: "Ouvir o cliente com as palavras dele: dores, desejos, objeções e linguagem." },
   { n: 4, titulo: "Pesquisa de Mercado", macro: "investigar", section: "pesquisa", kind: "mercado", acao: "Registrar contexto, tendências, oportunidades e ameaças com fonte.", porque: "Situar a marca no contexto: tendências, oportunidades e ameaças com fonte verificável." },
-  { n: 5, titulo: "Pesquisa da Concorrência", macro: "investigar", section: "pesquisa", kind: "concorrencia", acao: "Cadastrar concorrentes e comparar posicionamento e oferta.", porque: "Comparar lado a lado para encontrar padrões, saturação e espaços livres." },
+  { n: 5, titulo: "Engenharia Reversa da Concorrência", macro: "investigar", section: "pesquisa", kind: "concorrencia", acao: "Cadastrar concorrentes e comparar posicionamento e oferta.", porque: "Comparar lado a lado para encontrar padrões, saturação e espaços livres." },
   { n: 6, titulo: "Organização das Evidências", macro: "diagnosticar", section: "diagnostico", kind: "evidencias", acao: "Revisar e categorizar todas as evidências coletadas.", porque: "Ver o conjunto das evidências e começar a enxergar padrões antes de interpretar." },
   { n: 7, titulo: "Diagnóstico e Gargalo", macro: "diagnosticar", section: "diagnostico", kind: "diagnostico", acao: "Identificar padrões, formular hipóteses e definir o gargalo principal.", porque: "Transformar evidências em raciocínio: padrões, hipóteses, o gargalo principal e a decisão." },
   { n: 8, titulo: "Objetivo Estratégico", macro: "definir", section: "direcionamento", kind: "definicao", acao: "Definir objetivo, mudança desejada e critério de sucesso.", porque: "Definir aonde queremos chegar diante do gargalo identificado." },
-  { n: 9, titulo: "Público-Alvo", macro: "definir", section: "direcionamento", kind: "definicao", acao: "Descrever segmentos, dores, desejos e jornada.", porque: "Deixar claro para quem a estratégia fala e o que essa pessoa vive." },
+  { n: 9, titulo: "Público Prioritário", macro: "definir", section: "direcionamento", kind: "definicao", acao: "Comparar segmentos e escolher o público com maior potencial estratégico.", porque: "Priorizar quem tem maior potencial para a transformação definida no objetivo estratégico." },
   { n: 10, titulo: "Posicionamento", macro: "definir", section: "direcionamento", kind: "definicao", acao: "Definir território, diferenciação, promessa e provas.", porque: "Escolher o espaço que a marca vai ocupar e por que acreditariam nela." },
-  { n: 11, titulo: "Narrativa da Marca", macro: "definir", section: "direcionamento", kind: "definicao", acao: "Definir mensagens centrais, argumentos e limites de comunicação.", porque: "Traduzir o posicionamento em mensagens, argumentos e limites de comunicação." },
-  { n: 12, titulo: "Sistema Editorial", macro: "executar", section: "editorial", kind: "editorial", acao: "Estruturar pilares, temas, mensagens e argumentos.", porque: "Organizar o que será comunicado em pilares, temas, mensagens e provas." },
+  { n: 11, titulo: "Narrativa e Mensagens", macro: "definir", section: "direcionamento", kind: "definicao", acao: "Construir crenças, tese, argumentos, provas, objeções e mensagens por jornada.", porque: "Transformar posicionamento em uma arquitetura de crenças, argumentos, provas e mensagens que muda critérios de decisão." },
+  { n: 12, titulo: "Sistema Editorial", macro: "executar", section: "editorial", kind: "editorial", acao: "Organizar o inventário estratégico em temas editoriais, funções, prioridades, mensagens e provas.", porque: "Dar função e prioridade aos grandes temas antes de transformá-los em publicações." },
   { n: 13, titulo: "Calendário Estratégico", macro: "executar", section: "editorial", kind: "calendario", acao: "Planejar itens por data ligados ao sistema editorial.", porque: "Levar o sistema editorial para datas concretas, sem perder a ligação com a estratégia." },
 ];
 
@@ -39,7 +39,7 @@ export const SECTIONS: { key: SectionKey; label: string }[] = [
   { key: "pesquisa", label: "Pesquisa" },
   { key: "diagnostico", label: "Diagnóstico" },
   { key: "direcionamento", label: "Direcionamento" },
-  { key: "editorial", label: "Plano editorial" },
+  { key: "editorial", label: "Sistema editorial" },
 ];
 
 export const STATUS_LABEL: Record<EtapaStatus, string> = {
