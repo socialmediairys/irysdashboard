@@ -3,7 +3,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { SECTIONS, STEPS, STATUS_LABEL, stepByN, strategyProgress, type EtapaStatus, type SectionKey } from "@/lib/strategy";
-import { AiChip, EtapaBadge, btn, btnPrimary } from "./ui";
+import { AiChip, btn, btnPrimary } from "./ui";
 import { useStrategy, useStrategyActions, type StrategyData } from "./useStrategy";
 import { StrategyOverview } from "./StrategyOverview";
 import { BriefingStep } from "./steps/BriefingStep";
@@ -125,7 +125,6 @@ function StepHeader({ n, status, onStatus, ai }: { n: number; status: EtapaStatu
       </div>
       <div className="flex items-center gap-2">
         {ai}
-        <EtapaBadge status={status} />
         <select aria-label="Status da etapa" value={status} onChange={(e) => onStatus(e.target.value as EtapaStatus)}
           className="h-8 rounded-md border border-border bg-card px-2 text-[13px] text-foreground">
           {(Object.keys(STATUS_LABEL) as EtapaStatus[]).map((k) => <option key={k} value={k}>{STATUS_LABEL[k]}</option>)}

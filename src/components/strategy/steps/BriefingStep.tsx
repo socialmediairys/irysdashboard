@@ -25,13 +25,13 @@ export function BriefingStep({ data, clienteId, touch }: StepProps) {
       <div className="grid gap-8 lg:grid-cols-[220px_1fr]">
       <aside className="space-y-6">
         <div>
-          <div className="text-[13px] text-muted-foreground">Briefing Score</div>
+          <div className="text-[13px] text-muted-foreground">Cobertura do briefing</div>
           {sc.avaliadas === 0 ? (
             <p className="mt-1 text-[13px] text-muted-foreground">Sem avaliação ainda. Marque cada informação como completa, incompleta ou desconhecida.</p>
           ) : (
             <>
               <div className="mt-1 text-2xl font-semibold text-foreground">{sc.completas}<span className="text-base font-normal text-muted-foreground"> / {sc.total}</span></div>
-              <div className="text-xs text-muted-foreground">informações completas · {sc.incompletas} incompletas · {sc.desconhecidas} desconhecidas</div>
+              <div className="text-xs text-muted-foreground">informações completas · {sc.incompletas} incompletas · {sc.desconhecidas} desconhecidas. O Briefing Score metodológico está abaixo.</div>
             </>
           )}
         </div>
@@ -79,11 +79,6 @@ export function BriefingStep({ data, clienteId, touch }: StepProps) {
       </div>
 
       <MethodArtifacts etapa={1} data={data} clienteId={clienteId} substeps={[
-        { key: "mapa_negocio", title: "Mapa do Negócio", question: "O que ainda não entendemos e pode mudar a estratégia?", fields: [
-          { key: "b1_objetivo_negocio", label: "Objetivo do negócio", hint: "O que precisa mudar, meta e prazo." },
-          { key: "b1_como_ganha_dinheiro", label: "Como a empresa ganha dinheiro", hint: "Produto principal, mais lucrativo, ticket e forma de venda." },
-          { key: "b1_informacoes_desconhecidas", label: "Informações que podem mudar a estratégia e ainda não sabemos", rows: 4 },
-        ]},
         { key: "qualidade", title: "Briefing Score", question: "Avalie a qualidade do briefing; não é percentual de preenchimento.", fields: [
           { key: "b1_score_clareza", label: "Clareza (0–5)", hint: "Quão específicas são as respostas?" },
           { key: "b1_score_evidencia", label: "Evidência (0–5)", hint: "Há dados, pesquisa ou prova por trás?" },

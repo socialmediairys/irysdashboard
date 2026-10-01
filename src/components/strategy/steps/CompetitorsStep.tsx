@@ -24,7 +24,7 @@ export function CompetitorsStep({ data, clienteId, touch }: StepProps) {
 
   return (
     <div className="space-y-10">
-      <Block title="Matriz de concorrência" description="Critérios nas linhas, concorrentes nas colunas. Registre o que foi observado."
+      <Block title="Matriz comparativa de apoio" description="Visão comparativa das referências. A Engenharia Reversa e sua auditoria, abaixo, são os artefatos metodológicos principais."
         action={
           <div className="flex gap-2">
             <input value={nome} onChange={(e) => setNome(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} placeholder="Nome do concorrente" className={`${inputCls} h-8 w-44 py-1`} />
