@@ -4,6 +4,7 @@ import { CONCORRENTE_CAMPOS, SINTESE_COMPETITIVA } from "@/lib/strategy";
 import type { StepProps } from "../StrategyWorkspace";
 import { AutoField, Block, Empty, SaveState, btnPrimary, inputCls } from "../ui";
 import { useAutosave, useStrategyActions, type Concorrente } from "../useStrategy";
+import { MethodArtifacts } from "./MethodArtifacts";
 
 /** Matriz comparativa: critérios nas linhas, concorrentes nas colunas. Mobile: um concorrente por vez. */
 export function CompetitorsStep({ data, clienteId, touch }: StepProps) {
@@ -88,6 +89,25 @@ export function CompetitorsStep({ data, clienteId, touch }: StepProps) {
           ))}
         </div>
       </Block>
+
+
+      <MethodArtifacts etapa={5} data={data} clienteId={clienteId} substeps={[
+        { key: "selecao", title: "Seleção das Referências", question: "Por que cada empresa entrou na análise e o que queremos aprender com ela?", fields: [
+          { key: "c5_selecao", label: "Empresa × tipo × motivo × aprendizado", hint: "Classifique como concorrente direto, concorrente aspiracional ou referência de mecanismo.", rows: 6 },
+          { key: "c5_amostra", label: "Amostra e fontes públicas", hint: "Registre posts, reviews, site, anúncios, oferta/preços públicos e jornada aparente analisados.", rows: 4 },
+        ]},
+        { key: "engenharia", title: "Engenharia Reversa", question: "Qual sistema existe por trás da comunicação de cada referência?", fields: [
+          { key: "c5_atrai", label: "Atrai", hint: "Como chama atenção e gera entrada?", rows: 4 },
+          { key: "c5_convence", label: "Convence", hint: "Como constrói confiança e muda critérios?", rows: 4 },
+          { key: "c5_vende", label: "Vende", hint: "Oferta, CTA e caminho aparente de conversão.", rows: 4 },
+          { key: "c5_retem", label: "Retém", hint: "Como sustenta relacionamento/continuidade quando observável.", rows: 4 },
+        ]},
+        { key: "auditoria", title: "Auditoria da Análise", question: "Separe observação pública de interpretação e marque o que não está confirmado.", fields: [
+          { key: "c5_observacoes", label: "Observações sustentadas pelas fontes", rows: 5 },
+          { key: "c5_interpretacoes", label: "Interpretações / hipóteses", rows: 5 },
+          { key: "c5_nao_confirmado", label: "Não confirmado / lacunas", rows: 4 },
+        ]},
+      ]} />
     </div>
   );
 }

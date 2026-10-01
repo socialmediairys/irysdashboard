@@ -7,11 +7,47 @@ import { Block, Empty, btn, btnPrimary, inputCls } from "../ui";
 import { useStrategyActions, type Evidencia, type Fonte } from "../useStrategy";
 import { EvidenceSheet, draftToRow } from "./EvidenceSheet";
 import { EvidenceRow, fmtDate } from "./EvidenceRow";
+import { MethodArtifacts, type MethodSubstep } from "./MethodArtifacts";
 
 const COPY: Record<number, { fontes: string; evid: string }> = {
   2: { fontes: "De onde vem a informação: site, Instagram, Google Business, documentos.", evid: "O que aprendemos com essas fontes." },
   3: { fontes: "Entrevistas, formulários, avaliações, comentários, WhatsApp, DMs.", evid: "A voz do cliente, com as palavras dele." },
   4: { fontes: "Relatórios, links e pesquisas com fonte verificável.", evid: "Contexto, tendências, oportunidades e ameaças. Nada sem fonte." },
+};
+
+const RESEARCH_ARTIFACTS: Record<number, MethodSubstep[]> = {
+  2: [
+    { key: "painel", title: "Painel de Investigação", question: "O que cada fonte interna revela sobre a empresa?", fields: [
+      { key: "r2_fontes_auditar", label: "Fontes auditadas / a auditar", hint: "Instagram, site, Google Business, Comercial, CRM, Financeiro, Meta Ads, Atendimento, WhatsApp, Produtos.", rows: 4 },
+      { key: "r2_o_que_investigar", label: "O que investigar", rows: 4 },
+      { key: "r2_hipoteses", label: "Hipóteses estratégicas", hint: "Interpretações provisórias; não trate como fato.", rows: 4 },
+      { key: "r2_proximos_passos", label: "Próximos passos", rows: 4 },
+    ]},
+  ],
+  3: [
+    { key: "voz", title: "Mapa da Voz do Cliente", question: "O que clientes reais dizem, sentem e usam como critério de decisão?", fields: [
+      { key: "r3_dores", label: "Dores", rows: 4 }, { key: "r3_desejos", label: "Desejos", rows: 4 },
+      { key: "r3_objecoes", label: "Objeções", rows: 4 }, { key: "r3_confianca", label: "Gatilhos de confiança", rows: 4 },
+      { key: "r3_linguagem", label: "Linguagem real do cliente", hint: "Palavras e expressões encontradas nas fontes, sem reescrever como linguagem de marketing.", rows: 5 },
+    ]},
+  ],
+  4: [
+    { key: "recorte", title: "Recorte da Pesquisa", question: "Qual mercado estamos realmente observando?", fields: [
+      { key: "r4_categoria", label: "Categoria" }, { key: "r4_geografia", label: "Geografia" },
+      { key: "r4_faixa_preco", label: "Faixa de preço" }, { key: "r4_publico_observado", label: "Público observado" },
+      { key: "r4_horizonte", label: "Horizonte da análise" },
+    ]},
+    { key: "mapa", title: "Mapa do Mercado", question: "O que mudou na demanda, comportamento, oferta e comunicação?", fields: [
+      { key: "r4_demanda", label: "Demanda", rows: 4 }, { key: "r4_comportamento", label: "Comportamento", rows: 4 },
+      { key: "r4_oferta", label: "Oferta", rows: 4 }, { key: "r4_comunicacao", label: "Comunicação", rows: 4 },
+      { key: "r4_mudancas", label: "Mudanças relevantes", hint: "Tecnologia, cultura, economia ou regulação.", rows: 4 },
+    ]},
+    { key: "relatorio", title: "Síntese de Mercado", question: "Quais movimentos realmente afetam a estratégia?", fields: [
+      { key: "r4_resumo", label: "Resumo executivo", rows: 4 }, { key: "r4_tendencias", label: "Tendências / movimentos", rows: 4 },
+      { key: "r4_oportunidades", label: "Oportunidades", rows: 4 }, { key: "r4_riscos", label: "Riscos", rows: 4 },
+      { key: "r4_perguntas_concorrencia", label: "Perguntas para a análise da concorrência", rows: 4 },
+    ]},
+  ],
 };
 
 const host = (u: string | null) => { if (!u) return null; try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return u.slice(0, 40); } };
@@ -28,7 +64,10 @@ export function ResearchStep({ etapa, data, clienteId, touch }: StepProps & { et
   const nEv = (id: string) => data.evidencias.filter((e) => e.fonte_id === id).length;
   const newEv = (fonteId: string | null) => { setPresetFonte(fonteId); setEditEv(null); setEvOpen(true); };
 
+  const artifacts = RESEARCH_ARTIFACTS[etapa] ?? [];
+
   return (
+    <div className="space-y-8">
     <div className="grid gap-10 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
       <Block title="Fontes" description={COPY[etapa].fontes}
         action={<button className={btn} onClick={() => { setEditFonte(null); setFonteOpen(true); }}><Plus size={14} /> Fonte</button>}>
@@ -57,6 +96,10 @@ export function ResearchStep({ etapa, data, clienteId, touch }: StepProps & { et
           </div>
         ) : <Empty>Nenhuma evidência registrada nesta etapa.</Empty>}
       </Block>
+
+    </div>
+
+      {artifacts.length > 0 && <MethodArtifacts etapa={etapa} data={data} clienteId={clienteId} substeps={artifacts} />}
 
       <FonteSheet open={fonteOpen} onOpenChange={setFonteOpen} etapa={etapa} initial={editFonte}
         evidencias={editFonte ? data.evidencias.filter((e) => e.fonte_id === editFonte.id) : []} fontes={data.fontes}

@@ -83,7 +83,7 @@ export const BRIEFING_AREAS: { key: string; label: string; perguntas: { key: str
 ];
 export const BRIEFING_TOTAL = BRIEFING_AREAS.reduce((a, b) => a + b.perguntas.length, 0);
 
-/** Score objetivo: proporção de perguntas marcadas como completas. Sem avaliação = não conta. */
+/** Indicador operacional de preenchimento do mapa. O Briefing Score metodológico de qualidade é registrado separadamente nos artefatos da etapa 1. */
 export function briefingScore(mapa: BriefingMapa) {
   let completas = 0, incompletas = 0, desconhecidas = 0;
   for (const a of BRIEFING_AREAS) for (const p of a.perguntas) {

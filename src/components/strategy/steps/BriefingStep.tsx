@@ -4,6 +4,7 @@ import { BRIEFING_AREAS, briefingScore, type BriefingMapa, type BriefingStatus }
 import type { StepProps } from "../StrategyWorkspace";
 import { SaveState, inputCls } from "../ui";
 import { useAutosave, useStrategyActions } from "../useStrategy";
+import { MethodArtifacts } from "./MethodArtifacts";
 
 const STATUS_OPTS: { key: BriefingStatus; label: string }[] = [
   { key: "completa", label: "Completa" }, { key: "incompleta", label: "Incompleta" }, { key: "desconhecida", label: "Desconhecida" },
@@ -20,7 +21,8 @@ export function BriefingStep({ data, clienteId, touch }: StepProps) {
   const a = BRIEFING_AREAS.find((x) => x.key === area)!;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[220px_1fr]">
+    <div className="space-y-8">
+      <div className="grid gap-8 lg:grid-cols-[220px_1fr]">
       <aside className="space-y-6">
         <div>
           <div className="text-[13px] text-muted-foreground">Briefing Score</div>
@@ -74,6 +76,27 @@ export function BriefingStep({ data, clienteId, touch }: StepProps) {
           })}
         </div>
       </div>
+      </div>
+
+      <MethodArtifacts etapa={1} data={data} clienteId={clienteId} substeps={[
+        { key: "mapa_negocio", title: "Mapa do Negócio", question: "O que ainda não entendemos e pode mudar a estratégia?", fields: [
+          { key: "b1_objetivo_negocio", label: "Objetivo do negócio", hint: "O que precisa mudar, meta e prazo." },
+          { key: "b1_como_ganha_dinheiro", label: "Como a empresa ganha dinheiro", hint: "Produto principal, mais lucrativo, ticket e forma de venda." },
+          { key: "b1_informacoes_desconhecidas", label: "Informações que podem mudar a estratégia e ainda não sabemos", rows: 4 },
+        ]},
+        { key: "qualidade", title: "Briefing Score", question: "Avalie a qualidade do briefing; não é percentual de preenchimento.", fields: [
+          { key: "b1_score_clareza", label: "Clareza (0–5)", hint: "Quão específicas são as respostas?" },
+          { key: "b1_score_evidencia", label: "Evidência (0–5)", hint: "Há dados, pesquisa ou prova por trás?" },
+          { key: "b1_score_profundidade", label: "Profundidade", hint: "Estamos descrevendo sintomas ou causas?" },
+          { key: "b1_score_impacto", label: "Impacto estratégico", hint: "Quais respostas realmente mudariam decisões?" },
+          { key: "b1_score_confiabilidade", label: "Confiabilidade", hint: "Quem respondeu tem base para afirmar isso?" },
+          { key: "b1_nivel_areas", label: "Nível por área", hint: "Negócio, Cliente, Comercial, Marketing e Mercado: Baixo / Médio / Médio-Alto / Alto.", rows: 4 },
+        ]},
+        { key: "lacunas", title: "Lacunas para investigar", question: "O que precisa ser esclarecido antes de confiar no briefing?", fields: [
+          { key: "b1_lacunas_prioritarias", label: "Lacunas prioritárias", rows: 5 },
+          { key: "b1_proximos_passos", label: "Próximos passos de investigação", rows: 4 },
+        ]},
+      ]} />
     </div>
   );
 }
