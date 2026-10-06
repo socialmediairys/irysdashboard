@@ -3021,6 +3021,7 @@ export type Database = {
       }
       sprints: {
         Row: {
+          archived_at: string | null
           created_at: string
           end_date: string | null
           id: string
@@ -3030,6 +3031,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           end_date?: string | null
           id?: string
@@ -3039,6 +3041,7 @@ export type Database = {
           status: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           end_date?: string | null
           id?: string
