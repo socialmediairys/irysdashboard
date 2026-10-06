@@ -539,7 +539,40 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
         </div>
       )}
 
-      <NewSprintDialog open={newSprintOpen} onOpenChange={setNewSprintOpen} onCreated={async (id) => { await fetchSprints(); setSprintFilter(id); }} />
+      <NewSprintDialog open={newSprintOpen} onOpenChange={setNewSprintOpen} onCreated={async (id) => { await fetchSprints(); selectSprint(id); }} />
+      <AlertDialog open={!!confirmArchive} onOpenChange={(o) => !o && setConfirmArchive(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Arquivar “{confirmArchive?.name}”?</AlertDialogTitle>
+            <AlertDialogDescription>A sprint sai da operação corrente. Nada é excluído: tarefas, comentários, anexos, tempo e vínculos continuam preservados e ela pode ser restaurada em Arquivadas.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => { if (confirmArchive) await setArchived(confirmArchive, true); setConfirmArchive(null); }}>Arquivar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <Dialog open={archivedOpen} onOpenChange={setArchivedOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Sprints arquivadas</DialogTitle></DialogHeader>
+          {archivedSprints.length ? (
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {archivedSprints.map((s) => (
+                <li key={s.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-[13px]">
+                  <div className="min-w-0">
+                    <div className="truncate font-medium text-foreground">{s.name}</div>
+                    <div className="text-xs text-muted-foreground">{tasks.filter((t) => t.sprint_id === s.id).length} tarefa(s)</div>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => { setSprintFilter(s.id); setArchivedOpen(false); }}>Consultar</Button>
+                    <Button variant="outline" size="sm" onClick={() => setArchived(s, false)}>Restaurar</Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="py-6 text-center text-sm text-muted-foreground">Nenhuma sprint arquivada.</p>}
+        </DialogContent>
+      </Dialog>
       <TaskDetailPanel
         taskId={openTaskId}
         onOpenChange={(v) => !v && setOpenTaskId(null)}
