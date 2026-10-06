@@ -35,8 +35,10 @@ function chooseSprint(all: SprintRow[], saved: string | null): string | null {
   const byStartDesc = (a: SprintRow, b: SprintRow) => (b.start_date ?? "").localeCompare(a.start_date ?? "");
   const current = act.filter((s) => inPeriod(s, t)).sort(byStartDesc);
   const sv = saved ? act.find((s) => s.id === saved) : undefined;
-  // Seleção salva só vale se ainda ativa e não houver sprint do período atual (ou se ela própria for do período).
-  if (sv && (!current.length || inPeriod(sv, t))) return sv.id;
+  // A seleção salva só prevalece quando ela própria pertence ao período atual.
+  // Isso evita que uma sprint histórica (ex.: julho) volte a abrir em outubro
+  // apenas porque foi a última escolhida manualmente.
+  if (sv && inPeriod(sv, t)) return sv.id;
   if (current.length) return current[0].id;
   const future = act.filter((s) => s.start_date && s.start_date > t).sort((a, b) => a.start_date!.localeCompare(b.start_date!));
   if (future.length) return future[0].id;
