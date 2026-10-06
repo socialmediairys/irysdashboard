@@ -279,7 +279,7 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
   );
 
   const fetchSprints = useCallback(async () => {
-    const { data, error: err } = await db("sprints").select("id,name,status,start_date,end_date").order("start_date", { ascending: true, nullsFirst: false });
+    const { data, error: err } = await db("sprints").select("id,name,status,start_date,end_date,archived_at").order("start_date", { ascending: true, nullsFirst: false });
     if (err) { setError("Não foi possível carregar as sprints."); return [] as SprintRow[]; }
     setSprints((data ?? []) as SprintRow[]);
     return (data ?? []) as SprintRow[];
@@ -304,14 +304,35 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
     }
   }, []);
 
+  const selectSprint = useCallback((id: string | null) => {
+    setSprintFilter(id);
+    if (id && id !== ALL && id !== NONE) localStorage.setItem(SPRINT_KEY, id); else localStorage.removeItem(SPRINT_KEY);
+  }, []);
+  const autoSelect = useCallback((s: SprintRow[]) => {
+    const saved = localStorage.getItem(SPRINT_KEY);
+    setSprintFilter(chooseSprint(s, saved) ?? NO_ACTIVE);
+  }, []);
+
   useEffect(() => {
     (async () => {
       const s = await fetchSprints();
-      const current = s.find((x) => x.status === "current") ?? s[0];
-      setSprintFilter(current ? current.id : ALL);
+      autoSelect(s);
       await fetchTasks();
     })();
-  }, [fetchSprints, fetchTasks]);
+  }, [fetchSprints, fetchTasks, autoSelect]);
+
+  const [confirmArchive, setConfirmArchive] = useState<SprintRow | null>(null);
+  const [archivedOpen, setArchivedOpen] = useState(false);
+  const activeSprints = sprints.filter((s) => !s.archived_at);
+  const archivedSprints = sprints.filter((s) => s.archived_at);
+  const selected = sprints.find((s) => s.id === sprintFilter) ?? null;
+  const setArchived = async (sp: SprintRow, archived: boolean) => {
+    const { error: err } = await db("sprints").update({ archived_at: archived ? new Date().toISOString() : null }).eq("id", sp.id);
+    if (err) { toast.error("Não foi possível atualizar a sprint."); return; }
+    toast.success(archived ? "Sprint arquivada" : "Sprint restaurada");
+    const s = await fetchSprints();
+    if (archived && sprintFilter === sp.id) { localStorage.removeItem(SPRINT_KEY); autoSelect(s); }
+  };
 
   // nomes de responsáveis que não estão mais na equipe (preserva exibição)
   useEffect(() => {
