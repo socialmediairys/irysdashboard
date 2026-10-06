@@ -443,17 +443,38 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
             </button>
           ))}
         </div>
-        <Select value={sprintFilter ?? ALL} onValueChange={setSprintFilter}>
-          <SelectTrigger className="h-8 w-auto min-w-[180px] text-[13px]" aria-label="Sprint"><SelectValue /></SelectTrigger>
+        <Select value={sprintFilter === NO_ACTIVE ? undefined : sprintFilter ?? ALL} onValueChange={selectSprint}>
+          <SelectTrigger className="h-8 w-auto min-w-[180px] text-[13px]" aria-label="Sprint"><SelectValue placeholder="Nenhuma sprint ativa" /></SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>Todas as sprints</SelectItem>
             <SelectItem value={NONE}>Sem sprint</SelectItem>
-            {sprints.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}{s.status === "current" ? " · atual" : ""}</SelectItem>)}
+            {activeSprints.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}{s.start_date && inPeriod(s, todayISO()) ? " · atual" : ""}</SelectItem>)}
+            {selected?.archived_at && <SelectItem value={selected.id}>{selected.name} · arquivada</SelectItem>}
           </SelectContent>
         </Select>
+        {selected && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Ações da sprint"><MoreHorizontal size={14} /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {selected.archived_at
+                ? <DropdownMenuItem onClick={() => setArchived(selected, false)}>Restaurar sprint</DropdownMenuItem>
+                : <DropdownMenuItem onClick={() => setConfirmArchive(selected)}>Arquivar sprint</DropdownMenuItem>}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+        <Button variant="ghost" size="sm" className="h-8 text-[13px] text-muted-foreground" onClick={() => setArchivedOpen(true)}>
+          <Archive size={14} className="mr-1" /> Arquivadas ({archivedSprints.length})
+        </Button>
       </div>
 
-      {loading ? (
+      {sprintFilter === NO_ACTIVE ? (
+        <div className="rounded-lg border border-dashed border-border px-5 py-12 text-center">
+          <div className="text-sm font-medium text-foreground">Nenhuma Sprint ativa</div>
+          <Button size="sm" className="mt-3" onClick={() => setNewSprintOpen(true)}><Plus size={14} className="mr-1" /> Criar Sprint</Button>
+        </div>
+      ) : loading ? (
         <div className="py-10 text-center text-sm text-muted-foreground">Carregando tarefas…</div>
       ) : error ? (
         <div className="py-10 text-center text-sm text-destructive">
