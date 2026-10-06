@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, MessageCircle, Clock, Search } from "lucide-react";
+import { Plus, MessageCircle, Clock, Search, MoreHorizontal, Archive } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import {
   DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestCorners, useDroppable, type DragEndEvent,
 } from "@dnd-kit/core";
@@ -18,7 +20,28 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TASK_STATUS, normalizeStatus, normalizePriority, priorityLabel, statusLabel, fmtDuration, useTeamMembers, type TaskStatus } from "@/lib/tasks";
 
-type SprintRow = { id: string; name: string; status: "current" | "next" | "future"; start_date: string | null; end_date: string | null };
+type SprintRow = { id: string; name: string; status: "current" | "next" | "future"; start_date: string | null; end_date: string | null; archived_at: string | null };
+
+const SPRINT_KEY = "irys.sprints.selected";
+const NO_ACTIVE = "__no_active__";
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+const inPeriod = (s: SprintRow, t: string) => !!s.start_date && s.start_date <= t && (!s.end_date || s.end_date >= t);
+
+/** Escolha automática: só sprints ativas (não arquivadas), pelo período — nunca por created_at. */
+function chooseSprint(all: SprintRow[], saved: string | null): string | null {
+  const act = all.filter((s) => !s.archived_at);
+  if (!act.length) return null;
+  const t = todayISO();
+  const byStartDesc = (a: SprintRow, b: SprintRow) => (b.start_date ?? "").localeCompare(a.start_date ?? "");
+  const current = act.filter((s) => inPeriod(s, t)).sort(byStartDesc);
+  const sv = saved ? act.find((s) => s.id === saved) : undefined;
+  // Seleção salva só vale se ainda ativa e não houver sprint do período atual (ou se ela própria for do período).
+  if (sv && (!current.length || inPeriod(sv, t))) return sv.id;
+  if (current.length) return current[0].id;
+  const future = act.filter((s) => s.start_date && s.start_date > t).sort((a, b) => a.start_date!.localeCompare(b.start_date!));
+  if (future.length) return future[0].id;
+  return [...act].sort((a, b) => (b.end_date ?? b.start_date ?? "").localeCompare(a.end_date ?? a.start_date ?? ""))[0].id;
+}
 type TaskRow = {
   id: string; titulo: string; status: string; prioridade: string; sprint_id: string | null;
   cliente_id: string | null; assignee_id: string | null; prazo: string | null; created_at: string;
@@ -279,7 +302,7 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
   );
 
   const fetchSprints = useCallback(async () => {
-    const { data, error: err } = await db("sprints").select("id,name,status,start_date,end_date").order("start_date", { ascending: true, nullsFirst: false });
+    const { data, error: err } = await db("sprints").select("id,name,status,start_date,end_date,archived_at").order("start_date", { ascending: true, nullsFirst: false });
     if (err) { setError("Não foi possível carregar as sprints."); return [] as SprintRow[]; }
     setSprints((data ?? []) as SprintRow[]);
     return (data ?? []) as SprintRow[];
@@ -304,14 +327,35 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
     }
   }, []);
 
+  const selectSprint = useCallback((id: string | null) => {
+    setSprintFilter(id);
+    if (id && id !== ALL && id !== NONE) localStorage.setItem(SPRINT_KEY, id); else localStorage.removeItem(SPRINT_KEY);
+  }, []);
+  const autoSelect = useCallback((s: SprintRow[]) => {
+    const saved = localStorage.getItem(SPRINT_KEY);
+    setSprintFilter(chooseSprint(s, saved) ?? NO_ACTIVE);
+  }, []);
+
   useEffect(() => {
     (async () => {
       const s = await fetchSprints();
-      const current = s.find((x) => x.status === "current") ?? s[0];
-      setSprintFilter(current ? current.id : ALL);
+      autoSelect(s);
       await fetchTasks();
     })();
-  }, [fetchSprints, fetchTasks]);
+  }, [fetchSprints, fetchTasks, autoSelect]);
+
+  const [confirmArchive, setConfirmArchive] = useState<SprintRow | null>(null);
+  const [archivedOpen, setArchivedOpen] = useState(false);
+  const activeSprints = sprints.filter((s) => !s.archived_at);
+  const archivedSprints = sprints.filter((s) => s.archived_at);
+  const selected = sprints.find((s) => s.id === sprintFilter) ?? null;
+  const setArchived = async (sp: SprintRow, archived: boolean) => {
+    const { error: err } = await db("sprints").update({ archived_at: archived ? new Date().toISOString() : null }).eq("id", sp.id);
+    if (err) { toast.error("Não foi possível atualizar a sprint."); return; }
+    toast.success(archived ? "Sprint arquivada" : "Sprint restaurada");
+    const s = await fetchSprints();
+    if (archived && sprintFilter === sp.id) { localStorage.removeItem(SPRINT_KEY); autoSelect(s); }
+  };
 
   // nomes de responsáveis que não estão mais na equipe (preserva exibição)
   useEffect(() => {
@@ -399,17 +443,38 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
             </button>
           ))}
         </div>
-        <Select value={sprintFilter ?? ALL} onValueChange={setSprintFilter}>
-          <SelectTrigger className="h-8 w-auto min-w-[180px] text-[13px]" aria-label="Sprint"><SelectValue /></SelectTrigger>
+        <Select value={sprintFilter === NO_ACTIVE ? undefined : sprintFilter ?? ALL} onValueChange={selectSprint}>
+          <SelectTrigger className="h-8 w-auto min-w-[180px] text-[13px]" aria-label="Sprint"><SelectValue placeholder="Nenhuma sprint ativa" /></SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>Todas as sprints</SelectItem>
             <SelectItem value={NONE}>Sem sprint</SelectItem>
-            {sprints.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}{s.status === "current" ? " · atual" : ""}</SelectItem>)}
+            {activeSprints.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}{s.start_date && inPeriod(s, todayISO()) ? " · atual" : ""}</SelectItem>)}
+            {selected?.archived_at && <SelectItem value={selected.id}>{selected.name} · arquivada</SelectItem>}
           </SelectContent>
         </Select>
+        {selected && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-8 w-8" aria-label="Ações da sprint"><MoreHorizontal size={14} /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {selected.archived_at
+                ? <DropdownMenuItem onClick={() => setArchived(selected, false)}>Restaurar sprint</DropdownMenuItem>
+                : <DropdownMenuItem onClick={() => setConfirmArchive(selected)}>Arquivar sprint</DropdownMenuItem>}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+        <Button variant="ghost" size="sm" className="h-8 text-[13px] text-muted-foreground" onClick={() => setArchivedOpen(true)}>
+          <Archive size={14} className="mr-1" /> Arquivadas ({archivedSprints.length})
+        </Button>
       </div>
 
-      {loading ? (
+      {sprintFilter === NO_ACTIVE ? (
+        <div className="rounded-lg border border-dashed border-border px-5 py-12 text-center">
+          <div className="text-sm font-medium text-foreground">Nenhuma Sprint ativa</div>
+          <Button size="sm" className="mt-3" onClick={() => setNewSprintOpen(true)}><Plus size={14} className="mr-1" /> Criar Sprint</Button>
+        </div>
+      ) : loading ? (
         <div className="py-10 text-center text-sm text-muted-foreground">Carregando tarefas…</div>
       ) : error ? (
         <div className="py-10 text-center text-sm text-destructive">
@@ -474,7 +539,40 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
         </div>
       )}
 
-      <NewSprintDialog open={newSprintOpen} onOpenChange={setNewSprintOpen} onCreated={async (id) => { await fetchSprints(); setSprintFilter(id); }} />
+      <NewSprintDialog open={newSprintOpen} onOpenChange={setNewSprintOpen} onCreated={async (id) => { await fetchSprints(); selectSprint(id); }} />
+      <AlertDialog open={!!confirmArchive} onOpenChange={(o) => !o && setConfirmArchive(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Arquivar “{confirmArchive?.name}”?</AlertDialogTitle>
+            <AlertDialogDescription>A sprint sai da operação corrente. Nada é excluído: tarefas, comentários, anexos, tempo e vínculos continuam preservados e ela pode ser restaurada em Arquivadas.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => { if (confirmArchive) await setArchived(confirmArchive, true); setConfirmArchive(null); }}>Arquivar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <Dialog open={archivedOpen} onOpenChange={setArchivedOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Sprints arquivadas</DialogTitle></DialogHeader>
+          {archivedSprints.length ? (
+            <ul className="divide-y divide-border rounded-lg border border-border">
+              {archivedSprints.map((s) => (
+                <li key={s.id} className="flex items-center justify-between gap-3 px-3 py-2.5 text-[13px]">
+                  <div className="min-w-0">
+                    <div className="truncate font-medium text-foreground">{s.name}</div>
+                    <div className="text-xs text-muted-foreground">{tasks.filter((t) => t.sprint_id === s.id).length} tarefa(s)</div>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => { setSprintFilter(s.id); setArchivedOpen(false); }}>Consultar</Button>
+                    <Button variant="outline" size="sm" onClick={() => setArchived(s, false)}>Restaurar</Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : <p className="py-6 text-center text-sm text-muted-foreground">Nenhuma sprint arquivada.</p>}
+        </DialogContent>
+      </Dialog>
       <TaskDetailPanel
         taskId={openTaskId}
         onOpenChange={(v) => !v && setOpenTaskId(null)}

@@ -1493,6 +1493,60 @@ export type Database = {
           },
         ]
       }
+      estrategia_ai_logs: {
+        Row: {
+          acao: string
+          cliente_id: string
+          created_at: string
+          id: string
+          modelo: string | null
+          org_id: string
+          sucesso: boolean
+          tokens_entrada: number | null
+          tokens_saida: number | null
+          user_id: string
+        }
+        Insert: {
+          acao: string
+          cliente_id: string
+          created_at?: string
+          id?: string
+          modelo?: string | null
+          org_id?: string
+          sucesso?: boolean
+          tokens_entrada?: number | null
+          tokens_saida?: number | null
+          user_id: string
+        }
+        Update: {
+          acao?: string
+          cliente_id?: string
+          created_at?: string
+          id?: string
+          modelo?: string | null
+          org_id?: string
+          sucesso?: boolean
+          tokens_entrada?: number | null
+          tokens_saida?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "estrategia_ai_logs_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "estrategia_ai_logs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estrategia_briefing: {
         Row: {
           cliente_id: string
@@ -2967,6 +3021,7 @@ export type Database = {
       }
       sprints: {
         Row: {
+          archived_at: string | null
           created_at: string
           end_date: string | null
           id: string
@@ -2976,6 +3031,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string
           end_date?: string | null
           id?: string
@@ -2985,6 +3041,7 @@ export type Database = {
           status: string
         }
         Update: {
+          archived_at?: string | null
           created_at?: string
           end_date?: string | null
           id?: string
