@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, MessageCircle, Clock, Search } from "lucide-react";
+import { Plus, MessageCircle, Clock, Search, MoreHorizontal, Archive } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import {
   DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestCorners, useDroppable, type DragEndEvent,
 } from "@dnd-kit/core";
@@ -18,7 +20,28 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TASK_STATUS, normalizeStatus, normalizePriority, priorityLabel, statusLabel, fmtDuration, useTeamMembers, type TaskStatus } from "@/lib/tasks";
 
-type SprintRow = { id: string; name: string; status: "current" | "next" | "future"; start_date: string | null; end_date: string | null };
+type SprintRow = { id: string; name: string; status: "current" | "next" | "future"; start_date: string | null; end_date: string | null; archived_at: string | null };
+
+const SPRINT_KEY = "irys.sprints.selected";
+const NO_ACTIVE = "__no_active__";
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+const inPeriod = (s: SprintRow, t: string) => !!s.start_date && s.start_date <= t && (!s.end_date || s.end_date >= t);
+
+/** Escolha automática: só sprints ativas (não arquivadas), pelo período — nunca por created_at. */
+function chooseSprint(all: SprintRow[], saved: string | null): string | null {
+  const act = all.filter((s) => !s.archived_at);
+  if (!act.length) return null;
+  const t = todayISO();
+  const byStartDesc = (a: SprintRow, b: SprintRow) => (b.start_date ?? "").localeCompare(a.start_date ?? "");
+  const current = act.filter((s) => inPeriod(s, t)).sort(byStartDesc);
+  const sv = saved ? act.find((s) => s.id === saved) : undefined;
+  // Seleção salva só vale se ainda ativa e não houver sprint do período atual (ou se ela própria for do período).
+  if (sv && (!current.length || inPeriod(sv, t))) return sv.id;
+  if (current.length) return current[0].id;
+  const future = act.filter((s) => s.start_date && s.start_date > t).sort((a, b) => a.start_date!.localeCompare(b.start_date!));
+  if (future.length) return future[0].id;
+  return [...act].sort((a, b) => (b.end_date ?? b.start_date ?? "").localeCompare(a.end_date ?? a.start_date ?? ""))[0].id;
+}
 type TaskRow = {
   id: string; titulo: string; status: string; prioridade: string; sprint_id: string | null;
   cliente_id: string | null; assignee_id: string | null; prazo: string | null; created_at: string;
