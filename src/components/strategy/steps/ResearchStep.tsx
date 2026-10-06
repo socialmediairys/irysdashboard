@@ -78,7 +78,7 @@ function FonteSheet({ open, onOpenChange, etapa, initial, evidencias, fontes, on
   onSave: (r: Record<string, unknown>, isNew: boolean) => Promise<void>; onDelete?: () => Promise<void>;
 }) {
   const tipos = FONTES_POR_ETAPA[etapa] ?? ["outro"];
-  const empty = () => ({ id: crypto.randomUUID(), nome: "", tipo: tipos[0], url: "", status: "a_analisar", data_ref: "", observacoes: "" });
+  const empty = () => ({ id: crypto.randomUUID() as string, nome: "", tipo: tipos[0], url: "", status: "a_analisar", data_ref: "", observacoes: "" });
   const [f, setF] = useState(empty);
   const [key, setKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
