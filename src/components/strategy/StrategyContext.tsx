@@ -179,11 +179,9 @@ function ContextCard({
 }
 
 export function StrategyContext({ data, etapa }: { data: StrategyData; etapa: number }) {
+  const [expanded, setExpanded] = useState(false);
   const items = contextFor(data, etapa);
   if (!items.length) return null;
-
-  const grouped = etapa >= 12;
-  const [expanded, setExpanded] = useState(false);
 
   return (
     <section className="rounded-lg border border-border bg-secondary/30 p-4">
