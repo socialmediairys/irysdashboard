@@ -65,7 +65,7 @@ export const meuStatusCadastro = createServerFn({ method: "GET" })
     return { tipo: "sem_cadastro" as const };
   });
 
-// Cria/atualiza a solicitação de cadastro do usuário logado.
+// Cria a solicitação somente se ainda não existir, preservando decisões da equipe.
 export const criarSolicitacao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { nome: string; email: string }) => {
@@ -85,13 +85,13 @@ export const criarSolicitacao = createServerFn({ method: "POST" })
           email: data.email,
           status: "pendente",
         },
-        { onConflict: "auth_user_id" },
+        { onConflict: "auth_user_id", ignoreDuplicates: true },
       );
     if (error) throw error;
     return { ok: true as const };
   });
 
-// Cria/atualiza a solicitação de cadastro via service role, para o fluxo de
+// Cria a solicitação, sem sobrescrever uma existente, via service role para o fluxo de
 // signup com confirmação de e-mail (ainda sem sessão ativa no navegador).
 export const registrarSolicitacaoPublica = createServerFn({ method: "POST" })
   .inputValidator((input: { authUserId: string; nome: string; email: string }) => {
@@ -121,7 +121,7 @@ export const registrarSolicitacaoPublica = createServerFn({ method: "POST" })
           email: data.email,
           status: "pendente",
         },
-        { onConflict: "auth_user_id" },
+        { onConflict: "auth_user_id", ignoreDuplicates: true },
       );
     if (error) throw error;
     return { ok: true as const };

@@ -11,6 +11,11 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Entrar — Portal do cliente Irys" },
+      { name: "description", content: "Entre no portal Irys para acompanhar seu atendimento e a situação do seu acesso." },
+      { property: "og:title", content: "Entrar — Portal do cliente Irys" },
+      { property: "og:description", content: "Entre no portal Irys para acompanhar seu atendimento e a situação do seu acesso." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -40,6 +45,7 @@ function LoginPage() {
 
       // Garante que exista uma solicitação, caso o usuário tenha se cadastrado
       // com confirmação de e-mail ativa (não foi possível gravá-la antes).
+      // A criação ignora registros existentes: login nunca reabre uma decisão.
       try {
         await criarSolicitacao({
           data: {
@@ -48,7 +54,7 @@ function LoginPage() {
           },
         });
       } catch {
-        // Se já existe uma solicitação/aprovação, seguimos normalmente.
+        // Uma falha ao criar a solicitação não impede o login.
       }
 
       navigate({ to: "/app" });
