@@ -27,7 +27,7 @@ export function EditorialStep({ data, clienteId, touch }: StepProps) {
   const addPilar = async (nome: string) => { if (!nome.trim()) return; await a.insert("editorial_pilares", { nome: nome.trim(), ordem: data.pilares.length }); setNovoPilar(""); touch(); };
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-5">
       <StrategyContext data={data} etapa={12} />
       <MethodArtifacts etapa={12} data={data} clienteId={clienteId} substeps={[
         { key: "inventario", prompt: "Prompt 37 (arquivos 38–40 repetem)", title: "Inventário", question: "O que já foi aprovado na estratégia e precisa encontrar lugar no sistema editorial?", fields: [
@@ -50,7 +50,7 @@ export function EditorialStep({ data, clienteId, touch }: StepProps) {
           { key: "e12_consolidado", label: "Sistema editorial consolidado", hint: "Temas aprovados, função, prioridade, mensagens, argumentos, provas, jornada e limites.", rows: 9 },
         ]},
       ]} />
-      <section className="space-y-5">
+      <section className="order-first space-y-5">
         <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-sm font-semibold">Grupos editoriais</h3><p className="mt-1 text-xs text-muted-foreground">Selecione um grupo. Edite o nome e organize seus temas sem sair desta tela.</p></div><AddInline label="Novo grupo" onAdd={addPilar}/></div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

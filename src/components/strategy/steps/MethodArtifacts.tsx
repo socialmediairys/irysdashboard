@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AutoField } from "../ui";
 import { useStrategyActions, type StrategyData } from "../useStrategy";
@@ -14,20 +15,24 @@ export type MethodSubstep = {
 export function MethodArtifacts({ etapa, data, clienteId, substeps }: { etapa: number; data: StrategyData; clienteId: string; substeps: MethodSubstep[] }) {
   const a = useStrategyActions(clienteId);
   const [active, setActive] = useState(substeps[0]?.key ?? "");
+  const [expanded, setExpanded] = useState(false);
   const current = substeps.find((s) => s.key === active) ?? substeps[0];
   const value = (key: string) => data.definicoes.find((d) => d.etapa === etapa && d.campo === key)?.valor ?? "";
   if (!current) return null;
   return (
     <section className="rounded-lg border border-border bg-card">
-      <div className="border-b border-border px-4 pt-4">
-        <div className="text-[13px] font-medium text-foreground">Artefatos da etapa</div>
+      <button type="button" aria-expanded={expanded} onClick={() => setExpanded(!expanded)} className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-secondary/40">
+        <span><span className="block text-[13px] font-medium text-foreground">Artefatos e orientações da etapa</span><span className="block text-xs text-muted-foreground">{substeps.length} seções · consulte ou edite quando precisar</span></span>
+        {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+      </button>
+      {expanded && <div className="border-t border-border px-4 pt-2">
         <div className="mt-3 flex gap-1 overflow-x-auto">
           {substeps.map((s, i) => (
             <button key={s.key} onClick={() => setActive(s.key)} className={cn("-mb-px whitespace-nowrap border-b-2 px-2.5 py-2 text-[13px]", active === s.key ? "border-primary font-medium text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")}>{i + 1}. {s.title}</button>
           ))}
         </div>
-      </div>
-      <div className="space-y-4 p-4">
+      </div>}
+      {expanded && <div className="space-y-4 p-4">
         <div>
           <div className="flex flex-wrap items-center gap-2"><h4 className="text-sm font-semibold text-foreground">{current.title}</h4>{current.prompt && <span className="rounded border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-[11px] font-medium text-primary">{current.prompt}</span>}</div>
           <p className="mt-0.5 text-[13px] text-muted-foreground">{current.question}</p>
@@ -39,7 +44,7 @@ export function MethodArtifacts({ etapa, data, clienteId, substeps }: { etapa: n
             </div>
           ))}
         </div>
-      </div>
+      </div>}
     </section>
   );
 }
