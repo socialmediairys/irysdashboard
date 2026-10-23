@@ -179,11 +179,11 @@ function ContextCard({
 }
 
 export function StrategyContext({ data, etapa }: { data: StrategyData; etapa: number }) {
+  const [expanded, setExpanded] = useState(false);
   const items = contextFor(data, etapa);
   if (!items.length) return null;
 
   const grouped = etapa >= 12;
-  const [expanded, setExpanded] = useState(false);
 
   return (
     <section className="rounded-lg border border-border bg-secondary/30 p-4">
@@ -193,7 +193,7 @@ export function StrategyContext({ data, etapa }: { data: StrategyData; etapa: nu
       </button>
       {expanded && <p className="mt-2 text-xs text-muted-foreground">
         Estas informações vêm das etapas anteriores. Não precisam ser digitadas novamente; use-as como entrada para o prompt e para as decisões desta etapa. Itens pendentes indicam dependências ainda não consolidadas.
-      </p>
+      </p>}
 
       {expanded && (grouped ? (
         <div className="mt-4 space-y-4">
