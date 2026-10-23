@@ -183,6 +183,8 @@ export function StrategyContext({ data, etapa }: { data: StrategyData; etapa: nu
   const items = contextFor(data, etapa);
   if (!items.length) return null;
 
+  const grouped = etapa >= 12;
+
   return (
     <section className="rounded-lg border border-border bg-secondary/30 p-4">
       <button type="button" aria-expanded={expanded} onClick={() => setExpanded(!expanded)} className="flex w-full items-center justify-between gap-3 text-left">
@@ -191,7 +193,7 @@ export function StrategyContext({ data, etapa }: { data: StrategyData; etapa: nu
       </button>
       {expanded && <p className="mt-2 text-xs text-muted-foreground">
         Estas informações vêm das etapas anteriores. Não precisam ser digitadas novamente; use-as como entrada para o prompt e para as decisões desta etapa. Itens pendentes indicam dependências ainda não consolidadas.
-      </p>
+      </p>}
 
       {expanded && (grouped ? (
         <div className="mt-4 space-y-4">
