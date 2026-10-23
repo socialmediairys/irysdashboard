@@ -24,7 +24,7 @@ export function EditorialStep({ data, clienteId, touch }: StepProps) {
   const pilar = data.pilares.find((p) => p.id === pilarSel) ?? data.pilares[0];
   const temas = data.temas.filter((t) => t.pilar_id === pilar?.id);
 
-  const addPilar = async (nome: string) => { if (!nome.trim()) return; await a.insert("editorial_pilares", { nome: nome.trim(), ordem: data.pilares.length }); setNovoPilar(""); touch(); };
+  const addPilar = async (nome: string) => { if (!nome.trim()) return; await a.insert("editorial_pilares", { nome: nome.trim(), ordem: data.pilares.length }); touch(); };
 
   return (
     <div className="flex flex-col gap-5">
