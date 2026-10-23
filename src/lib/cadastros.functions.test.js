@@ -1,4 +1,3 @@
-/// <reference types="bun" />
 import { describe, expect, mock, test } from "bun:test";
 import { createClient } from "@supabase/supabase-js";
 
@@ -8,20 +7,19 @@ mock.module("@tanstack/react-start", () => ({
     const builder = {
       middleware: () => builder,
       inputValidator: () => builder,
-      handler: (handler: unknown) => handler,
+      handler: (handler) => handler,
     };
     return builder;
   },
 }));
 mock.module("@/integrations/supabase/auth-middleware", () => ({ requireSupabaseAuth: {} }));
 
-type Row = { auth_user_id: string; nome: string; email: string; status: string; observacao?: string; cliente_id?: string };
-let row: Row | undefined;
+let row;
 const client = createClient("https://cadastros-test.invalid", "test-key", {
   auth: { persistSession: false, autoRefreshToken: false },
   global: {
     fetch: async (_input, init) => {
-      const incoming = JSON.parse(String(init?.body)) as Row;
+      const incoming = JSON.parse(String(init?.body));
       const ignore = new Headers(init?.headers).get("Prefer")?.includes("resolution=ignore-duplicates");
       if (!row || !ignore) row = { ...row, ...incoming };
       return new Response(null, { status: 201 });
@@ -35,11 +33,10 @@ mock.module("@/integrations/supabase/client.server", () => ({
   },
 }));
 const functions = await import("./cadastros.functions");
-type Handler = (input: { data: { nome: string; email: string; authUserId: string }; context: { supabase: typeof client; userId: string } }) => Promise<unknown>;
 
-for (const name of ["criarSolicitacao", "registrarSolicitacaoPublica"] as const) {
+for (const name of ["criarSolicitacao", "registrarSolicitacaoPublica"]) {
   describe(name, () => {
-    const submit = () => (functions[name] as unknown as Handler)({
+    const submit = () => functions[name]({
       data: { nome: "New name", email: "new@example.test", authUserId: "user-1" },
       context: { supabase: client, userId: "user-1" },
     });
