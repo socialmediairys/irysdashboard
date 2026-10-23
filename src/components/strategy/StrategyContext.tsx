@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import type { StrategyData } from "./useStrategy";
 
 const val = (data: StrategyData, etapa: number, campo: string) =>
@@ -181,17 +183,19 @@ export function StrategyContext({ data, etapa }: { data: StrategyData; etapa: nu
   if (!items.length) return null;
 
   const grouped = etapa >= 12;
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <section className="rounded-lg border border-border bg-secondary/30 p-4">
-      <div className="text-[13px] font-semibold text-foreground">
-        Contexto herdado da estratégia
-      </div>
-      <p className="mt-0.5 text-xs text-muted-foreground">
+      <button type="button" aria-expanded={expanded} onClick={() => setExpanded(!expanded)} className="flex w-full items-center justify-between gap-3 text-left">
+        <span><span className="block text-[13px] font-semibold text-foreground">Contexto herdado da estratégia</span><span className="block text-xs text-muted-foreground">{items.filter(i => i.value).length} de {items.length} insumos disponíveis · abrir detalhes</span></span>
+        {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+      </button>
+      {expanded && <p className="mt-2 text-xs text-muted-foreground">
         Estas informações vêm das etapas anteriores. Não precisam ser digitadas novamente; use-as como entrada para o prompt e para as decisões desta etapa. Itens pendentes indicam dependências ainda não consolidadas.
       </p>
 
-      {grouped ? (
+      {expanded && (grouped ? (
         <div className="mt-4 space-y-4">
           {GROUPS.map((group) => {
             const groupItems = items.filter((item) => group.keys.includes(item.key));
@@ -217,7 +221,7 @@ export function StrategyContext({ data, etapa }: { data: StrategyData; etapa: nu
             <ContextCard key={item.key} item={item} />
           ))}
         </div>
-      )}
+      ))}
     </section>
   );
 }
