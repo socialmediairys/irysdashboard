@@ -1,4 +1,4 @@
-import { ChevronRight, Download } from "lucide-react";
+import { ChevronRight, Download, ListChecks } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,7 @@ export function StrategyWorkspace({ clienteId, clienteNome }: { clienteId: strin
   const actions = useStrategyActions(clienteId);
   const [section, setSection] = useState<SectionKey>("visao");
   const [step, setStep] = useState<number>(1);
+  const [showStepList, setShowStepList] = useState(false);
 
   const prog = useMemo(() => strategyProgress(data?.etapas ?? []), [data?.etapas]);
 
@@ -33,7 +34,7 @@ export function StrategyWorkspace({ clienteId, clienteNome }: { clienteId: strin
   const status: EtapaStatus = current ? (prog.map.get(current.n)?.status ?? "nao_iniciada") : "nao_iniciada";
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {/* Cabeçalho da estratégia */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
@@ -65,6 +66,16 @@ export function StrategyWorkspace({ clienteId, clienteNome }: { clienteId: strin
           ))}
         </div>
       </div>
+
+      {section !== "visao" && <div className="rounded-lg border border-border bg-card">
+        <button type="button" onClick={() => setShowStepList((v) => !v)} aria-expanded={showStepList} className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-[13px] hover:bg-secondary/40">
+          <span className="flex items-center gap-2"><ListChecks size={15} /> Navegar pelas 13 etapas</span>
+          <span className="text-xs text-muted-foreground">{showStepList ? "Recolher" : "Ver todas"}</span>
+        </button>
+        {showStepList && <div className="grid gap-1 border-t border-border p-2 sm:grid-cols-2 lg:grid-cols-3">
+          {STEPS.map((item) => <button type="button" key={item.n} onClick={() => { open(item.n); setShowStepList(false); }} className={cn("rounded-md px-3 py-2 text-left text-xs hover:bg-secondary", current?.n === item.n && "bg-secondary font-medium")}>{item.n}. {item.titulo}</button>)}
+        </div>}
+      </div>}
 
       {section === "visao" && <StrategyOverview data={data} prog={prog} onOpen={open} />}
 
@@ -116,12 +127,12 @@ const PROMPTS_POR_ETAPA: Record<number, string> = {
 function StepHeader({ n, status, onStatus, ai }: { n: number; status: EtapaStatus; onStatus: (s: EtapaStatus) => void; ai?: ReactNode }) {
   const s = stepByN(n);
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3">
+    <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0">
         <div className="text-xs text-muted-foreground">Etapa {n} de 13</div>
-        <h2 className="mt-0.5 text-lg font-semibold tracking-tight text-foreground">{s.titulo}</h2>
-        <p className="mt-1 max-w-xl text-xs text-muted-foreground">{s.acao}</p>
-        {PROMPTS_POR_ETAPA[n] && <div className="mt-2 inline-flex rounded-md border border-border bg-secondary/50 px-2 py-1 text-xs font-medium text-muted-foreground">Aplicar {PROMPTS_POR_ETAPA[n]} do pacote QR</div>}
+        <h2 className="mt-0.5 text-xl font-semibold tracking-tight text-foreground">{s.titulo}</h2>
+        <p className="mt-1 max-w-2xl text-[13px] text-muted-foreground">{s.acao}</p>
+        {PROMPTS_POR_ETAPA[n] && <div className="mt-2 inline-flex rounded-md border border-primary/20 bg-primary/5 px-2 py-1 text-xs font-medium text-primary">Aplicar {PROMPTS_POR_ETAPA[n]} do pacote QR</div>}
       </div>
       <div className="flex items-center gap-2">
         {ai}
