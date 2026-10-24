@@ -17,18 +17,20 @@ export function MethodArtifacts({ etapa, data, clienteId, substeps }: { etapa: n
   const [active, setActive] = useState(substeps[0]?.key ?? "");
   const [expanded, setExpanded] = useState(false);
   const current = substeps.find((s) => s.key === active) ?? substeps[0];
+  const completed = substeps.reduce((count, item) => count + item.fields.filter((field) => data.definicoes.some((d) => d.etapa === etapa && d.campo === field.key && Boolean(d.valor?.trim()))).length, 0);
+  const total = substeps.reduce((count, item) => count + item.fields.length, 0);
   const value = (key: string) => data.definicoes.find((d) => d.etapa === etapa && d.campo === key)?.valor ?? "";
   if (!current) return null;
   return (
     <section className="rounded-lg border border-border bg-card">
       <button type="button" aria-expanded={expanded} onClick={() => setExpanded(!expanded)} className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-secondary/40">
-        <span><span className="block text-[13px] font-medium text-foreground">Artefatos e orientações da etapa</span><span className="block text-xs text-muted-foreground">{substeps.length} seções · consulte ou edite quando precisar</span></span>
+        <span><span className="block text-[13px] font-medium text-foreground">Artefatos e orientações da etapa</span><span className="block text-xs text-muted-foreground">{completed}/{total} campos preenchidos · {substeps.length} seções</span></span>
         {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
       </button>
       {expanded && <div className="border-t border-border px-4 pt-2">
-        <div className="mt-3 flex gap-1 overflow-x-auto">
+        <div className="mt-3 flex gap-1 overflow-x-auto pb-1">
           {substeps.map((s, i) => (
-            <button key={s.key} onClick={() => setActive(s.key)} className={cn("-mb-px whitespace-nowrap border-b-2 px-2.5 py-2 text-[13px]", active === s.key ? "border-primary font-medium text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")}>{i + 1}. {s.title}</button>
+            <button key={s.key} onClick={() => setActive(s.key)} className={cn("-mb-px whitespace-nowrap border-b-2 px-2.5 py-2 text-[13px]", active === s.key ? "border-primary font-medium text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")}>{i + 1}. {s.title} <span className="ml-1 text-[11px] text-muted-foreground">{s.fields.filter((f) => Boolean(value(f.key).trim())).length}/{s.fields.length}</span></button>
           ))}
         </div>
       </div>}

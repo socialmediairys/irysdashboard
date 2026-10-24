@@ -1,4 +1,4 @@
-import { Link2, Plus, Search } from "lucide-react";
+import { ChevronDown, ChevronRight, Link2, Plus, Search } from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -119,17 +119,15 @@ export function DiagnosisStep({ data, clienteId, touch }: StepProps) {
 }
 
 function Stage({ n, title, q, children, last }: { n: number; title: string; q: string; children: ReactNode; last?: boolean }) {
+  const [expanded, setExpanded] = useState(n === 5);
   return (
-    <section className="relative grid grid-cols-[28px_1fr] gap-4">
-      <div className="flex flex-col items-center">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-xs font-medium text-muted-foreground">{n}</span>
-        {!last && <span className="mt-1 w-px flex-1 bg-border" />}
-      </div>
-      <div className={cn("min-w-0", !last && "pb-10")}>
-        <h3 className="text-base font-semibold text-foreground">{title}</h3>
-        <p className="mb-4 mt-0.5 text-[13px] text-muted-foreground">{q}</p>
-        {children}
-      </div>
+    <section className="overflow-hidden rounded-lg border border-border bg-card">
+      <button type="button" aria-expanded={expanded} onClick={() => setExpanded((v) => !v)} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-secondary/40">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-secondary text-xs font-medium">{n}</span>
+        <span className="min-w-0 flex-1"><span className="block text-[13px] font-semibold text-foreground">{title}</span><span className="block text-xs text-muted-foreground">{q}</span></span>
+        {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+      </button>
+      {expanded && <div className="border-t border-border p-4">{children}</div>}
     </section>
   );
 }
