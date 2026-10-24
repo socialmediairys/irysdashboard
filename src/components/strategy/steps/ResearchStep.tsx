@@ -56,6 +56,7 @@ export function ResearchStep({ etapa, data, clienteId, touch }: StepProps & { et
   const a = useStrategyActions(clienteId);
   const fontes = data.fontes.filter((f) => f.etapa === etapa);
   const evid = data.evidencias.filter((e) => e.etapa === etapa);
+  const [view, setView] = useState<"evidencias" | "fontes">("evidencias");
   const [fonteOpen, setFonteOpen] = useState(false);
   const [editFonte, setEditFonte] = useState<Fonte | null>(null);
   const [evOpen, setEvOpen] = useState(false);
@@ -68,8 +69,13 @@ export function ResearchStep({ etapa, data, clienteId, touch }: StepProps & { et
 
   return (
     <div className="space-y-8">
-    <div className="grid gap-10 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-      <Block title="Fontes" description={COPY[etapa].fontes}
+    <div className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
+      <button type="button" onClick={() => setView("evidencias")} className={view === "evidencias" ? "rounded-md bg-secondary px-3 py-2 text-sm font-semibold" : "rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-secondary"}>Evidências <span className="ml-1 text-xs opacity-70">{evid.length}</span></button>
+      <button type="button" onClick={() => setView("fontes")} className={view === "fontes" ? "rounded-md bg-secondary px-3 py-2 text-sm font-semibold" : "rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-secondary"}>Fontes <span className="ml-1 text-xs opacity-70">{fontes.length}</span></button>
+      <span className="ml-auto text-xs text-muted-foreground">Abra um registro para consultar ou editar</span>
+    </div>
+    <div className="min-w-0">
+      {view === "fontes" && <Block title="Fontes" description={COPY[etapa].fontes}
         action={<button className={btn} onClick={() => { setEditFonte(null); setFonteOpen(true); }}><Plus size={14} /> Fonte</button>}>
         {fontes.length ? (
           <ul className="divide-y divide-border rounded-lg border border-border bg-card">
@@ -86,16 +92,16 @@ export function ResearchStep({ etapa, data, clienteId, touch }: StepProps & { et
             ))}
           </ul>
         ) : <Empty>Nenhuma fonte registrada.</Empty>}
-      </Block>
+      </Block>}
 
-      <Block title="Evidências" description={COPY[etapa].evid}
+      {view === "evidencias" && <Block title="Evidências" description={COPY[etapa].evid}
         action={<button className={btnPrimary} onClick={() => newEv(null)}><Plus size={14} /> Evidência</button>}>
         {evid.length ? (
           <div className="divide-y divide-border rounded-lg border border-border bg-card">
             {evid.map((e) => <EvidenceRow key={e.id} e={e} fontes={data.fontes} onOpen={() => { setEditEv(e); setEvOpen(true); }} />)}
           </div>
         ) : <Empty>Nenhuma evidência registrada nesta etapa.</Empty>}
-      </Block>
+      </Block>}
 
     </div>
 

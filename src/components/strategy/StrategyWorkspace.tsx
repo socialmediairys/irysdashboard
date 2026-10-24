@@ -1,4 +1,5 @@
-import { ChevronRight, Download, ListChecks } from "lucide-react";
+import "./strategy-usability.css";
+import { ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
@@ -21,7 +22,6 @@ export function StrategyWorkspace({ clienteId, clienteNome }: { clienteId: strin
   const actions = useStrategyActions(clienteId);
   const [section, setSection] = useState<SectionKey>("visao");
   const [step, setStep] = useState<number>(1);
-  const [showStepList, setShowStepList] = useState(false);
 
   const prog = useMemo(() => strategyProgress(data?.etapas ?? []), [data?.etapas]);
 
@@ -34,7 +34,7 @@ export function StrategyWorkspace({ clienteId, clienteNome }: { clienteId: strin
   const status: EtapaStatus = current ? (prog.map.get(current.n)?.status ?? "nao_iniciada") : "nao_iniciada";
 
   return (
-    <div className="space-y-5">
+    <div className="irys-strategy space-y-5">
       {/* Cabeçalho da estratégia */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
@@ -54,64 +54,52 @@ export function StrategyWorkspace({ clienteId, clienteNome }: { clienteId: strin
         </div>
       </div>
 
-      {/* Navegação simples: 5 áreas */}
-      <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-        <div className="inline-flex min-w-max rounded-lg border border-border bg-card p-0.5">
-          {SECTIONS.map((s) => (
-            <button key={s.key} onClick={() => setSection(s.key)}
-              className={cn("rounded-md px-3 py-1.5 text-[13px] transition-colors",
-                section === s.key ? "bg-secondary font-medium text-foreground" : "text-muted-foreground hover:text-foreground")}>
-              {s.label}
-            </button>
+      {/* Navegação única: 13 etapas em grupos, sem barras concorrentes */}
+      <nav aria-label="Navegação da estratégia" className="rounded-xl border border-border bg-card p-3 sm:p-4">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <span className="text-xs font-medium text-muted-foreground">ETAPAS DA ESTRATÉGIA</span>
+          <button type="button" onClick={() => setSection("visao")} className={cn("rounded-md px-3 py-1.5 text-xs", section === "visao" ? "bg-secondary font-semibold" : "text-muted-foreground hover:bg-secondary")}>Visão geral</button>
+        </div>
+        <div className="grid gap-3 md:grid-cols-4">
+          {SECTIONS.filter((s) => s.key !== "visao").map((s) => (
+            <div key={s.key} className="min-w-0">
+              <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{s.label}</div>
+              <div className="space-y-1">
+                {STEPS.filter((st) => st.section === s.key).map((st) => {
+                  const stStatus = prog.map.get(st.n)?.status ?? "nao_iniciada";
+                  return <button type="button" key={st.n} onClick={() => open(st.n)} aria-current={current?.n === st.n ? "step" : undefined}
+                    className={cn("flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors", current?.n === st.n ? "bg-secondary font-semibold text-foreground ring-1 ring-border" : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground")}>
+                    <span className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded border text-[10px]", current?.n === st.n ? "border-foreground/20" : "border-border")}>{st.n}</span>
+                    <span className="min-w-0 flex-1 leading-snug">{st.titulo}</span>
+                    <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", stStatus === "concluida" ? "bg-emerald-600" : stStatus === "em_andamento" ? "bg-sky-600" : stStatus === "revisar" ? "bg-amber-600" : "bg-border")} />
+                  </button>;
+                })}
+              </div>
+            </div>
           ))}
         </div>
-      </div>
-
-      {section !== "visao" && <div className="rounded-lg border border-border bg-card">
-        <button type="button" onClick={() => setShowStepList((v) => !v)} aria-expanded={showStepList} className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-[13px] hover:bg-secondary/40">
-          <span className="flex items-center gap-2"><ListChecks size={15} /> Navegar pelas 13 etapas</span>
-          <span className="text-xs text-muted-foreground">{showStepList ? "Recolher" : "Ver todas"}</span>
-        </button>
-        {showStepList && <div className="grid gap-1 border-t border-border p-2 sm:grid-cols-2 lg:grid-cols-3">
-          {STEPS.map((item) => <button type="button" key={item.n} onClick={() => { open(item.n); setShowStepList(false); }} className={cn("rounded-md px-3 py-2 text-left text-xs hover:bg-secondary", current?.n === item.n && "bg-secondary font-medium")}>{item.n}. {item.titulo}</button>)}
-        </div>}
-      </div>}
+      </nav>
 
       {section === "visao" && <StrategyOverview data={data} prog={prog} onOpen={open} />}
 
       {current && (
-        <div className="space-y-4">
-          {stepsInSection.length > 1 && (
-            <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-              <div className="flex min-w-max gap-1 border-b border-border">
-                {stepsInSection.map((s) => {
-                  const st = prog.map.get(s.n)?.status ?? "nao_iniciada";
-                  return (
-                    <button key={s.n} onClick={() => setStep(s.n)}
-                      className={cn("-mb-px flex items-center gap-2 border-b-2 px-2 py-2 text-[13px] transition-colors",
-                        current.n === s.n ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground")}>
-                      <span className={cn("h-1.5 w-1.5 rounded-full", st === "concluida" ? "bg-success" : st === "em_andamento" ? "bg-info" : st === "revisar" ? "bg-warning" : "bg-border")} />
-                      {s.titulo}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
+        <div className="space-y-5">
           <StepHeader n={current.n} status={status}
             onStatus={(s) => void actions.setStatus(current.n, s)}
             ai={<AiChip clienteId={clienteId} data={data} etapa={current.n} sugestoes={data.sugestoes} onGenerated={actions.refresh} onDecide={(s, st) => void actions.update("estrategia_sugestoes_ia", s.id, { status: st })} />} />
 
           <StepBody n={current.n} data={data} clienteId={clienteId} touch={() => void actions.touchStep(current.n, status)} />
 
+          <div className="flex items-center justify-between border-t border-border pt-4">
+            <button className={btn} disabled={current.n === 1} onClick={() => open(current.n - 1)}><ChevronLeft size={14} /> Anterior</button>
           {current.n < 13 && (
-            <div className="flex justify-end border-t border-border pt-4">
+            <div className="flex justify-end">
               <button className={btn} onClick={() => open(current.n + 1)}>
                 Próxima: {stepByN(current.n + 1).titulo} <ChevronRight size={14} />
               </button>
             </div>
           )}
+          </div>
         </div>
       )}
     </div>
@@ -132,7 +120,7 @@ function StepHeader({ n, status, onStatus, ai }: { n: number; status: EtapaStatu
         <div className="text-xs text-muted-foreground">Etapa {n} de 13</div>
         <h2 className="mt-0.5 text-xl font-semibold tracking-tight text-foreground">{s.titulo}</h2>
         <p className="mt-1 max-w-2xl text-[13px] text-muted-foreground">{s.acao}</p>
-        {PROMPTS_POR_ETAPA[n] && <div className="mt-2 inline-flex rounded-md border border-primary/20 bg-primary/5 px-2 py-1 text-xs font-medium text-primary">Aplicar {PROMPTS_POR_ETAPA[n]} do pacote QR</div>}
+        {PROMPTS_POR_ETAPA[n] && <div className="mt-2 inline-flex rounded-md border border-border bg-secondary/40 px-2 py-1 text-xs font-medium text-muted-foreground">Aplicar {PROMPTS_POR_ETAPA[n]} do pacote QR</div>}
       </div>
       <div className="flex items-center gap-2">
         {ai}

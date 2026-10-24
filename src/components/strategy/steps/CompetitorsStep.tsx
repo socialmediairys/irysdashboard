@@ -33,33 +33,9 @@ export function CompetitorsStep({ data, clienteId, touch }: StepProps) {
         }>
         {cs.length ? (
           <>
-            {/* Desktop */}
-            <div className="hidden overflow-x-auto rounded-lg border border-border bg-card md:block">
-              <table className="w-full border-separate border-spacing-0 text-[13px]">
-                <thead>
-                  <tr>
-                    <th className="sticky left-0 z-10 w-36 border-b border-r border-border bg-card px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Critério</th>
-                    {cs.map((c) => (
-                      <th key={c.id} className="min-w-[220px] border-b border-border px-3 py-2.5 text-left font-semibold text-foreground">
-                        <div className="flex items-center justify-between gap-2">{c.nome}
-                          <button onClick={() => a.remove("estrategia_concorrentes", c.id)} className="text-muted-foreground hover:text-destructive" aria-label={`Remover ${c.nome}`}><Trash2 size={13} strokeWidth={1.6} /></button>
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {CONCORRENTE_CAMPOS.map((campo) => (
-                    <tr key={campo.key} className="align-top">
-                      <td className="sticky left-0 z-10 border-b border-r border-border bg-card px-3 py-2.5 font-medium text-muted-foreground">{campo.label}</td>
-                      {cs.map((c) => <td key={c.id} className="border-b border-border px-2 py-1.5"><Cell c={c} campo={campo.key} save={save(c, campo.key)} /></td>)}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {/* Mobile */}
-            <div className="space-y-3 md:hidden">
+            {/* Edição focada: um concorrente por vez, em qualquer tamanho de tela */}
+            <div className="max-w-4xl space-y-3">
+              <div className="text-xs text-muted-foreground">{cs.length} concorrente(s) cadastrado(s) · selecione um para comparar os critérios</div>
               <select aria-label="Concorrente" value={mob?.id} onChange={(e) => setSel(e.target.value)} className={inputCls}>
                 {cs.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
               </select>

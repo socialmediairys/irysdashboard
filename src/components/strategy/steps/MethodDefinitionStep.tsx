@@ -109,7 +109,7 @@ export function MethodDefinitionStep({ etapa, data, clienteId, touch }: StepProp
     </div>
     <section>
       <div className="mb-4 flex items-start justify-between gap-4">
-        <div><div className="flex flex-wrap items-center gap-2"><h3 className="text-base font-semibold text-foreground">{current.title}</h3><span className="rounded border border-primary/20 bg-primary/5 px-1.5 py-0.5 text-[11px] font-medium text-primary">{current.prompt}</span></div><p className="mt-0.5 text-[13px] text-muted-foreground">{current.description}</p></div>
+        <div><div className="flex flex-wrap items-center gap-2"><h3 className="text-base font-semibold text-foreground">{current.title}</h3><span className="rounded border border-border bg-secondary/40 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">{current.prompt}</span></div><p className="mt-0.5 text-[13px] text-muted-foreground">{current.description}</p></div>
         <span className="shrink-0 text-xs text-muted-foreground">{filled}/{current.fields.length} preenchidos</span>
       </div>
       <div className="divide-y divide-border border-y border-border">
@@ -128,10 +128,16 @@ export function MethodDefinitionStep({ etapa, data, clienteId, touch }: StepProp
 
 function MethodField({ field, initial, onSave }: { field: Field; initial: string; onSave: (v: string) => Promise<void> }) {
   const [v, setV] = useState(initial);
+  const [editing, setEditing] = useState(false);
   const state = useAutosave(v, onSave);
-  return <label className="block py-4">
-    <div className="flex items-baseline justify-between gap-3"><span className="text-[13px] font-medium text-foreground">{field.label}</span><span className="text-[11px] text-muted-foreground">{state === "saving" ? "Salvando…" : state === "saved" ? "Salvo" : state === "error" ? "Erro ao salvar" : ""}</span></div>
-    {field.hint && <div className="mt-0.5 text-xs text-muted-foreground">{field.hint}</div>}
-    <textarea rows={field.rows ?? 3} value={v} onChange={(e) => setV(e.target.value)} className={`${inputCls} mt-2 resize-y leading-relaxed`} />
-  </label>;
+  return <div className="py-3">
+    <button type="button" aria-expanded={editing} onClick={() => setEditing(!editing)} className="flex w-full items-start justify-between gap-3 text-left">
+      <span className="min-w-0 flex-1"><span className="block text-[13px] font-medium">{field.label}</span>{!editing && <span className="mt-1 block truncate text-xs text-muted-foreground">{v.trim() || "Não preenchido · clique para editar"}</span>}</span>
+      <span className="shrink-0 rounded border border-border px-2 py-1 text-xs text-muted-foreground">{editing ? "Fechar" : "Editar"}</span>
+    </button>
+    {editing && <div className="mt-3 space-y-2">{field.hint && <p className="text-xs text-muted-foreground">{field.hint}</p>}
+      <textarea rows={Math.max(4, field.rows ?? 3)} value={v} onChange={(e) => setV(e.target.value)} className={`${inputCls} resize-y leading-relaxed`} />
+      <div className="flex justify-between text-xs text-muted-foreground"><span>{state === "saving" ? "Salvando…" : state === "saved" ? "Salvo" : state === "error" ? "Erro ao salvar" : "Salvamento automático"}</span><button type="button" className="underline" onClick={() => setEditing(false)}>Concluir edição</button></div>
+    </div>}
+  </div>;
 }

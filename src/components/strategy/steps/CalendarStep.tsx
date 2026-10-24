@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cdb, conteudoFromCalendario } from "@/lib/content";
@@ -20,7 +20,6 @@ export function CalendarStep({ data, clienteId, touch }: StepProps) {
   const blank = { data: "", titulo: "", canal: "Instagram", formato: "", pilar_id: "", tema_id: "", mensagem_id: "", argumento_id: "", jornada: "", objetivo: "", cta: "" };
   const [f, setF] = useState(blank);
   const [adding, setAdding] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const items = data.calendario.filter((i) => i.data.startsWith(ym(mes)));
   const nome = (arr: { id: string }[], id: string | null, k: string) => (arr.find((x) => x.id === id) as Record<string, string> | undefined)?.[k];
 
@@ -49,7 +48,6 @@ export function CalendarStep({ data, clienteId, touch }: StepProps) {
 
   return (
     <div className="space-y-8">
-      <StrategyContext data={data} etapa={13} />
       <MethodArtifacts etapa={13} data={data} clienteId={clienteId} substeps={[
         { key: "ciclo", prompt: "Prompt 42", title: "Ciclo estratégico", question: "Qual é a lógica de comunicação deste período antes de escolher publicações?", fields: [
           { key: "e13_periodo_capacidade", label: "Período e capacidade", hint: "Ex.: 30 dias · 12 publicações principais.", rows: 2 },
@@ -99,44 +97,31 @@ export function CalendarStep({ data, clienteId, touch }: StepProps) {
       )}
       {items.length ? (
         <div className="space-y-2">
-          {[...items].sort((x, y) => x.data.localeCompare(y.data)).map((i) => {
-            const mensagem = data.mensagens.find((m) => m.id === i.mensagem_id);
-            const tema = data.temas.find((t) => t.id === (i.tema_id || mensagem?.tema_id));
-            const grupo = data.pilares.find((p) => p.id === (i.pilar_id || tema?.pilar_id));
-            const expanded = expandedId === i.id;
-            const criado = gerados.includes(i.id);
-            return (
-              <div key={i.id} className="overflow-hidden rounded-lg border border-border bg-card">
-                <button type="button" aria-expanded={expanded} onClick={() => setExpandedId(expanded ? null : i.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring">
-                  <span className="w-14 shrink-0 text-center text-[12px] font-medium text-muted-foreground">{new Date(`${i.data}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] font-medium text-foreground">{i.titulo || mensagem?.mensagem || "Publicação sem título"}</span>
-                    <span className="mt-1 block truncate text-[12px] text-muted-foreground">{[i.canal, i.formato, i.jornada].filter(Boolean).join(" · ") || "Sem formato definido"}{tema ? ` · ${tema.nome}` : ""}</span>
-                  </span>
-                  {criado && <span className="hidden shrink-0 text-[11px] text-muted-foreground sm:block">Conteúdo criado</span>}
-                  <ChevronDown size={16} className={`shrink-0 text-muted-foreground transition-transform ${expanded ? "rotate-180" : ""}`} />
-                </button>
-                {expanded && (
-                  <div className="space-y-3 border-t border-border px-4 py-4">
-                    <div className="grid gap-3 text-[13px] sm:grid-cols-2">
-                      <div><p className="mb-1 text-[11px] text-muted-foreground">Grupo editorial → Tema</p><p>{[grupo?.nome, tema?.nome].filter(Boolean).join(" → ") || "Não vinculado"}</p></div>
-                      <div><p className="mb-1 text-[11px] text-muted-foreground">Jornada</p><p>{i.jornada || "Não definida"}</p></div>
-                      <div><p className="mb-1 text-[11px] text-muted-foreground">Mensagem estratégica</p><p className="whitespace-pre-wrap">{mensagem?.mensagem || "Não vinculada"}</p></div>
-                      <div><p className="mb-1 text-[11px] text-muted-foreground">CTA</p><p className="whitespace-pre-wrap">{i.cta || "Não definido"}</p></div>
-                      {i.objetivo && <div className="sm:col-span-2"><p className="mb-1 text-[11px] text-muted-foreground">Objetivo</p><p className="whitespace-pre-wrap">{i.objetivo}</p></div>}
-                    </div>
-                    <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border pt-3">
-                      {criado ? <span className="text-[12px] text-muted-foreground">Conteúdo já criado</span> : <button type="button" className={btnPrimary} onClick={() => transformar(i)}>Transformar em conteúdo</button>}
-                      <button type="button" className={btn} onClick={async () => { if (!window.confirm("Excluir esta publicação do calendário estratégico?")) return; await a.remove("calendario_estrategico_itens", i.id); setExpandedId(null); touch(); }}><Trash2 size={14} /> Excluir</button>
-                    </div>
-                  </div>
-                )}
+          {items.map((i) => {
+            const msg = data.mensagens.find((m) => m.id === i.mensagem_id);
+            const tema = data.temas.find((t) => t.id === (i.tema_id || msg?.tema_id));
+            const pilar = data.pilares.find((p) => p.id === (i.pilar_id || tema?.pilar_id));
+            return <details key={i.id} className="group rounded-lg border border-border bg-card open:shadow-sm">
+              <summary className="flex cursor-pointer list-none items-start gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+                <span className="min-w-14 rounded-md bg-secondary px-2 py-1.5 text-center text-xs font-medium">{new Date(`${i.data}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
+                <span className="min-w-0 flex-1"><span className="block text-sm font-medium leading-snug">{i.titulo || msg?.mensagem || "Publicação sem título"}</span><span className="mt-1 block text-xs text-muted-foreground">{[i.canal, i.formato, i.jornada].filter(Boolean).join(" · ") || "Sem classificação"}</span></span>
+                <ChevronRight size={16} className="mt-2 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
+              </summary>
+              <div className="space-y-3 border-t border-border px-4 py-4 text-[13px]">
+                <div><span className="text-xs text-muted-foreground">Grupo / tema</span><p>{[pilar?.nome, tema?.nome].filter(Boolean).join(" → ") || "Não vinculado"}</p></div>
+                <div><span className="text-xs text-muted-foreground">Mensagem estratégica</span><p className="whitespace-pre-wrap">{msg?.mensagem || "Não vinculada"}</p></div>
+                <div className="grid gap-3 sm:grid-cols-2"><div><span className="text-xs text-muted-foreground">Objetivo</span><p>{i.objetivo || "—"}</p></div><div><span className="text-xs text-muted-foreground">CTA</span><p>{i.cta || "—"}</p></div></div>
+                <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border pt-3">
+                  {gerados.includes(i.id) ? <span className="text-xs text-muted-foreground">Conteúdo criado</span> : <button type="button" onClick={() => transformar(i)} className={btnPrimary}>Transformar em conteúdo</button>}
+                  <button type="button" onClick={() => { if (window.confirm("Excluir esta publicação do calendário?")) void a.remove("calendario_estrategico_itens", i.id); }} className={btn} aria-label="Excluir publicação"><Trash2 size={14} /> Excluir</button>
+                </div>
               </div>
-            );
+            </details>;
           })}
         </div>
       ) : <Empty>Nenhum item planejado neste mês.</Empty>}
     </Block>
+    <StrategyContext data={data} etapa={13} />
     </div>
   );
 }

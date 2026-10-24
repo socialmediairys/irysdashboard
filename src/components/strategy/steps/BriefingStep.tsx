@@ -14,6 +14,7 @@ export function BriefingStep({ data, clienteId, touch }: StepProps) {
   const actions = useStrategyActions(clienteId);
   const [mapa, setMapa] = useState<BriefingMapa>(data.briefing?.mapa ?? {});
   const [area, setArea] = useState(BRIEFING_AREAS[0].key);
+  const [openQuestions, setOpenQuestions] = useState<string[]>([]);
   const sc = useMemo(() => briefingScore(mapa), [mapa]);
   const state = useAutosave(mapa, async (m) => { await actions.saveBriefing(m, sc); touch(); });
 
@@ -58,9 +59,9 @@ export function BriefingStep({ data, clienteId, touch }: StepProps) {
           {a.perguntas.map((p) => {
             const v = mapa[p.key] ?? {};
             return (
-              <div key={p.key} className="space-y-2 px-4 py-4">
+              <div key={p.key} className="space-y-2 px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[13px] font-medium text-foreground">{p.label}</span>
+                  <button type="button" className="min-w-0 flex-1 text-left" onClick={() => setOpenQuestions((prev) => prev.includes(p.key) ? prev.filter((k) => k !== p.key) : [...prev, p.key])} aria-expanded={openQuestions.includes(p.key)}><span className="block text-[13px] font-medium text-foreground">{p.label} <span className="text-xs text-muted-foreground">{openQuestions.includes(p.key) ? "−" : "+"}</span></span>{!openQuestions.includes(p.key) && <span className="mt-1 block truncate text-xs text-muted-foreground">{v.valor || "Sem resposta · clique para editar"}</span>}</button>
                   <div className="inline-flex rounded-md border border-border p-0.5">
                     {STATUS_OPTS.map((o) => (
                       <button key={o.key} onClick={() => set(p.key, { status: v.status === o.key ? undefined : o.key })}
@@ -70,7 +71,7 @@ export function BriefingStep({ data, clienteId, touch }: StepProps) {
                     ))}
                   </div>
                 </div>
-                <textarea rows={2} value={v.valor ?? ""} onChange={(e) => set(p.key, { valor: e.target.value })} className={cn(inputCls, "resize-y")} placeholder="O que se sabe até aqui" />
+                {openQuestions.includes(p.key) && <textarea rows={4} value={v.valor ?? ""} onChange={(e) => set(p.key, { valor: e.target.value })} className={cn(inputCls, "resize-y")} placeholder="O que se sabe até aqui" />}
               </div>
             );
           })}
