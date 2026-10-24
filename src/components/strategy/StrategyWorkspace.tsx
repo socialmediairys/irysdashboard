@@ -69,7 +69,7 @@ export function StrategyWorkspace({ clienteId, clienteNome }: { clienteId: strin
       {section === "visao" && <StrategyOverview data={data} prog={prog} onOpen={open} />}
 
       {current && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {stepsInSection.length > 1 && (
             <div className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
               <div className="flex min-w-max gap-1 border-b border-border">
@@ -116,12 +116,12 @@ const PROMPTS_POR_ETAPA: Record<number, string> = {
 function StepHeader({ n, status, onStatus, ai }: { n: number; status: EtapaStatus; onStatus: (s: EtapaStatus) => void; ai?: ReactNode }) {
   const s = stepByN(n);
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3">
       <div className="min-w-0">
         <div className="text-xs text-muted-foreground">Etapa {n} de 13</div>
-        <h2 className="mt-0.5 text-xl font-semibold tracking-tight text-foreground">{s.titulo}</h2>
-        <p className="mt-1 max-w-2xl text-[13px] text-muted-foreground">{s.acao}</p>
-        {PROMPTS_POR_ETAPA[n] && <div className="mt-2 inline-flex rounded-md border border-primary/20 bg-primary/5 px-2 py-1 text-xs font-medium text-primary">Aplicar {PROMPTS_POR_ETAPA[n]} do pacote QR</div>}
+        <h2 className="mt-0.5 text-lg font-semibold tracking-tight text-foreground">{s.titulo}</h2>
+        <p className="mt-1 max-w-xl text-xs text-muted-foreground">{s.acao}</p>
+        {PROMPTS_POR_ETAPA[n] && <div className="mt-2 inline-flex rounded-md border border-border bg-secondary/50 px-2 py-1 text-xs font-medium text-muted-foreground">Aplicar {PROMPTS_POR_ETAPA[n]} do pacote QR</div>}
       </div>
       <div className="flex items-center gap-2">
         {ai}
