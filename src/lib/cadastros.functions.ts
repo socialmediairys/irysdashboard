@@ -30,11 +30,9 @@ async function requireAdmin(context: {
 export const meuStatusCadastro = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const isAdmin = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    if (isAdmin.data) return { tipo: "admin" as const };
+    // qualquer perfil interno (admin, gestor, editor, social, financeiro, jurídico) vai para o Painel
+    const { data: roles } = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId);
+    if ((roles ?? []).some((r: { role: string }) => r.role !== "cliente")) return { tipo: "admin" as const };
 
     const { data: cliente } = await context.supabase
       .from("clientes")

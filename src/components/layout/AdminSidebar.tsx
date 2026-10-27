@@ -16,6 +16,8 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { canAccess } from "@/lib/permissions";
+import { Scale, CalendarDays } from "lucide-react";
 
 type NavItem = {
   to: string;
@@ -55,13 +57,16 @@ export function AdminSidebar({
   onToggleCollapsed,
   mobileOpen,
   onCloseMobile,
+  roles = [],
 }: {
+  roles?: string[];
   collapsed: boolean;
   onToggleCollapsed: () => void;
   mobileOpen: boolean;
   onCloseMobile: () => void;
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isAdmin = roles.includes("admin");
 
   const renderItem = (n: NavItem) => {
     const Icon = n.icon;
@@ -120,11 +125,13 @@ export function AdminSidebar({
         </div>
 
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-2" aria-label="Menu principal">
-          {ADMIN_NAV.map(renderItem)}
+          {ADMIN_NAV.filter((n) => canAccess(n.to, roles)).map(renderItem)}
+          {/* sem acesso a Configurações: atalhos diretos para o que o perfil pode abrir */}
+          {!isAdmin && [{ to: "/admin/agenda", label: "Agenda", icon: CalendarDays }, { to: "/admin/juridico", label: "Jurídico", icon: Scale }].filter((n) => canAccess(n.to, roles)).map(renderItem)}
         </nav>
 
         <div className="flex flex-col gap-0.5 border-t border-sidebar-border px-3 py-3">
-          {renderItem(ADMIN_SETTINGS)}
+          {isAdmin && renderItem(ADMIN_SETTINGS)}
           <button
             onClick={onToggleCollapsed}
             className={cn(
