@@ -4,10 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { AdminTopbar } from "@/components/layout/AdminTopbar";
 import { cn } from "@/lib/utils";
+import { canAccess, staffRoles } from "@/lib/permissions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
       throw redirect({ to: "/auth" });
@@ -16,14 +17,22 @@ export const Route = createFileRoute("/_authenticated/admin")({
       .from("user_roles")
       .select("role")
       .eq("user_id", userData.user.id);
-    if (!roles?.some((r) => r.role === "admin")) {
-      throw redirect({ to: "/meu-portal" });
+    const list = (roles ?? []).map((r) => r.role as string);
+    // Painel = só equipe interna; clientes vão para o Portal, sem perfil vão para /app
+    if (!staffRoles(list).length) {
+      throw redirect({ to: list.includes("cliente") ? "/meu-portal" : "/app" });
     }
+    // seção fora das permissões do perfil → Visão geral (todos os perfis internos acessam)
+    if (!canAccess(location.pathname, list)) {
+      throw redirect({ to: "/admin/visao-geral" });
+    }
+    return { roles: list };
   },
   component: AdminLayout,
 });
 
 function AdminLayout() {
+  const { roles } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -46,6 +55,7 @@ function AdminLayout() {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <AdminSidebar
+        roles={roles}
         collapsed={collapsed}
         onToggleCollapsed={toggle}
         mobileOpen={mobileOpen}
