@@ -1,4 +1,10 @@
-import { ChevronLeft, ChevronRight, Film, Images, Lightbulb, Plus, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Film, GripVertical, Images, Lightbulb, Plus, Search } from "lucide-react";
+import { DndContext, DragOverlay, PointerSensor, TouchSensor, closestCorners, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { byOrdem, contentDragCheck, ordemForDrop } from "@/lib/kanban";
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -188,15 +194,14 @@ const DOT: Record<ContentStatus, string> = {
   com_cliente: "bg-warning", alteracao_solicitada: "bg-destructive", aprovado: "bg-success", agendado: "bg-success", publicado: "bg-foreground/60",
 };
 
-/* ---------- Produção (Kanban no desktop, lista agrupada no mobile) ---------- */
-function ProductionView({ items, cli, open, showClient }: ViewProps) {
-  const a = useContentActions();
-  const [drag, setDrag] = useState<string | null>(null);
-  const [mobileStatus, setMobileStatus] = useState<ContentStatus>("em_producao");
-  const Card = ({ c }: { c: Conteudo }) => (
-    <div draggable onDragStart={() => setDrag(c.id)} onClick={() => open(c.id)}
-      className={cn("cursor-pointer rounded-md border border-border bg-card p-2.5 hover:border-foreground/30", isLate(c) && "border-l-2 border-l-destructive")}>
-      <div className="text-[13px] font-medium leading-snug text-foreground">{c.titulo || "Sem título"}</div>
+/* ---------- Produção (Kanban no desktop, etapa única no mobile) ---------- */
+function ProdCard({ c, cli, showClient, handle }: { c: Conteudo; cli: (id: string) => string; showClient: boolean; handle?: React.HTMLAttributes<HTMLButtonElement> }) {
+  return (
+    <div className={cn("rounded-md border border-border bg-card p-2.5 hover:border-foreground/30", isLate(c) && "border-l-2 border-l-destructive")}>
+      <div className="flex items-start gap-1.5">
+        <div className="min-w-0 flex-1 text-[13px] font-medium leading-snug text-foreground">{c.titulo || "Sem título"}</div>
+        {handle && <button type="button" aria-label="Arrastar para reordenar" onClick={(e) => e.stopPropagation()} className="-m-1 shrink-0 cursor-grab touch-none rounded p-1.5 text-muted-foreground hover:bg-muted active:cursor-grabbing" {...handle}><GripVertical size={14} /></button>}
+      </div>
       <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
         {showClient && <span className="truncate">{cli(c.cliente_id)}</span>}
         <span className="truncate">{[c.canal, c.formato].filter(Boolean).join(" · ")}</span>
@@ -206,19 +211,75 @@ function ProductionView({ items, cli, open, showClient }: ViewProps) {
       </div>
     </div>
   );
+}
+
+function SortableProd({ c, cli, open, showClient }: { c: Conteudo; cli: (id: string) => string; open: (id: string) => void; showClient: boolean }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: c.id });
   return (
-    <>
+    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.35 : 1 }} {...attributes}
+      role="button" tabIndex={0} onClick={() => open(c.id)} onKeyDown={(e) => { if (e.key === "Enter") open(c.id); }} className="cursor-pointer">
+      <ProdCard c={c} cli={cli} showClient={showClient} handle={listeners as unknown as React.HTMLAttributes<HTMLButtonElement>} />
+    </div>
+  );
+}
+
+function ProdColumn({ s, count, highlight, children }: { s: ContentStatus; count: number; highlight: boolean; children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id: `col:${s}` });
+  return (
+    <div ref={setNodeRef} className={cn("flex w-60 shrink-0 flex-col rounded-lg p-2 ring-1 transition-colors", isOver || highlight ? "bg-accent ring-foreground/20" : "bg-muted/40 ring-transparent")}>
+      <div className="mb-2 flex items-center justify-between px-1 text-[12px] font-medium text-muted-foreground">
+        <span>{CONTENT_STATUS_LABEL[s]}</span><span>{count}</span>
+      </div>
+      <div className="min-h-24 flex-1 space-y-2">{children}</div>
+    </div>
+  );
+}
+
+function ProductionView({ items, cli, open, showClient }: ViewProps) {
+  const a = useContentActions();
+  const qc = useQueryClient();
+  const [mobileStatus, setMobileStatus] = useState<ContentStatus>("em_producao");
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overCol, setOverCol] = useState<string | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 6 } }),
+  );
+  const col = (s: string) => items.filter((c) => c.status === s).sort(byOrdem);
+  const colOf = (overId: string) => (overId.startsWith("col:") ? overId.slice(4) : items.find((c) => c.id === overId)?.status ?? null);
+
+  const onEnd = async (e: DragEndEvent) => {
+    setDragId(null); setOverCol(null);
+    if (!e.over) return;
+    const id = String(e.active.id); const overId = String(e.over.id);
+    const me = items.find((c) => c.id === id); const to = colOf(overId);
+    if (!me || !to || (overId === id)) return;
+    const check = contentDragCheck(me.status, to);
+    if (!check.ok) { toast.error(check.reason); return; }
+    const list = col(to);
+    const idx = overId.startsWith("col:") ? list.filter((c) => c.id !== id).length : list.findIndex((c) => c.id === overId);
+    const patch: Partial<Conteudo> = { ordem: ordemForDrop(list, id, idx < 0 ? list.length : idx) };
+    if (to !== me.status) patch.status = to as ContentStatus;
+    // otimista: atualiza o cache e grava só o card movido
+    qc.setQueriesData<Conteudo[]>({ queryKey: ["conteudos"] }, (old) => old?.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+    await a.update(id, patch);
+  };
+  const dragging = dragId ? items.find((c) => c.id === dragId) : null;
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCorners}
+      onDragStart={(e) => setDragId(String(e.active.id))}
+      onDragOver={(e) => setOverCol(e.over ? colOf(String(e.over.id)) : null)}
+      onDragEnd={onEnd} onDragCancel={() => { setDragId(null); setOverCol(null); }}>
       <div className="hidden gap-3 overflow-x-auto pb-2 md:flex">
         {WORKFLOW.map((s) => {
-          const list = items.filter((c) => c.status === s);
+          const list = col(s);
           return (
-            <div key={s} onDragOver={(e) => e.preventDefault()} onDrop={() => { if (drag) a.update(drag, { status: s }); setDrag(null); }}
-              className="flex w-60 shrink-0 flex-col rounded-lg bg-muted/40 p-2">
-              <div className="mb-2 flex items-center justify-between px-1 text-[12px] font-medium text-muted-foreground">
-                <span>{CONTENT_STATUS_LABEL[s]}</span><span>{list.length}</span>
-              </div>
-              <div className="min-h-24 space-y-2">{list.map((c) => <Card key={c.id} c={c} />)}</div>
-            </div>
+            <SortableContext key={s} items={list.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+              <ProdColumn s={s} count={list.length} highlight={!!dragId && overCol === s}>
+                {list.map((c) => <SortableProd key={c.id} c={c} cli={cli} open={open} showClient={showClient} />)}
+              </ProdColumn>
+            </SortableContext>
           );
         })}
       </div>
@@ -226,19 +287,26 @@ function ProductionView({ items, cli, open, showClient }: ViewProps) {
         <select value={mobileStatus} onChange={(e) => setMobileStatus(e.target.value as ContentStatus)} className={cn(inputCls, "mb-3")} aria-label="Etapa">
           {WORKFLOW.map((s) => <option key={s} value={s}>{CONTENT_STATUS_LABEL[s]} ({items.filter((c) => c.status === s).length})</option>)}
         </select>
-        <div className="space-y-2">
-          {items.filter((c) => c.status === mobileStatus).map((c) => (
-            <div key={c.id} className="space-y-1.5">
-              <Card c={c} />
-              <select value={c.status} onChange={(e) => a.update(c.id, { status: e.target.value as ContentStatus })} className={cn(inputCls, "h-8 py-1 text-[12px]")} aria-label="Mover para">
-                {WORKFLOW.map((s) => <option key={s} value={s}>Mover para: {CONTENT_STATUS_LABEL[s]}</option>)}
-              </select>
-            </div>
-          ))}
-          {!items.some((c) => c.status === mobileStatus) && <p className="py-6 text-center text-sm text-muted-foreground">Nada nesta etapa.</p>}
-        </div>
+        <SortableContext items={col(mobileStatus).map((c) => c.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-2">
+            {col(mobileStatus).map((c) => (
+              <div key={c.id} className="space-y-1.5">
+                <SortableProd c={c} cli={cli} open={open} showClient={showClient} />
+                <select value={c.status} onChange={(e) => {
+                  const to = e.target.value as ContentStatus; const ck = contentDragCheck(c.status, to);
+                  if (!ck.ok) { toast.error(ck.reason); return; }
+                  void a.update(c.id, { status: to, ordem: ordemForDrop(col(to), c.id, col(to).length) });
+                }} className={cn(inputCls, "h-8 py-1 text-[12px]")} aria-label="Mover para">
+                  {WORKFLOW.map((s) => <option key={s} value={s} disabled={!contentDragCheck(c.status, s).ok}>Mover para: {CONTENT_STATUS_LABEL[s]}</option>)}
+                </select>
+              </div>
+            ))}
+            {!items.some((c) => c.status === mobileStatus) && <p className="py-6 text-center text-sm text-muted-foreground">Nada nesta etapa.</p>}
+          </div>
+        </SortableContext>
       </div>
-    </>
+      <DragOverlay dropAnimation={null}>{dragging ? <div className="w-60 rotate-1 shadow-lg"><ProdCard c={dragging} cli={cli} showClient={showClient} /></div> : null}</DragOverlay>
+    </DndContext>
   );
 }
 
