@@ -8,6 +8,13 @@
       "when": 1791309827242,
       "tag": "0000_sprints_archived_at",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793059502948,
+      "tag": "0001_kanban_ordem_e_excluir_sprint",
+      "breakpoints": true
     }
   ]
 }
