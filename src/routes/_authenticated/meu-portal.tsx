@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getMeuPortal } from "@/lib/portal-conteudos.functions";
@@ -10,7 +11,12 @@ import { rememberMonth } from "@/components/content/MonthNav";
 import { PortalRico, type ClientePortal, type Fase, type Topico, type Conteudo } from "@/components/PortalRico";
 import { PortalContratoSuporte } from "@/components/PortalContratoSuporte";
 
+const TABS = ["jornada", "conteudos", "aprovacoes", "resultados", "contrato"] as const;
+type PortalTab = (typeof TABS)[number];
+
 export const Route = createFileRoute("/_authenticated/meu-portal")({
+  validateSearch: (s: Record<string, unknown>): { tab?: PortalTab } =>
+    TABS.includes(s.tab as PortalTab) && s.tab !== "jornada" ? { tab: s.tab as PortalTab } : {},
   head: () => ({
     meta: [
       { title: "Meu portal — Irys" },
@@ -22,7 +28,10 @@ export const Route = createFileRoute("/_authenticated/meu-portal")({
 
 function MeuPortalPage() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"jornada" | "conteudos" | "aprovacoes" | "resultados" | "contrato">("jornada");
+  const queryClient = useQueryClient();
+  // aba na URL: recarregar, voltar e links diretos mantêm o contexto do Portal
+  const tab: PortalTab = Route.useSearch().tab ?? "jornada";
+  const setTab = (t: PortalTab) => void navigate({ to: "/meu-portal", search: t === "jornada" ? {} : { tab: t } });
   const [cliente, setCliente] = useState<ClientePortal | null>(null);
   const [fases, setFases] = useState<Fase[]>([]);
   const [topicos, setTopicos] = useState<Topico[]>([]);
@@ -88,8 +97,10 @@ function MeuPortalPage() {
   }, [cliente?.id]);
 
   const signOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
     await supabase.auth.signOut();
-    navigate({ to: "/login" });
+    navigate({ to: "/login", replace: true });
   };
 
   if (loading && !cliente) {

@@ -2,6 +2,8 @@ import { ReporteiMetrics, periodRange } from "@/components/metricas/ReporteiMetr
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ExternalLink, Film, RotateCcw } from "lucide-react";
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,14 +42,13 @@ export function PortalAprovacoes({ clienteId }: { clienteId: string }) {
   return (
     <div className="space-y-5">
       <MonthBar mes={mes} setMes={setMes} outros={outros} />
-      {list.length ? <div className="space-y-8">{list.map((c) => <ApprovalCard key={c.id} c={c} clienteId={clienteId} />)}</div> : <Empty>Nenhum conteúdo aguardando sua aprovação em {monthLabel(mes)}.</Empty>}
+      {list.length ? <div className="space-y-8">{list.map((c) => <ApprovalCard detailLink key={c.id} c={c} clienteId={clienteId} />)}</div> : <Empty>Nenhum conteúdo aguardando sua aprovação em {monthLabel(mes)}.</Empty>}
     </div>
   );
 }
 
 export function PortalConteudos({ clienteId }: { clienteId: string }) {
   const { data: all = [], isLoading } = useClientContents(clienteId);
-  const [open, setOpen] = useState<string | null>(null);
   const [mes, setMes] = useMonthState(`portal:${clienteId}`);
   const data = all.filter((c) => competencia(c) === mes);
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando…</p>;
@@ -57,15 +58,12 @@ export function PortalConteudos({ clienteId }: { clienteId: string }) {
     {!data.length ? <Empty>{all.length ? `Nenhum conteúdo em ${monthLabel(mes)}.` : "Os conteúdos aparecem aqui assim que forem enviados para você."}</Empty> : (
     <div className="divide-y divide-border rounded-lg border border-border bg-card">
       {data.map((c) => (
-        <div key={c.id}>
-          <button onClick={() => setOpen(open === c.id ? null : c.id)} className="flex w-full items-center gap-3 px-5 py-3 text-left hover:bg-accent/50">
-            <span className="w-16 shrink-0 text-[13px] text-muted-foreground">{fmtShort(c.data_prevista)}</span>
-            <span className="min-w-0 flex-1 truncate text-sm text-foreground">{c.titulo || "Conteúdo"}</span>
-            <span className="hidden text-[13px] text-muted-foreground sm:inline">{[c.canal, c.formato].filter(Boolean).join(" · ")}</span>
-            <StatusBadge variant={CONTENT_STATUS_VARIANT[c.status]}>{CONTENT_STATUS_LABEL[c.status]}</StatusBadge>
-          </button>
-          {open === c.id && current(c) && <div className="space-y-5 border-t border-border p-5"><VersionView v={current(c)!} /><Conversa c={c} /></div>}
-        </div>
+        <Link key={c.id} to="/meu-portal/conteudo/$conteudoId" params={{ conteudoId: c.id }} className="flex w-full items-center gap-3 px-5 py-3 text-left hover:bg-accent/50">
+          <span className="w-16 shrink-0 text-[13px] text-muted-foreground">{fmtShort(c.data_prevista)}</span>
+          <span className="min-w-0 flex-1 truncate text-sm text-foreground">{c.titulo || "Conteúdo"}</span>
+          <span className="hidden text-[13px] text-muted-foreground sm:inline">{[c.canal, c.formato].filter(Boolean).join(" · ")}</span>
+          <StatusBadge variant={CONTENT_STATUS_VARIANT[c.status]}>{CONTENT_STATUS_LABEL[c.status]}</StatusBadge>
+        </Link>
       ))}
     </div>
     )}
@@ -99,7 +97,7 @@ export function PortalResultados({ clienteId }: { clienteId: string }) {
   );
 }
 
-function ApprovalCard({ c, clienteId }: { c: Item; clienteId: string }) {
+function ApprovalCard({ c, clienteId, detailLink }: { c: Item; clienteId: string; detailLink?: boolean }) {
   const v = current(c);
   const qc = useQueryClient();
   const [historico, setHistorico] = useState(false);
@@ -117,18 +115,19 @@ function ApprovalCard({ c, clienteId }: { c: Item; clienteId: string }) {
       <header className="flex flex-wrap items-center gap-2 border-b border-border px-5 py-4">
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-semibold text-foreground">{c.titulo || "Conteúdo"}</h3>
-          <p className="text-[13px] text-muted-foreground">{[c.canal, c.formato, fmtShort(c.data_prevista)].filter(Boolean).join(" · ")} · Versão {v.numero}</p>
+          <p className="text-[13px] text-muted-foreground">{[c.canal, c.formato, fmtShort(c.data_prevista), `Competência ${monthLabel(competencia(c))}`].filter(Boolean).join(" · ")} · Versão {v.numero}</p>
         </div>
         <StatusBadge variant={CONTENT_STATUS_VARIANT[c.status]}>{CONTENT_STATUS_LABEL[c.status]}</StatusBadge>
+        {detailLink && <Link to="/meu-portal/conteudo/$conteudoId" params={{ conteudoId: c.id }} className="text-[13px] text-muted-foreground hover:text-foreground">Abrir</Link>}
       </header>
       <div className="grid gap-6 p-5 md:grid-cols-2">
         <div className="space-y-3">
           <Media midias={v.midias} />
-          <Decision label="Arte" state={v.status_arte} onDecide={(d, t) => avaliar("arte", d, t)} />
+          {pending(c) && <Decision label="Arte" state={v.status_arte} onDecide={(d, t) => avaliar("arte", d, t)} />}
         </div>
         <div className="space-y-3">
           <div className="whitespace-pre-wrap rounded-md border border-border p-4 text-sm leading-relaxed text-foreground">{v.legenda || <span className="text-muted-foreground">Sem legenda.</span>}{v.hashtags && <div className="mt-3 text-muted-foreground">{v.hashtags}</div>}</div>
-          <Decision label="Legenda" state={v.status_legenda} onDecide={(d, t) => avaliar("legenda", d, t)} />
+          {pending(c) && <Decision label="Legenda" state={v.status_legenda} onDecide={(d, t) => avaliar("legenda", d, t)} />}
         </div>
       </div>
       {c.comentarios.length > 0 && <div className="border-t border-border px-5 py-4"><Conversa c={c} /></div>}
@@ -235,4 +234,15 @@ function MonthBar({ mes, setMes, outros = [] }: { mes: string; setMes: (v: strin
       {outros.length > 0 && <span className="text-[12px] text-muted-foreground">Também aguardando você: {outros.map((m) => <button key={m} onClick={() => setMes(m)} className="ml-1 underline-offset-2 hover:text-foreground hover:underline">{monthLabel(m)}</button>)}</span>}
     </div>
   );
+}
+
+/** Detalhe do conteúdo dentro do Portal (nunca abre o editor interno). RLS limita aos conteúdos enviados ao próprio cliente. */
+export function PortalConteudoDetalhe({ clienteId, conteudoId }: { clienteId: string; conteudoId: string }) {
+  const { data = [], isLoading, error } = useClientContents(clienteId);
+  const c = data.find((x) => x.id === conteudoId);
+  const voltar = <Link to="/meu-portal" search={{ tab: "conteudos" }} className="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground"><ArrowLeft size={14} /> Conteúdos</Link>;
+  if (isLoading) return <p className="text-sm text-muted-foreground">Carregando…</p>;
+  if (error) return <div className="space-y-4">{voltar}<Empty>Não foi possível carregar. Tente novamente.</Empty></div>;
+  if (!c || !current(c)) return <div className="space-y-4">{voltar}<Empty>Conteúdo não encontrado ou não disponível para você.</Empty></div>;
+  return <div className="space-y-4">{voltar}<ApprovalCard c={c} clienteId={clienteId} /></div>;
 }
