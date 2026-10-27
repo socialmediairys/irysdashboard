@@ -15,10 +15,10 @@ const linkCls = "text-[13px] text-muted-foreground hover:text-foreground";
 export function Overview() {
   const { data, isLoading, error } = useOverviewData();
   const week = useWeekWithCalendar(data?.week);
-  const { can } = useStaffAccess();
+  const { can, canTab } = useStaffAccess();
   const show = { clientes: can("/admin/clientes"), conteudo: can("/admin/conteudo"), financeiro: can("/admin/financeiro") };
   // Itens cujo destino o perfil não acessa somem (a origem já é filtrada pelo banco).
-  const priorities = (data?.priorities ?? []).filter((p) => can(p.action.to));
+  const priorities = (data?.priorities ?? []).filter((p) => can(p.action.to) && (!p.action.search?.tab || canTab(p.action.search.tab)));
   const activity = (data?.activity ?? []).filter((a) => !a.to || can(a.to));
 
   return (

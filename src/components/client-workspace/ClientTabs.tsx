@@ -1,12 +1,14 @@
 import { CLIENT_TABS, type ClientTabKey } from "@/lib/client-workspace";
 import { cn } from "@/lib/utils";
+import { useStaffAccess } from "@/lib/use-staff-roles";
 
 /** Underline tabs; scroll horizontally on small screens. */
 export function ClientTabs({ value, onChange }: { value: ClientTabKey; onChange: (t: ClientTabKey) => void }) {
+  const { canTab } = useStaffAccess();
   return (
     <div className="-mx-4 mb-8 overflow-x-auto border-b border-border px-4 md:mx-0 md:px-0" role="tablist">
       <div className="flex min-w-max gap-5">
-        {CLIENT_TABS.map((t) => (
+        {CLIENT_TABS.filter((t) => canTab(t.key)).map((t) => (
           <button
             key={t.key}
             role="tab"
