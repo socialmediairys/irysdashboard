@@ -1,3 +1,4 @@
+import { contentDragCheck } from "@/lib/kanban";
 import { statusLabel } from "@/lib/tasks";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -111,8 +112,9 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge variant={CONTENT_STATUS_VARIANT[c.status]}>{CONTENT_STATUS_LABEL[c.status]}</StatusBadge>
           <select value={c.status} onChange={(e) => save({ status: e.target.value as ContentStatus })} className={cn(inputCls, "h-8 w-auto py-1 text-[13px]")} aria-label="Status">
-            {CONTENT_STATUS.map((s) => <option key={s} value={s}>{CONTENT_STATUS_LABEL[s]}</option>)}
+            {CONTENT_STATUS.map((s) => <option key={s} value={s} disabled={s !== c.status && !contentDragCheck(c.status, s).ok}>{CONTENT_STATUS_LABEL[s]}</option>)}
           </select>
+          <input type="month" defaultValue={(c.pipeline_mes ?? "").slice(0, 7)} key={`m-${c.updated_at}`} onBlur={(e) => /^\d{4}-\d{2}$/.test(e.target.value) && e.target.value !== (c.pipeline_mes ?? "").slice(0, 7) && save({ pipeline_mes: `${e.target.value}-01` })} className={cn(inputCls, "h-8 w-auto py-1 text-[13px]")} aria-label="Mês de competência" title="Mês de competência" />
           <input type="date" defaultValue={c.data_prevista ?? ""} key={`d-${c.updated_at}`} onBlur={(e) => save({ data_prevista: e.target.value || null })} className={cn(inputCls, "h-8 w-auto py-1 text-[13px]")} aria-label="Data" />
           <input type="time" defaultValue={c.horario?.slice(0, 5) ?? ""} key={`h-${c.updated_at}`} onBlur={(e) => save({ horario: e.target.value || null })} className={cn(inputCls, "h-8 w-auto py-1 text-[13px]")} aria-label="Horário" />
           <select value={c.canal ?? ""} onChange={(e) => save({ canal: e.target.value || null })} className={cn(inputCls, "h-8 w-auto py-1 text-[13px]")} aria-label="Canal">

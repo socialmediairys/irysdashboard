@@ -158,3 +158,12 @@ export const fmtShort = (s: string | null) => (s ? parseLocal(s).toLocaleDateStr
 export const isIncomplete = (c: Conteudo) => !c.legenda?.trim() || !(c.midias?.length);
 export const isLate = (c: Conteudo, today = new Date(new Date().setHours(0, 0, 0, 0))) =>
   !!c.data_prevista && parseLocal(c.data_prevista) < today && !["publicado", "agendado", "ideia"].includes(c.status);
+
+/* ---------- Competência mensal (conteudos.pipeline_mes = 'YYYY-MM-01') ---------- */
+export const monthKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+export const shiftMonth = (key: string, n: number) => { const [y, m] = key.split("-").map(Number); return monthKey(new Date(y, m - 1 + n, 1)); };
+export const monthLabel = (key: string) => { const [y, m] = key.split("-").map(Number); const s = new Date(y, m - 1, 1).toLocaleDateString("pt-BR", { month: "long" }); return `${s[0].toUpperCase()}${s.slice(1)}/${y}`; };
+export const isMonthKey = (s: unknown): s is string => typeof s === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(s);
+/** Mês de competência do conteúdo; cai para data prevista/criação quando ausente. */
+export const competencia = (c: { pipeline_mes: string | null; data_prevista?: string | null; created_at?: string }) =>
+  (c.pipeline_mes ?? c.data_prevista ?? c.created_at ?? "").slice(0, 7);
