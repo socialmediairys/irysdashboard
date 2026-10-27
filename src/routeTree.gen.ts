@@ -35,6 +35,7 @@ import { Route as AuthenticatedAdminSprintsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminVisaoGeralRouteImport } from './routes/_authenticated/admin.visao-geral'
 import { Route as AuthenticatedAdminClientesIndexRouteImport } from './routes/_authenticated/admin.clientes.index'
 import { Route as AuthenticatedAdminClientesClienteIdRouteImport } from './routes/_authenticated/admin.clientes.$clienteId'
+import { Route as AuthenticatedMeuPortalConteudoConteudoIdRouteImport } from './routes/_authenticated/meu-portal_.conteudo.$conteudoId'
 import { Route as ApiPublicGoogleCalendarCallbackRouteImport } from './routes/api/public/google-calendar.callback'
 import { Route as ApiPublicMetaBusinessCallbackRouteImport } from './routes/api/public/meta-business.callback'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp.webhook'
@@ -184,6 +185,12 @@ const AuthenticatedAdminClientesClienteIdRoute =
     path: '/clientes/$clienteId',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedMeuPortalConteudoConteudoIdRoute =
+  AuthenticatedMeuPortalConteudoConteudoIdRouteImport.update({
+    id: '/meu-portal_/conteudo/$conteudoId',
+    path: '/meu-portal/conteudo/$conteudoId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicGoogleCalendarCallbackRoute =
   ApiPublicGoogleCalendarCallbackRouteImport.update({
     id: '/api/public/google-calendar/callback',
@@ -228,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
+  '/meu-portal/conteudo/$conteudoId': typeof AuthenticatedMeuPortalConteudoConteudoIdRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
   '/api/public/meta-business/callback': typeof ApiPublicMetaBusinessCallbackRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
@@ -257,6 +265,7 @@ export interface FileRoutesByTo {
   '/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
+  '/meu-portal/conteudo/$conteudoId': typeof AuthenticatedMeuPortalConteudoConteudoIdRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
   '/api/public/meta-business/callback': typeof ApiPublicMetaBusinessCallbackRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
@@ -289,6 +298,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/visao-geral': typeof AuthenticatedAdminVisaoGeralRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/admin/clientes/$clienteId': typeof AuthenticatedAdminClientesClienteIdRoute
+  '/_authenticated/meu-portal_/conteudo/$conteudoId': typeof AuthenticatedMeuPortalConteudoConteudoIdRoute
   '/api/public/google-calendar/callback': typeof ApiPublicGoogleCalendarCallbackRoute
   '/api/public/meta-business/callback': typeof ApiPublicMetaBusinessCallbackRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
@@ -321,6 +331,7 @@ export interface FileRouteTypes {
     | '/admin/visao-geral'
     | '/admin/'
     | '/admin/clientes/$clienteId'
+    | '/meu-portal/conteudo/$conteudoId'
     | '/api/public/google-calendar/callback'
     | '/api/public/meta-business/callback'
     | '/api/public/whatsapp/webhook'
@@ -350,6 +361,7 @@ export interface FileRouteTypes {
     | '/admin/visao-geral'
     | '/admin'
     | '/admin/clientes/$clienteId'
+    | '/meu-portal/conteudo/$conteudoId'
     | '/api/public/google-calendar/callback'
     | '/api/public/meta-business/callback'
     | '/api/public/whatsapp/webhook'
@@ -381,6 +393,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/visao-geral'
     | '/_authenticated/admin/'
     | '/_authenticated/admin/clientes/$clienteId'
+    | '/_authenticated/meu-portal_/conteudo/$conteudoId'
     | '/api/public/google-calendar/callback'
     | '/api/public/meta-business/callback'
     | '/api/public/whatsapp/webhook'
@@ -582,6 +595,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminClientesClienteIdRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/meu-portal_/conteudo/$conteudoId': {
+      id: '/_authenticated/meu-portal_/conteudo/$conteudoId'
+      path: '/meu-portal/conteudo/$conteudoId'
+      fullPath: '/meu-portal/conteudo/$conteudoId'
+      preLoaderRoute: typeof AuthenticatedMeuPortalConteudoConteudoIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/google-calendar/callback': {
       id: '/api/public/google-calendar/callback'
       path: '/api/public/google-calendar/callback'
@@ -659,12 +679,15 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
   AuthenticatedMeuPortalRoute: typeof AuthenticatedMeuPortalRoute
+  AuthenticatedMeuPortalConteudoConteudoIdRoute: typeof AuthenticatedMeuPortalConteudoConteudoIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedAppRoute: AuthenticatedAppRoute,
   AuthenticatedMeuPortalRoute: AuthenticatedMeuPortalRoute,
+  AuthenticatedMeuPortalConteudoConteudoIdRoute:
+    AuthenticatedMeuPortalConteudoConteudoIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
