@@ -2,6 +2,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { isMonthKey, monthKey, monthLabel, shiftMonth } from "@/lib/content";
 
+export const rememberMonth = (scope: string, mes: string) => localStorage.setItem(`irys:mes:${scope}`, mes);
+
 /** Mês selecionado persistido por escopo (sobrevive a recarregar a página). */
 export function useMonthState(scope: string) {
   const storageKey = `irys:mes:${scope}`;
