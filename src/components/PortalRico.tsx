@@ -640,7 +640,7 @@ export function PortalRico({
         const nomeTopico = c?.topicos_fase?.nome;
         return c?.tipo === "audio" && normalizarNome(nomeTopico) === "audios da dinamica";
       })
-      .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0));
+      .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0) || String(a.id).localeCompare(String(b.id)));
   }, [safeConteudos]);
 
 
@@ -682,6 +682,7 @@ export function PortalRico({
       if (!m[c.topico_id]) m[c.topico_id] = [];
       m[c.topico_id].push(c);
     }
+    for (const items of Object.values(m)) items.sort((a,b) => (a.ordem ?? 0) - (b.ordem ?? 0) || String(a.id).localeCompare(String(b.id)));
     return m;
   }, [safeConteudos]);
 

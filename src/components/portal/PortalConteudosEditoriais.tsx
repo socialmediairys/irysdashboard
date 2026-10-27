@@ -42,7 +42,7 @@ export function PortalAprovacoes({ clienteId }: { clienteId: string }) {
   return (
     <div className="space-y-5">
       <MonthBar mes={mes} setMes={setMes} outros={outros} />
-      {list.length ? <div className="grid gap-4 sm:grid-cols-2">{list.map((c) => <a key={c.id} href={`/meu-portal/conteudo/${encodeURIComponent(c.id)}`} className="group block cursor-pointer overflow-hidden rounded-xl border border-border bg-card hover:shadow-md"><PortalThumbnail c={c}/><div className="space-y-2 p-4"><h3 className="text-sm font-semibold">{c.titulo || "Conteúdo"}</h3><p className="text-xs text-muted-foreground">{[c.formato,fmtShort(c.data_prevista)].filter(Boolean).join(" · ")}</p><span className="inline-flex items-center gap-1 text-xs font-medium">Abrir avaliação <ChevronRight size={14}/></span></div></a>)}</div> : <Empty>Nenhum conteúdo aguardando sua aprovação em {monthLabel(mes)}.</Empty>}
+      {list.length ? <div className="grid gap-4 sm:grid-cols-2">{list.map((c) => <Link key={c.id} to="/meu-portal/conteudo/$conteudoId" params={{ conteudoId:c.id }} className="group overflow-hidden rounded-xl border border-border bg-card hover:shadow-md"><PortalThumbnail c={c}/><div className="space-y-2 p-4"><h3 className="text-sm font-semibold">{c.titulo || "Conteúdo"}</h3><p className="text-xs text-muted-foreground">{[c.formato,fmtShort(c.data_prevista)].filter(Boolean).join(" · ")}</p><span className="inline-flex items-center gap-1 text-xs font-medium">Abrir avaliação <ChevronRight size={14}/></span></div></Link>)}</div> : <Empty>Nenhum conteúdo aguardando sua aprovação em {monthLabel(mes)}.</Empty>}
     </div>
   );
 }
@@ -75,18 +75,9 @@ function PortalThumbnail({ c }: { c: Item }) {
     <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-[11px] font-medium text-stone-800 shadow-sm">{clientStatus(c)}</span>
   </div>;
 }
-export function PortalConteudos({ clienteId, initialMonth }: { clienteId: string; initialMonth?: string }) {
+export function PortalConteudos({ clienteId }: { clienteId: string }) {
   const { data: all = [], isLoading, error } = useClientContents(clienteId);
-  const [mesArmazenado, setMesArmazenado] = useMonthState(`portal:${clienteId}`);
-  const mes = initialMonth ?? mesArmazenado;
-  const setMes = (value: string) => {
-    setMesArmazenado(value);
-    if (initialMonth && typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      url.searchParams.set("mes", value);
-      window.history.replaceState(window.history.state, "", url.toString());
-    }
-  };
+  const [mes, setMes] = useMonthState(`portal:${clienteId}`);
   const [filtro, setFiltro] = useState<GalleryFilter>("todos");
   const data = all.filter((c) => competencia(c) === mes);
   const filtrados = data.filter((c) => filtro === "todos" || etapaCliente(c) === filtro);
@@ -111,11 +102,11 @@ export function PortalConteudos({ clienteId, initialMonth }: { clienteId: string
       {filters.map((f) => <button key={f.id} type="button" onClick={() => setFiltro(f.id)} aria-pressed={filtro === f.id} className={cn("rounded-full border px-3 py-2 text-xs font-medium transition-colors", filtro === f.id ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground")}>{f.label} ({f.count})</button>)}
     </div>
     {!filtrados.length ? <Empty>{data.length ? "Nenhum conteúdo neste filtro." : `Nenhum conteúdo disponível em ${monthLabel(mes)}.`}</Empty> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {filtrados.map((c) => <a key={c.id} href={`/meu-portal/conteudo/${encodeURIComponent(c.id)}`} className="group block cursor-pointer overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+      {filtrados.map((c) => <Link key={c.id} to="/meu-portal/conteudo/$conteudoId" params={{ conteudoId: c.id }} className="group overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
         <PortalThumbnail c={c}/>
         <div className="space-y-2 p-4"><h3 className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-foreground">{c.titulo || "Conteúdo"}</h3><p className="text-xs text-muted-foreground">{[c.formato || c.canal, fmtShort(c.data_prevista)].filter(Boolean).join(" · ") || monthLabel(competencia(c))}</p>
         <div className="flex items-center justify-between border-t border-border pt-3 text-xs font-medium"><span>{pending(c) ? "Avaliar conteúdo" : "Ver conteúdo"}</span><ChevronRight size={15} className="transition-transform group-hover:translate-x-1"/></div></div>
-      </a>)}
+      </Link>)}
     </div>}
   </section>;
 }

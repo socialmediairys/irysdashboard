@@ -60,7 +60,7 @@ export const listConteudosCliente = createServerFn({ method: "GET" })
     await requireAdmin(context);
     const { data: rows, error } = await context.supabase
       .from("conteudos_cliente")
-      .select("id, cliente_id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, created_at")
+      .select("id, cliente_id, topico_id, tipo, titulo, descricao, url, storage_path, storage_bucket, ordem, created_at")
       .eq("cliente_id", data.clienteId)
       .order("created_at", { ascending: false });
     if (error) throw error;
@@ -117,6 +117,33 @@ export const updateConteudoGlobal = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+
+// Reordenação e edição dos materiais do portal (somente administrador).
+export const savePortalConteudo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string; isGlobal: boolean; titulo: string | null; descricao: string | null }) => input)
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const table = data.isGlobal ? "conteudos_globais" : "conteudos_cliente";
+    const { error } = await context.supabase.from(table).update({ titulo: data.titulo?.trim() || null, descricao: data.descricao?.trim() || null }).eq("id", data.id);
+    if (error) throw error;
+    return { ok: true as const };
+  });
+
+export const reorderPortalConteudos = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { items: { id: string; isGlobal: boolean; ordem: number }[] }) => input)
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    if (data.items.length > 200 || data.items.some(x => !x.id || !Number.isInteger(x.ordem) || x.ordem < 0)) throw new Error("Ordem inválida");
+    // Cada item é atualizado no seu repositório; o cliente recebe a mesma ordem.
+    for (const item of data.items) {
+      const table = item.isGlobal ? "conteudos_globais" : "conteudos_cliente";
+      const { error } = await context.supabase.from(table).update({ ordem: item.ordem }).eq("id", item.id);
+      if (error) throw error;
+    }
+    return { ok: true as const };
+  });
 
 // Cria conteúdo (admin)
 export const createConteudoCliente = createServerFn({ method: "POST" })

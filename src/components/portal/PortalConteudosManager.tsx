@@ -8,6 +8,8 @@ import {
   createConteudoCliente,
   createConteudoGlobal,
   updateConteudoGlobal,
+  savePortalConteudo,
+  reorderPortalConteudos,
   deleteConteudoCliente,
   deleteConteudoGlobal,
   type Fase,
@@ -24,7 +26,7 @@ import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { FileUploader } from "@/components/FileUploader";
 import { toast } from "sonner";
-import { Loader2, Trash2, Video, FileText, Headphones, Globe } from "lucide-react";
+import { Loader2, Trash2, Video, FileText, Headphones, Globe, Pencil, Plus, ChevronUp, ChevronDown, X } from "lucide-react";
 
 const BUCKET_BY_TIPO: Record<ConteudoTipo, "videos-cliente" | "audios-cliente" | "documentos"> = {
   video: "videos-cliente",
@@ -200,6 +202,30 @@ function TopicoBlock({
   const [descricao, setDescricao] = useState("");
   const [url, setUrl] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [editing, setEditing] = useState<Conteudo | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [reordering, setReordering] = useState(false);
+  const saveEdit = useServerFn(savePortalConteudo);
+  const reorder = useServerFn(reorderPortalConteudos);
+  const edit = (c: Conteudo) => { setEditing(c); setEditTitle(c.titulo ?? ""); setEditDescription(c.descricao ?? ""); setShowCreate(false); };
+  const persistEdit = async () => {
+    if (!editing) return;
+    setSaving(true);
+    try { await saveEdit({ data: { id: editing.id, isGlobal: !!editing.is_global, titulo: editTitle, descricao: editDescription } }); toast.success("Conteúdo atualizado"); setEditing(null); onChanged(); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Não foi possível editar"); }
+    finally { setSaving(false); }
+  };
+  const move = async (index: number, delta: number) => {
+    const next = [...conteudos]; const target = index + delta;
+    if (target < 0 || target >= next.length) return;
+    [next[index], next[target]] = [next[target], next[index]];
+    setReordering(true);
+    try { await reorder({ data: { items: next.map((c, i) => ({ id: c.id, isGlobal: !!c.is_global, ordem: i + 1 })) } }); onChanged(); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "Erro ao salvar ordem"); }
+    finally { setReordering(false); }
+  };
 
   const podeGlobal = topicoAceitaGlobal(topico);
   const [asGlobal, setAsGlobal] = useState(podeGlobal);
@@ -230,6 +256,7 @@ function TopicoBlock({
       setTitulo("");
       setDescricao("");
       setUrl("");
+      setShowCreate(false);
       toast.success("Conteúdo adicionado");
       onChanged();
     } catch (e) {
@@ -271,6 +298,7 @@ function TopicoBlock({
       }
       setTitulo("");
       setDescricao("");
+      setShowCreate(false);
       toast.success("Arquivo enviado e vinculado ao tópico");
       onChanged();
     } catch (e) {
@@ -296,21 +324,23 @@ function TopicoBlock({
 
   return (
     <div className="rounded-lg border p-3 sm:p-4 bg-muted/20 min-w-0">
-      <div className="font-semibold mb-2 break-words flex items-center gap-2">
-        {topico.nome}
-        {podeGlobal && (
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">
-            <Globe className="h-3 w-3" /> Compartilhável
-          </span>
-        )}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 font-semibold text-sm">{topico.nome}
+          {podeGlobal && <span className="rounded-full border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">Compartilhável</span>}
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{conteudos.length}</span>
+        </div>
+        <Button type="button" variant="outline" size="sm" onClick={() => { setEditing(null); setShowCreate(!showCreate); }}>
+          {showCreate ? <X className="mr-1 h-3.5 w-3.5"/> : <Plus className="mr-1 h-3.5 w-3.5"/>}{showCreate ? "Fechar" : "Adicionar conteúdo"}
+        </Button>
       </div>
+      <p className="mb-3 text-xs text-muted-foreground">Use as setas para definir a sequência exibida no Portal da cliente. A ordem é salva para todos os clientes nos itens globais.</p>
       {loading ? (
         <div className="text-xs text-muted-foreground">Carregando…</div>
       ) : conteudos.length === 0 ? (
         <div className="text-xs text-muted-foreground mb-3">Nenhum conteúdo cadastrado para este tópico.</div>
       ) : (
         <ul className="space-y-2 mb-3">
-          {conteudos.map((c) => {
+          {conteudos.map((c, index) => {
             const pendingGlobal = !!c.is_global && !c.url && !c.storage_path;
             return (
               <li key={c.id} className="rounded-md border bg-background/60 p-2 min-w-0">
@@ -333,9 +363,13 @@ function TopicoBlock({
                       Abrir
                     </a>
                   )}
+                  <div className="flex shrink-0 items-center gap-0.5">
+                    <Button type="button" variant="ghost" size="icon" title="Mover para cima" aria-label="Mover para cima" className="h-7 w-7" disabled={reordering || index === 0} onClick={() => move(index, -1)}><ChevronUp className="h-4 w-4"/></Button>
+                    <Button type="button" variant="ghost" size="icon" title="Mover para baixo" aria-label="Mover para baixo" className="h-7 w-7" disabled={reordering || index === conteudos.length - 1} onClick={() => move(index, 1)}><ChevronDown className="h-4 w-4"/></Button>
+                    <Button type="button" variant="ghost" size="icon" title="Editar título e descrição" aria-label="Editar conteúdo" className="h-7 w-7" onClick={() => edit(c)}><Pencil className="h-3.5 w-3.5"/></Button>
                   <Button variant="ghost" size="icon" className="shrink-0 h-7 w-7 text-destructive" onClick={() => handleDelete(c)}>
                     <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  </Button></div>
                 </div>
                 {pendingGlobal && (
                   <PendingGlobalAttach
@@ -353,6 +387,13 @@ function TopicoBlock({
 
       )}
 
+      {editing && <div className="mb-4 space-y-3 rounded-lg border bg-background p-4">
+        <div className="flex items-center justify-between"><strong className="text-sm">Editar conteúdo</strong><Button type="button" variant="ghost" size="sm" onClick={() => setEditing(null)}>Cancelar</Button></div>
+        <div><Label>Título</Label><Input value={editTitle} onChange={e => setEditTitle(e.target.value)} /></div>
+        <div><Label>Descrição</Label><Input value={editDescription} onChange={e => setEditDescription(e.target.value)} /></div>
+        <Button type="button" size="sm" disabled={saving} onClick={persistEdit}>Salvar alterações</Button>
+      </div>}
+      {showCreate && <div className="rounded-lg border bg-background p-4 space-y-3">
       {podeGlobal && (
         <div className="mb-3 flex items-center gap-2 rounded-md border bg-background p-2">
           <Switch checked={asGlobal} onCheckedChange={setAsGlobal} id={`global-${topico.id}`} />
@@ -412,6 +453,7 @@ function TopicoBlock({
           </Button>
         </div>
       </div>
+      </div>}
     </div>
   );
 }
