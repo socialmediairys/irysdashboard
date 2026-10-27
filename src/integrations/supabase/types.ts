@@ -712,6 +712,7 @@ export type Database = {
           legenda: string | null
           mensagem_id: string | null
           objetivo: string | null
+          ordem: number
           org_id: string
           origem: string
           pilar_id: string | null
@@ -747,6 +748,7 @@ export type Database = {
           legenda?: string | null
           mensagem_id?: string | null
           objetivo?: string | null
+          ordem?: number
           org_id: string
           origem?: string
           pilar_id?: string | null
@@ -782,6 +784,7 @@ export type Database = {
           legenda?: string | null
           mensagem_id?: string | null
           objetivo?: string | null
+          ordem?: number
           org_id?: string
           origem?: string
           pilar_id?: string | null
@@ -3291,6 +3294,7 @@ export type Database = {
           criado_por: string | null
           descricao: string | null
           id: string
+          ordem: number
           org_id: string | null
           prazo: string | null
           prioridade: string
@@ -3314,6 +3318,7 @@ export type Database = {
           criado_por?: string | null
           descricao?: string | null
           id?: string
+          ordem?: number
           org_id?: string | null
           prazo?: string | null
           prioridade?: string
@@ -3337,6 +3342,7 @@ export type Database = {
           criado_por?: string | null
           descricao?: string | null
           id?: string
+          ordem?: number
           org_id?: string | null
           prazo?: string | null
           prioridade?: string
@@ -3667,6 +3673,10 @@ export type Database = {
         Returns: string
       }
       current_cliente_id: { Args: never; Returns: string }
+      excluir_sprint: {
+        Args: { _destino?: string; _sprint_id: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

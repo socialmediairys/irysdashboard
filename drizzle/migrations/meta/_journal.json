@@ -8,6 +8,20 @@
       "when": 1791309827242,
       "tag": "0000_sprints_archived_at",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793059502948,
+      "tag": "0001_kanban_ordem_e_excluir_sprint",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793060402554,
+      "tag": "0002_conteudos_competencia_mensal",
+      "breakpoints": true
     }
   ]
 }

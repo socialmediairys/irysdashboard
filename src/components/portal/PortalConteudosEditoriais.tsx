@@ -43,6 +43,8 @@ export function PortalAprovacoes({ clienteId }: { clienteId: string }) {
     <div className="space-y-5">
       <MonthBar mes={mes} setMes={setMes} outros={outros} />
       {list.length ? <div className="grid gap-4 sm:grid-cols-2">{list.map((c) => <Link key={c.id} to="/meu-portal/conteudo/$conteudoId" params={{ conteudoId:c.id }} className="group overflow-hidden rounded-xl border border-border bg-card hover:shadow-md"><PortalThumbnail c={c}/><div className="space-y-2 p-4"><h3 className="text-sm font-semibold">{c.titulo || "Conteúdo"}</h3><p className="text-xs text-muted-foreground">{[c.formato,fmtShort(c.data_prevista)].filter(Boolean).join(" · ")}</p><span className="inline-flex items-center gap-1 text-xs font-medium">Abrir avaliação <ChevronRight size={14}/></span></div></Link>)}</div> : <Empty>Nenhum conteúdo aguardando sua aprovação em {monthLabel(mes)}.</Empty>}
+   </div>
+    )}
     </div>
   );
 }

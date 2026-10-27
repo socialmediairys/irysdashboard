@@ -1,3 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
+import { cdb, monthKey, monthLabel } from "@/lib/content";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Video,
@@ -5,6 +7,7 @@ import {
   FileText,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Play,
   Pause,
   Instagram,
@@ -329,6 +332,48 @@ function MediaModal({
   );
 }
 
+/* ---------- Fase 4 · Cronogramas mensais (contagem a partir de conteudos.pipeline_mes; sem criar registros) ---------- */
+function CronogramasMensais({ clienteId, onOpenMonth }: { clienteId: string; onOpenMonth?: (mes: string) => void }) {
+  const [ano, setAno] = useState(() => new Date().getFullYear());
+  const { data: porMes = {} } = useQuery({
+    queryKey: ["cronogramas", clienteId],
+    // RLS: no Portal só retorna conteúdos liberados para o próprio cliente
+    queryFn: async () => {
+      const { data } = await cdb("conteudos").select("pipeline_mes,status").eq("cliente_id", clienteId).neq("status", "ideia");
+      const m: Record<string, number> = {};
+      for (const r of (data ?? []) as { pipeline_mes: string | null }[]) if (r.pipeline_mes) { const k = r.pipeline_mes.slice(0, 7); m[k] = (m[k] ?? 0) + 1; }
+      return m;
+    },
+    staleTime: 15_000,
+  });
+  const atual = monthKey();
+  return (
+    <li className="rounded-[12px] p-2.5 sm:p-3" style={{ background: C.beigeLight, border: `1px solid ${C.beige}` }}>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <span className="text-sm font-semibold" style={{ color: C.text }}>Cronogramas mensais</span>
+        <div className="flex items-center gap-1">
+          <button type="button" aria-label="Ano anterior" onClick={() => setAno(ano - 1)} className="rounded p-1 hover:bg-white"><ChevronLeft size={14} /></button>
+          <span className="min-w-10 text-center text-xs font-bold" style={{ color: C.text }}>{ano}</span>
+          <button type="button" aria-label="Próximo ano" onClick={() => setAno(ano + 1)} className="rounded p-1 hover:bg-white"><ChevronRight size={14} /></button>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
+        {Array.from({ length: 12 }, (_, i) => `${ano}-${String(i + 1).padStart(2, "0")}`).map((k) => {
+          const n = porMes[k] ?? 0;
+          return (
+            <button key={k} type="button" disabled={!onOpenMonth} onClick={() => onOpenMonth?.(k)}
+              className="flex items-center justify-between gap-2 rounded-[10px] bg-white px-2.5 py-1.5 text-left text-xs transition-colors hover:border-foreground/30 disabled:cursor-default"
+              style={{ border: `1px solid ${k === atual ? C.mid : C.beige}`, color: n ? C.text : C.textMuted }}>
+              <span className="truncate font-semibold">{monthLabel(k)}</span>
+              <span className="shrink-0">{n}</span>
+            </button>
+          );
+        })}
+      </div>
+    </li>
+  );
+}
+
 /* ---------- Fase accordion ---------- */
 function FaseAccordion({
   fase,
@@ -340,7 +385,11 @@ function FaseAccordion({
   open,
   onToggle,
   onOpenMedia,
+  clienteId,
+  onOpenMonth,
 }: {
+  clienteId?: string;
+  onOpenMonth?: (mes: string) => void;
   fase: number;
   nome: string;
   desc: string;
@@ -389,6 +438,8 @@ function FaseAccordion({
           ) : (
             <ul className="space-y-2">
               {topicos.map((t) => {
+                if (fase === 4 && /^cronograma/i.test(t.nome?.trim() ?? "") && clienteId)
+                  return <CronogramasMensais key={t.id} clienteId={clienteId} onOpenMonth={onOpenMonth} />;
                 const itens = conteudosPorTopico[t.id] || [];
                 const temConteudo = itens.length > 0;
                 return (
@@ -509,7 +560,9 @@ export function PortalRico({
   topicos = [],
   conteudos = [],
   variant = "cliente",
+  onOpenMonth,
 }: {
+  onOpenMonth?: (mes: string) => void;
   cliente: ClientePortal | null;
   fases: Fase[];
   topicos: Topico[];
@@ -722,6 +775,8 @@ export function PortalRico({
               open={openFase === f.fase}
               onToggle={() => setOpenFase(openFase === f.fase ? null : f.fase)}
               onOpenMedia={openMediaFor}
+              clienteId={cliente?.id}
+              onOpenMonth={onOpenMonth}
             />
           ))}
         </div>

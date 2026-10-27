@@ -8,9 +8,10 @@ import { ClientOverview } from "./ClientOverview";
 import { ClientTabs } from "./ClientTabs";
 import { ContentsTab, FilesTab, FinanceTab, MetricsTab, PlanningTab, PortalTab, StrategyTab } from "./tabs";
 import { useClientWorkspace } from "./useClientWorkspace";
+import { useStaffAccess } from "@/lib/use-staff-roles";
 
 export function ClientWorkspace({
-  clienteId, tab, onTab, portalView,
+  clienteId, tab: requested, onTab, portalView,
 }: {
   clienteId: string;
   tab: ClientTabKey;
@@ -19,6 +20,9 @@ export function ClientWorkspace({
 }) {
   const { data: ws, isLoading } = useClientWorkspace(clienteId);
   const qc = useQueryClient();
+  const { canTab } = useStaffAccess();
+  // aba fora do perfil (link direto) cai na Visão geral do cliente
+  const tab: ClientTabKey = canTab(requested) ? requested : "visao-geral";
 
   // Reload when the client row changes (e.g. edited in the CRUD sheet).
   useEffect(() => {
