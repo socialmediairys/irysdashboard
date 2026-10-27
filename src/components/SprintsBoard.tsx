@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Plus, MessageCircle, Clock, Search, MoreHorizontal, Archive } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Plus, MessageCircle, Clock, Search, MoreHorizontal, Archive, GripVertical } from "lucide-react";
+import { byOrdem, ordemForDrop } from "@/lib/kanban";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import {
-  DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestCorners, useDroppable, type DragEndEvent,
+  DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestCorners, useDroppable, DragOverlay, type DragEndEvent, type DragOverEvent, type DragStartEvent,
 } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -46,7 +47,7 @@ function chooseSprint(all: SprintRow[], saved: string | null): string | null {
 }
 type TaskRow = {
   id: string; titulo: string; status: string; prioridade: string; sprint_id: string | null;
-  cliente_id: string | null; assignee_id: string | null; prazo: string | null; created_at: string;
+  cliente_id: string | null; assignee_id: string | null; prazo: string | null; created_at: string; ordem: number;
   tempo_total_segundos: number | null; timer_status: string | null;
 };
 type View = "quadro" | "cliente" | "responsavel" | "todas";
@@ -96,7 +97,7 @@ function TaskCard({ t, ctx, onOpen, handle }: { t: TaskRow; ctx: Ctx; onOpen: ()
           </div>
         </button>
         {handle && (
-          <button type="button" aria-label="Arrastar" className="shrink-0 cursor-grab rounded p-1 text-xs text-muted-foreground active:cursor-grabbing" {...handle}>⋮⋮</button>
+          <button type="button" aria-label="Arrastar para reordenar" className="-m-1 shrink-0 cursor-grab touch-none rounded p-1.5 text-muted-foreground hover:bg-muted active:cursor-grabbing" {...handle}><GripVertical size={14} /></button>
         )}
       </div>
     </div>
@@ -106,7 +107,7 @@ function TaskCard({ t, ctx, onOpen, handle }: { t: TaskRow; ctx: Ctx; onOpen: ()
 function SortableTask({ t, ctx, onOpen }: { t: TaskRow; ctx: Ctx; onOpen: () => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: t.id, data: { status: normalizeStatus(t.status) } });
   return (
-    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }} {...attributes}>
+    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.35 : 1 }} {...attributes}>
       <TaskCard t={t} ctx={ctx} onOpen={onOpen} handle={listeners as unknown as React.HTMLAttributes<HTMLButtonElement>} />
     </div>
   );
@@ -137,10 +138,10 @@ function QuickAdd({ onCreate }: { onCreate: (titulo: string) => Promise<boolean>
   );
 }
 
-function Column({ colKey, label, count, children, onCreate }: { colKey: string; label: string; count: number; children: React.ReactNode; onCreate: (t: string) => Promise<boolean> }) {
+function Column({ colKey, label, count, children, onCreate, highlight }: { colKey: string; label: string; count: number; children: React.ReactNode; onCreate: (t: string) => Promise<boolean>; highlight?: boolean }) {
   const { setNodeRef, isOver } = useDroppable({ id: `col:${colKey}`, data: { status: colKey } });
   return (
-    <div ref={setNodeRef} className={`flex min-h-[320px] flex-col rounded-lg p-2 transition-colors ${isOver ? "bg-accent" : "bg-muted/40"}`}>
+    <div ref={setNodeRef} className={`flex min-h-[320px] flex-col rounded-lg p-2 ring-1 transition-colors ${isOver || highlight ? "bg-accent ring-foreground/20" : "bg-muted/40 ring-transparent"}`}>
       <div className="mb-2 flex items-center justify-between px-1 text-[12px] text-muted-foreground">
         <span className="font-medium">{label}</span><span>{count}</span>
       </div>
@@ -313,8 +314,8 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
   /** Uma única base de tarefas; todas as views são filtros dela. Ordem: criação ASC. */
   const fetchTasks = useCallback(async () => {
     const { data, error: err } = await db("tarefas")
-      .select("id,titulo,status,prioridade,sprint_id,cliente_id,assignee_id,prazo,created_at,tempo_total_segundos,timer_status")
-      .order("created_at", { ascending: true });
+      .select("id,titulo,status,prioridade,sprint_id,cliente_id,assignee_id,prazo,created_at,ordem,tempo_total_segundos,timer_status")
+      .order("ordem", { ascending: true });
     setLoading(false);
     if (err) { setError("Não foi possível carregar as tarefas."); return; }
     setError(null);
@@ -348,6 +349,7 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
 
   const [confirmArchive, setConfirmArchive] = useState<SprintRow | null>(null);
   const [archivedOpen, setArchivedOpen] = useState(false);
+  const [deleting, setDeleting] = useState<SprintRow | null>(null);
   const activeSprints = sprints.filter((s) => !s.archived_at);
   const archivedSprints = sprints.filter((s) => s.archived_at);
   const selected = sprints.find((s) => s.id === sprintFilter) ?? null;
@@ -393,21 +395,40 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
     return true;
   };
 
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overCol, setOverCol] = useState<string | null>(null);
+  const colOf = (overId: string) => {
+    if (overId.startsWith("col:")) return overId.slice(4);
+    const t = tasks.find((x) => x.id === overId);
+    return t ? normalizeStatus(t.status) : null;
+  };
+  const onDragStart = (e: DragStartEvent) => setDragId(String(e.active.id));
+  const onDragOver = (e: DragOverEvent) => setOverCol(e.over ? colOf(String(e.over.id)) : null);
+
+  /** Persiste status (se mudou de coluna) e a nova posição. Só o card movido é gravado. */
   const onDragEnd = async (event: DragEndEvent) => {
+    setDragId(null); setOverCol(null);
     const { active, over } = event;
     if (!over) return;
     const id = String(active.id);
-    const from = (active.data.current as { status?: string } | undefined)?.status;
-    let to = (over.data.current as { status?: string } | undefined)?.status;
-    if (!to && String(over.id).startsWith("col:")) to = String(over.id).slice(4);
-    if (!to || to === from || !TASK_STATUS.some((c) => c.key === to)) return;
-    // Só o status muda; created_at (e a ordem) ficam intactos.
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status: to! } : t)));
-    const { error: err } = await db("tarefas").update({ status: to }).eq("id", id);
+    const me = tasks.find((t) => t.id === id);
+    if (!me) return;
+    const overId = String(over.id);
+    const to = colOf(overId);
+    if (!to || !TASK_STATUS.some((c) => c.key === to)) return;
+    const list = byStatus(to);
+    const index = overId.startsWith("col:") ? list.filter((t) => t.id !== id).length : list.findIndex((t) => t.id === overId);
+    const same = normalizeStatus(me.status) === to;
+    if (same && overId === id) return;
+    const ordem = ordemForDrop(list, id, index < 0 ? list.length : index);
+    const patch: { ordem: number; status?: string } = { ordem };
+    if (!same) patch.status = to;
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    const { error: err } = await db("tarefas").update(patch).eq("id", id);
     if (err) { toast.error("Não foi possível mover a tarefa."); void fetchTasks(); }
   };
 
-  const byStatus = (k: string) => filtered.filter((t) => normalizeStatus(t.status) === k);
+  const byStatus = (k: string) => filtered.filter((t) => normalizeStatus(t.status) === k).sort(byOrdem);
 
   const groupBy = (keyOf: (t: TaskRow) => string | null, labelOf: (k: string) => string, emptyLabel: string) => {
     const map = new Map<string, TaskRow[]>();
@@ -463,6 +484,8 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
               {selected.archived_at
                 ? <DropdownMenuItem onClick={() => setArchived(selected, false)}>Restaurar sprint</DropdownMenuItem>
                 : <DropdownMenuItem onClick={() => setConfirmArchive(selected)}>Arquivar sprint</DropdownMenuItem>}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleting(selected)}>Excluir sprint…</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )}
@@ -492,14 +515,14 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
               </button>
             ))}
           </div>
-          <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={onDragEnd}>
+          <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragOver={onDragOver} onDragEnd={onDragEnd} onDragCancel={() => { setDragId(null); setOverCol(null); }}>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
               {TASK_STATUS.map((col) => {
                 const items = byStatus(col.key);
                 return (
                   <div key={col.key} className={mobileCol === col.key ? "" : "hidden md:block"}>
                     <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-                      <Column colKey={col.key} label={col.label} count={items.length} onCreate={(t) => createTask(t, col.key)}>
+                      <Column colKey={col.key} label={col.label} count={items.length} onCreate={(t) => createTask(t, col.key)} highlight={!!dragId && overCol === col.key}>
                         {items.map((t) => <SortableTask key={t.id} t={t} ctx={ctx} onOpen={() => open(t.id)} />)}
                       </Column>
                     </SortableContext>
@@ -507,6 +530,11 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
                 );
               })}
             </div>
+            <DragOverlay dropAnimation={null}>
+              {dragId && tasks.find((t) => t.id === dragId) ? (
+                <div className="rotate-1 shadow-lg"><TaskCard t={tasks.find((t) => t.id === dragId)!} ctx={ctx} onOpen={() => {}} /></div>
+              ) : null}
+            </DragOverlay>
           </DndContext>
         </>
       ) : view === "cliente" ? (
@@ -554,6 +582,18 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <DeleteSprintDialog
+        sprint={deleting}
+        sprints={sprints}
+        taskCount={deleting ? tasks.filter((t) => t.sprint_id === deleting.id).length : 0}
+        onClose={() => setDeleting(null)}
+        onDeleted={async (sp) => {
+          setDeleting(null);
+          const s = await fetchSprints();
+          if (sprintFilter === sp.id) { localStorage.removeItem(SPRINT_KEY); autoSelect(s); }
+          await fetchTasks();
+        }}
+      />
       <Dialog open={archivedOpen} onOpenChange={setArchivedOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Sprints arquivadas</DialogTitle></DialogHeader>
@@ -568,6 +608,7 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
                   <div className="flex shrink-0 gap-2">
                     <Button variant="ghost" size="sm" onClick={() => { setSprintFilter(s.id); setArchivedOpen(false); }}>Consultar</Button>
                     <Button variant="outline" size="sm" onClick={() => setArchived(s, false)}>Restaurar</Button>
+                    <Button variant="ghost" size="sm" className="text-destructive" onClick={() => { setArchivedOpen(false); setDeleting(s); }}>Excluir</Button>
                   </div>
                 </li>
               ))}
@@ -587,4 +628,55 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
 
 function QuickAddButton({ onCreate }: { onCreate: (t: string) => Promise<boolean> }) {
   return <div className="w-full max-w-sm"><QuickAdd onCreate={onCreate} /></div>;
+}
+
+const KEEP_NONE = "__sem_sprint__";
+function DeleteSprintDialog({ sprint, sprints, taskCount, onClose, onDeleted }: {
+  sprint: SprintRow | null; sprints: SprintRow[]; taskCount: number; onClose: () => void; onDeleted: (s: SprintRow) => void;
+}) {
+  const [dest, setDest] = useState<string>(KEEP_NONE);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { setDest(KEEP_NONE); }, [sprint?.id]);
+  const others = sprints.filter((s) => s.id !== sprint?.id);
+  const run = async () => {
+    if (!sprint) return;
+    setBusy(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.rpc as any)("excluir_sprint", { _sprint_id: sprint.id, _destino: dest === KEEP_NONE ? null : dest });
+    setBusy(false);
+    if (error) { toast.error("Não foi possível excluir a sprint. Nenhum dado foi alterado."); return; }
+    const n = Number(data ?? 0);
+    toast.success(n ? `Sprint excluída. ${n} tarefa(s) ${dest === KEEP_NONE ? "ficaram sem sprint" : "foram movidas"}.` : "Sprint excluída.");
+    onDeleted(sprint);
+  };
+  return (
+    <AlertDialog open={!!sprint} onOpenChange={(o) => !o && !busy && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Excluir “{sprint?.name}”?</AlertDialogTitle>
+          <AlertDialogDescription>
+            {taskCount === 0
+              ? "Esta sprint não tem tarefas vinculadas. A exclusão é definitiva."
+              : `Esta sprint tem ${taskCount} tarefa(s) vinculada(s). Nenhuma tarefa será excluída — escolha para onde elas vão. Subtarefas, comentários, anexos e tempo continuam com cada tarefa.`}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        {taskCount > 0 && (
+          <div className="space-y-1">
+            <label className="text-xs font-semibold">Destino das tarefas</label>
+            <Select value={dest} onValueChange={setDest}>
+              <SelectTrigger aria-label="Destino das tarefas"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={KEEP_NONE}>Deixar sem sprint</SelectItem>
+                {others.map((s) => <SelectItem key={s.id} value={s.id}>Mover para {s.name}{s.archived_at ? " (arquivada)" : ""}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={busy}>Cancelar</AlertDialogCancel>
+          <Button variant="destructive" disabled={busy} onClick={run}>{busy ? "Excluindo…" : "Excluir sprint"}</Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 }
