@@ -1,10 +1,17 @@
 import { ChevronLeft, ChevronRight, Film, GripVertical, Images, Lightbulb, Plus, Search } from "lucide-react";
-import { DndContext, DragOverlay, PointerSensor, TouchSensor, closestCorners, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { DndContext, DragOverlay, PointerSensor, TouchSensor, closestCorners, pointerWithin, type CollisionDetection, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { byOrdem, contentDragCheck, ordemForDrop } from "@/lib/kanban";
+
+/** Prioriza o card/coluna sob o ponteiro (funciona em colunas vazias); senão, o mais próximo. */
+const kanbanCollision: CollisionDetection = (args) => {
+  const hits = pointerWithin(args);
+  if (hits.length) { const card = hits.find((h) => !String(h.id).startsWith("col:")); return card ? [card] : hits; }
+  return closestCorners(args);
+};
 import { useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -267,7 +274,7 @@ function ProductionView({ items, cli, open, showClient }: ViewProps) {
   const dragging = dragId ? items.find((c) => c.id === dragId) : null;
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCorners}
+    <DndContext sensors={sensors} collisionDetection={kanbanCollision}
       onDragStart={(e) => setDragId(String(e.active.id))}
       onDragOver={(e) => setOverCol(e.over ? colOf(String(e.over.id)) : null)}
       onDragEnd={onEnd} onDragCancel={() => { setDragId(null); setOverCol(null); }}>

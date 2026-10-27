@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, MessageCircle, Clock, Search, MoreHorizontal, Archive, GripVertical } from "lucide-react";
 import { byOrdem, ordemForDrop } from "@/lib/kanban";
+
+/** Prioriza o card/coluna sob o ponteiro (funciona em colunas vazias); senão, o mais próximo. */
+const kanbanCollision: CollisionDetection = (args) => {
+  const hits = pointerWithin(args);
+  if (hits.length) { const card = hits.find((h) => !String(h.id).startsWith("col:")); return card ? [card] : hits; }
+  return closestCorners(args);
+};
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import {
-  DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestCorners, useDroppable, DragOverlay, type DragEndEvent, type DragOverEvent, type DragStartEvent,
+  DndContext, PointerSensor, TouchSensor, useSensor, useSensors, closestCorners, pointerWithin, type CollisionDetection, useDroppable, DragOverlay, type DragEndEvent, type DragOverEvent, type DragStartEvent,
 } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -515,7 +522,7 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
               </button>
             ))}
           </div>
-          <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragOver={onDragOver} onDragEnd={onDragEnd} onDragCancel={() => { setDragId(null); setOverCol(null); }}>
+          <DndContext sensors={sensors} collisionDetection={kanbanCollision} onDragStart={onDragStart} onDragOver={onDragOver} onDragEnd={onDragEnd} onDragCancel={() => { setDragId(null); setOverCol(null); }}>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
               {TASK_STATUS.map((col) => {
                 const items = byStatus(col.key);
