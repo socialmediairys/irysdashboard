@@ -419,6 +419,12 @@ export const sendWhatsappTestMessage = createServerFn({ method: "POST" })
     };
   })
   .handler(async ({ data, context }) => {
+    // Test sends are an admin-only Settings action; verified server-side.
+    const { data: isAdmin, error: roleErr } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (roleErr || !isAdmin) throw new Error("Apenas administradores podem enviar mensagens de teste.");
     const conn = await requireConnection(context.supabase, context.userId);
     const phone = validatePhone(data.toPhone);
     if (!phone.ok) throw new Error(phone.reason);
