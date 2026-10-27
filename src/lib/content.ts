@@ -37,7 +37,7 @@ export type Conteudo = {
   jornada: string | null; objetivo: string | null; cta: string | null; legenda: string | null; hashtags: string | null;
   versao_atual: number; status_arte: string; status_legenda: string; enviado_cliente_em: string | null;
   publicado_em: string | null; publicacao_url: string | null; plataforma: string | null; plataforma_post_id: string | null;
-  created_at: string; updated_at: string;
+  created_at: string; updated_at: string; ordem: number;
   midias?: { id: string; tipo: string; ordem: number; storage_path: string }[];
 };
 export type Midia = { id: string; conteudo_id: string; bucket: string; storage_path: string; tipo: "imagem" | "video"; mime: string | null; nome_original: string | null; ordem: number; url?: string };
