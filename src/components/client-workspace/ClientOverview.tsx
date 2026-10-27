@@ -24,7 +24,7 @@ export function ClientOverview({ ws, goTab }: { ws: Workspace; goTab: GoTab }) {
 
   return (
     <div className="space-y-10">
-      <div className={`grid grid-cols-2 rounded-lg border border-border bg-card ${admin ? "lg:grid-cols-4" : "lg:grid-cols-3"} [&>*]:border-border [&>*:nth-child(odd)]:border-r lg:[&>*]:border-r lg:[&>*:last-child]:border-r-0 [&>*:nth-child(-n+2)]:border-b lg:[&>*:nth-child(-n+2)]:border-b-0">
+      <div className={`grid grid-cols-2 rounded-lg border border-border bg-card ${admin ? "lg:grid-cols-4" : "lg:grid-cols-3"} [&>*]:border-border [&>*:nth-child(odd)]:border-r lg:[&>*]:border-r lg:[&>*:last-child]:border-r-0 [&>*:nth-child(-n+2)]:border-b lg:[&>*:nth-child(-n+2)]:border-b-0`}>
         <WsFact
           label="Etapa do mês"
           value={temPipeline ? (etapaAtual ? ETAPA_LABEL[etapaAtual] : "Tudo concluído") : "—"}
