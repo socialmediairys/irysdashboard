@@ -1,0 +1,1 @@
+ALTER TABLE public.conteudos_cliente ADD COLUMN IF NOT EXISTS ordem integer NOT NULL DEFAULT 0;

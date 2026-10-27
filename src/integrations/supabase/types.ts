@@ -867,6 +867,7 @@ export type Database = {
           created_by: string | null
           descricao: string | null
           id: string
+          ordem: number
           org_id: string
           storage_bucket: string | null
           storage_path: string | null
@@ -881,6 +882,7 @@ export type Database = {
           created_by?: string | null
           descricao?: string | null
           id?: string
+          ordem?: number
           org_id?: string
           storage_bucket?: string | null
           storage_path?: string | null
@@ -895,6 +897,7 @@ export type Database = {
           created_by?: string | null
           descricao?: string | null
           id?: string
+          ordem?: number
           org_id?: string
           storage_bucket?: string | null
           storage_path?: string | null
