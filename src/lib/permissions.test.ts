@@ -30,3 +30,21 @@ describe("acesso da equipe ao Painel", () => {
     for (const p of ["/admin/cadastros", "/admin/equipe", "/admin/portal-conteudos"]) expect(canAccess(p, ["gestor", "editor", "social", "financeiro", "juridico"])).toBe(false);
   });
 });
+
+import { canClientTab } from "./permissions";
+describe("abas da página do cliente", () => {
+  it("editor vê Conteúdos, não Financeiro nem Estratégia", () => {
+    expect(canClientTab("conteudos", ["editor"])).toBe(true);
+    expect(canClientTab("financeiro", ["editor"])).toBe(false);
+    expect(canClientTab("estrategia", ["editor"])).toBe(false);
+  });
+  it("financeiro vê Financeiro, não Conteúdos", () => {
+    expect(canClientTab("financeiro", ["financeiro"])).toBe(true);
+    expect(canClientTab("conteudos", ["financeiro"])).toBe(false);
+  });
+  it("Arquivos e Portal só admin", () => {
+    expect(canClientTab("arquivos", ["gestor"])).toBe(false);
+    expect(canClientTab("portal", ["gestor"])).toBe(false);
+    expect(canClientTab("portal", ["admin"])).toBe(true);
+  });
+});
