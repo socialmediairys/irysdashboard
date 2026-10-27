@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   Circle,
   ExternalLink,
+  Link2,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -337,6 +338,15 @@ function MediaModal({
 /* ---------- Fase 4 · Cronogramas mensais (contagem a partir de conteudos.pipeline_mes; sem criar registros) ---------- */
 function CronogramasMensais({ clienteId, onOpenMonth }: { clienteId: string; onOpenMonth?: (mes: string) => void }) {
   const [historicoAberto, setHistoricoAberto] = useState(false);
+  const copiarLink = async (mes: string) => {
+    const url = `${window.location.origin}/meu-portal?tab=conteudos&mes=${encodeURIComponent(mes)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      window.alert("Link do planejamento copiado. Envie à cliente pelo WhatsApp.");
+    } catch {
+      window.prompt("Copie o link do planejamento:", url);
+    }
+  };
   const { data: porMes = {}, isLoading } = useQuery({
     queryKey: ["cronogramas", clienteId],
     // O banco e suas regras de acesso determinam o que está liberado para este cliente.
@@ -377,6 +387,7 @@ function CronogramasMensais({ clienteId, onOpenMonth }: { clienteId: string; onO
               <span className="font-semibold text-foreground">{monthLabel(ultimo)}</span>
               <span className="flex items-center gap-2 text-xs text-muted-foreground">{porMes[ultimo]} conteúdos <ChevronRight size={16}/></span>
             </button>
+            <button type="button" onClick={() => void copiarLink(ultimo)} className="mt-2 inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary"><Link2 size={14}/> Copiar link deste planejamento</button>
           </div>
           {anteriores.length > 0 && <div className="rounded-lg border border-border bg-card">
             <button type="button" onClick={() => setHistoricoAberto((v) => !v)} aria-expanded={historicoAberto} className="flex w-full items-center gap-2 px-3 py-3 text-left text-sm text-foreground">
@@ -590,7 +601,7 @@ export function PortalRico({
   variant?: "admin" | "cliente";
 }) {
   const [activeAudioId, setActiveAudioId] = useState<string | null>(null);
-  const [openFase, setOpenFase] = useState<number | null>(1);
+  const [openFase, setOpenFase] = useState<number | null>(null);
   const [openBloq, setOpenBloq] = useState<number | null>(null);
   const [mediaModal, setMediaModal] = useState<{ tipo: "video" | "audio"; url: string; titulo: string } | null>(null);
 

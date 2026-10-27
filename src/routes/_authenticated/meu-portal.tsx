@@ -15,8 +15,11 @@ const TABS = ["jornada", "conteudos", "aprovacoes", "resultados", "contrato"] as
 type PortalTab = (typeof TABS)[number];
 
 export const Route = createFileRoute("/_authenticated/meu-portal")({
-  validateSearch: (s: Record<string, unknown>): { tab?: PortalTab } =>
-    TABS.includes(s.tab as PortalTab) && s.tab !== "jornada" ? { tab: s.tab as PortalTab } : {},
+  validateSearch: (s: Record<string, unknown>): { tab?: PortalTab; mes?: string } => {
+    const tab = TABS.includes(s.tab as PortalTab) && s.tab !== "jornada" ? s.tab as PortalTab : undefined;
+    const mes = tab === "conteudos" && typeof s.mes === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(s.mes) ? s.mes : undefined;
+    return { ...(tab ? { tab } : {}), ...(mes ? { mes } : {}) };
+  },
   head: () => ({
     meta: [
       { title: "Meu portal — Irys" },
@@ -30,7 +33,8 @@ function MeuPortalPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   // aba na URL: recarregar, voltar e links diretos mantêm o contexto do Portal
-  const tab: PortalTab = Route.useSearch().tab ?? "jornada";
+  const search = Route.useSearch();
+  const tab: PortalTab = search.tab ?? "jornada";
   const setTab = (t: PortalTab) => void navigate({ to: "/meu-portal", search: t === "jornada" ? {} : { tab: t } });
   const [cliente, setCliente] = useState<ClientePortal | null>(null);
   const [fases, setFases] = useState<Fase[]>([]);
@@ -172,10 +176,10 @@ function MeuPortalPage() {
             topicos={topicos}
             conteudos={conteudos}
             variant="cliente"
-            onOpenMonth={(mes) => { if (cliente?.id) rememberMonth(`portal:${cliente.id}`, mes); setTab("conteudos"); }}
+            onOpenMonth={(mes) => { if (cliente?.id) rememberMonth(`portal:${cliente.id}`, mes); void navigate({ to: "/meu-portal", search: { tab: "conteudos", mes } }); }}
           />
         ) : !cliente?.id ? null : tab === "conteudos" ? (
-          <PortalConteudos clienteId={cliente.id} />
+          <PortalConteudos clienteId={cliente.id} initialMonth={search.mes} />
         ) : tab === "aprovacoes" ? (
           <PortalAprovacoes clienteId={cliente.id} />
         ) : tab === "resultados" ? (
