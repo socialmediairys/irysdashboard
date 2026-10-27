@@ -7,16 +7,18 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { supabase } from "@/integrations/supabase/client";
 import { CONTENT_STATUS_LABEL, CONTENT_STATUS_VARIANT, cdb, fmtShort, signedUrl, type ContentStatus } from "@/lib/content";
 import { cn } from "@/lib/utils";
+import { competencia, monthLabel } from "@/lib/content";
+import { MonthNav, useMonthState } from "@/components/content/MonthNav";
 
 type VMidia = { bucket: string; storage_path: string; tipo: string; ordem: number; url?: string };
 type Versao = { id: string; numero: number; legenda: string | null; hashtags: string | null; midias: VMidia[]; status: string; status_arte: string; status_legenda: string; enviada_em: string };
-type Item = { id: string; titulo: string; canal: string | null; formato: string | null; data_prevista: string | null; status: ContentStatus; versao_atual: number; publicacao_url: string | null; publicado_em: string | null; versoes: Versao[]; comentarios: Coment[] };
+type Item = { id: string; titulo: string; canal: string | null; formato: string | null; data_prevista: string | null; status: ContentStatus; versao_atual: number; publicacao_url: string | null; publicado_em: string | null; pipeline_mes: string | null; created_at: string; versoes: Versao[]; comentarios: Coment[] };
 type Coment = { id: string; texto: string; alvo: string; autor_id: string | null; created_at: string; versao_id: string | null };
 
 /** Tudo aqui é lido direto do banco com as regras do cliente: só conteúdos enviados, versões enviadas e comentários do tipo "cliente". */
 async function load(clienteId: string): Promise<Item[]> {
   const { data, error } = await cdb("conteudos")
-    .select("id,titulo,canal,formato,data_prevista,status,versao_atual,publicacao_url,publicado_em,versoes:conteudo_versoes(id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em),comentarios:conteudo_comentarios(id,texto,alvo,autor_id,created_at,versao_id)")
+    .select("id,titulo,canal,formato,data_prevista,pipeline_mes,created_at,status,versao_atual,publicacao_url,publicado_em,versoes:conteudo_versoes(id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em),comentarios:conteudo_comentarios(id,texto,alvo,autor_id,created_at,versao_id)")
     .eq("cliente_id", clienteId).order("data_prevista", { ascending: true, nullsFirst: false });
   if (error) throw error;
   return ((data ?? []) as Item[]).map((c) => ({ ...c, versoes: [...c.versoes].sort((a, b) => b.numero - a.numero), comentarios: [...(c.comentarios ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at)) }));
@@ -30,18 +32,29 @@ const pending = (c: Item) => ["com_cliente", "alteracao_solicitada"].includes(c.
 
 export function PortalAprovacoes({ clienteId }: { clienteId: string }) {
   const { data = [], isLoading } = useClientContents(clienteId);
-  const list = data.filter(pending);
+  const [mes, setMes] = useMonthState(`portal:${clienteId}`);
+  const all = data.filter(pending);
+  const list = all.filter((c) => competencia(c) === mes);
+  const outros = [...new Set(all.filter((c) => competencia(c) !== mes).map(competencia))].sort();
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando…</p>;
-  if (!list.length) return <Empty>Nenhum conteúdo aguardando sua aprovação.</Empty>;
-  return <div className="space-y-8">{list.map((c) => <ApprovalCard key={c.id} c={c} clienteId={clienteId} />)}</div>;
+  return (
+    <div className="space-y-5">
+      <MonthBar mes={mes} setMes={setMes} outros={outros} />
+      {list.length ? <div className="space-y-8">{list.map((c) => <ApprovalCard key={c.id} c={c} clienteId={clienteId} />)}</div> : <Empty>Nenhum conteúdo aguardando sua aprovação em {monthLabel(mes)}.</Empty>}
+    </div>
+  );
 }
 
 export function PortalConteudos({ clienteId }: { clienteId: string }) {
-  const { data = [], isLoading } = useClientContents(clienteId);
+  const { data: all = [], isLoading } = useClientContents(clienteId);
   const [open, setOpen] = useState<string | null>(null);
+  const [mes, setMes] = useMonthState(`portal:${clienteId}`);
+  const data = all.filter((c) => competencia(c) === mes);
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando…</p>;
-  if (!data.length) return <Empty>Os conteúdos aparecem aqui assim que forem enviados para você.</Empty>;
   return (
+    <div className="space-y-5">
+    <MonthBar mes={mes} setMes={setMes} />
+    {!data.length ? <Empty>{all.length ? `Nenhum conteúdo em ${monthLabel(mes)}.` : "Os conteúdos aparecem aqui assim que forem enviados para você."}</Empty> : (
     <div className="divide-y divide-border rounded-lg border border-border bg-card">
       {data.map((c) => (
         <div key={c.id}>
@@ -54,6 +67,8 @@ export function PortalConteudos({ clienteId }: { clienteId: string }) {
           {open === c.id && current(c) && <div className="space-y-5 border-t border-border p-5"><VersionView v={current(c)!} /><Conversa c={c} /></div>}
         </div>
       ))}
+    </div>
+    )}
     </div>
   );
 }
@@ -211,4 +226,13 @@ function Media({ midias }: { midias: VMidia[] }) {
 
 function Empty({ children }: { children: React.ReactNode }) {
   return <div className="rounded-lg border border-border bg-card px-5 py-10 text-center text-sm text-muted-foreground">{children}</div>;
+}
+
+function MonthBar({ mes, setMes, outros = [] }: { mes: string; setMes: (v: string) => void; outros?: string[] }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <MonthNav value={mes} onChange={setMes} />
+      {outros.length > 0 && <span className="text-[12px] text-muted-foreground">Também aguardando você: {outros.map((m) => <button key={m} onClick={() => setMes(m)} className="ml-1 underline-offset-2 hover:text-foreground hover:underline">{monthLabel(m)}</button>)}</span>}
+    </div>
+  );
 }
