@@ -5,10 +5,13 @@ import { isMonthKey, monthKey, monthLabel, shiftMonth } from "@/lib/content";
 export const rememberMonth = (scope: string, mes: string) => localStorage.setItem(`irys:mes:${scope}`, mes);
 
 /** Mês selecionado persistido por escopo (sobrevive a recarregar a página). */
-export function useMonthState(scope: string) {
+export function useMonthState(scope: string, initial?: string) {
   const storageKey = `irys:mes:${scope}`;
-  const [mes, setMes] = useState(() => monthKey());
-  useEffect(() => { const v = localStorage.getItem(storageKey); if (isMonthKey(v)) setMes(v); }, [storageKey]);
+  const [mes, setMes] = useState(() => (isMonthKey(initial ?? null) ? initial! : monthKey()));
+  useEffect(() => {
+    if (isMonthKey(initial ?? null)) { localStorage.setItem(storageKey, initial!); setMes(initial!); return; }
+    const v = localStorage.getItem(storageKey); if (isMonthKey(v)) setMes(v);
+  }, [storageKey, initial]);
   const set = (v: string) => { setMes(v); localStorage.setItem(storageKey, v); };
   return [mes, set] as const;
 }

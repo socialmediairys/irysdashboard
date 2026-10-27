@@ -75,9 +75,9 @@ function PortalThumbnail({ c }: { c: Item }) {
     <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-3 py-1 text-[11px] font-medium text-stone-800 shadow-sm">{clientStatus(c)}</span>
   </div>;
 }
-export function PortalConteudos({ clienteId }: { clienteId: string }) {
+export function PortalConteudos({ clienteId, initialMonth }: { clienteId: string; initialMonth?: string }) {
   const { data: all = [], isLoading, error } = useClientContents(clienteId);
-  const [mes, setMes] = useMonthState(`portal:${clienteId}`);
+  const [mes, setMes] = useMonthState(`portal:${clienteId}`, initialMonth);
   const [filtro, setFiltro] = useState<GalleryFilter>("todos");
   const data = all.filter((c) => competencia(c) === mes);
   const filtrados = data.filter((c) => filtro === "todos" || etapaCliente(c) === filtro);
