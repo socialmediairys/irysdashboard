@@ -3,6 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getPortalPreviewByClienteId } from "@/lib/portal-conteudos.functions";
 import { Loader2 } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { rememberMonth } from "@/components/content/MonthNav";
 import { PortalRico, type ClientePortal, type Fase, type Topico, type Conteudo } from "@/components/PortalRico";
 
 /* ---------- Wrapper do admin: busca os dados e delega a UI ao PortalRico ---------- */
@@ -14,6 +16,7 @@ export function PortalPreview({ clienteId }: { clienteId: string }) {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
+  const navigate = useNavigate();
   const loadPreview = useServerFn(getPortalPreviewByClienteId);
 
   const load = async () => {
@@ -68,6 +71,7 @@ export function PortalPreview({ clienteId }: { clienteId: string }) {
       topicos={topicos}
       conteudos={conteudos}
       variant="admin"
+      onOpenMonth={(mes) => { rememberMonth(`conteudos:${clienteId}`, mes); void navigate({ to: "/admin/clientes/$clienteId", params: { clienteId }, search: { tab: "conteudos" } }); }}
     />
   );
 }

@@ -7,6 +7,7 @@ import {
   FileText,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   Play,
   Pause,
   Instagram,

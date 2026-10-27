@@ -6,6 +6,7 @@ import { getMeuPortal } from "@/lib/portal-conteudos.functions";
 import { Button } from "@/components/ui/button";
 import { LogOut, FileText, Route as Route2, LayoutGrid, CheckCircle2, BarChart3 } from "lucide-react";
 import { PortalAprovacoes, PortalConteudos, PortalResultados } from "@/components/portal/PortalConteudosEditoriais";
+import { rememberMonth } from "@/components/content/MonthNav";
 import { PortalRico, type ClientePortal, type Fase, type Topico, type Conteudo } from "@/components/PortalRico";
 import { PortalContratoSuporte } from "@/components/PortalContratoSuporte";
 
@@ -160,6 +161,7 @@ function MeuPortalPage() {
             topicos={topicos}
             conteudos={conteudos}
             variant="cliente"
+            onOpenMonth={(mes) => { if (cliente?.id) rememberMonth(`portal:${cliente.id}`, mes); setTab("conteudos"); }}
           />
         ) : !cliente?.id ? null : tab === "conteudos" ? (
           <PortalConteudos clienteId={cliente.id} />
