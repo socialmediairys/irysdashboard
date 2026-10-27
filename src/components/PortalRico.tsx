@@ -12,6 +12,8 @@ import {
   Pause,
   Instagram,
   FolderOpen,
+  Archive,
+  LockKeyhole,
   CheckCircle2,
   Circle,
   ExternalLink,
@@ -334,42 +336,60 @@ function MediaModal({
 
 /* ---------- Fase 4 · Cronogramas mensais (contagem a partir de conteudos.pipeline_mes; sem criar registros) ---------- */
 function CronogramasMensais({ clienteId, onOpenMonth }: { clienteId: string; onOpenMonth?: (mes: string) => void }) {
-  const [ano, setAno] = useState(() => new Date().getFullYear());
-  const { data: porMes = {} } = useQuery({
+  const [historicoAberto, setHistoricoAberto] = useState(false);
+  const { data: porMes = {}, isLoading } = useQuery({
     queryKey: ["cronogramas", clienteId],
-    // RLS: no Portal só retorna conteúdos liberados para o próprio cliente
+    // O banco e suas regras de acesso determinam o que está liberado para este cliente.
     queryFn: async () => {
-      const { data } = await cdb("conteudos").select("pipeline_mes,status").eq("cliente_id", clienteId).neq("status", "ideia");
-      const m: Record<string, number> = {};
-      for (const r of (data ?? []) as { pipeline_mes: string | null }[]) if (r.pipeline_mes) { const k = r.pipeline_mes.slice(0, 7); m[k] = (m[k] ?? 0) + 1; }
-      return m;
+      const { data, error } = await cdb("conteudos")
+        .select("pipeline_mes,status")
+        .eq("cliente_id", clienteId)
+        .neq("status", "ideia");
+      if (error) throw error;
+      const meses: Record<string, number> = {};
+      for (const item of (data ?? []) as { pipeline_mes: string | null }[]) {
+        if (!item.pipeline_mes) continue;
+        const mes = item.pipeline_mes.slice(0, 7);
+        meses[mes] = (meses[mes] ?? 0) + 1;
+      }
+      return meses;
     },
     staleTime: 15_000,
   });
-  const atual = monthKey();
+  const disponiveis = Object.keys(porMes).filter((mes) => porMes[mes] > 0).sort();
+  const ultimo = disponiveis[disponiveis.length - 1];
+  const anteriores = disponiveis.filter((mes) => mes !== ultimo).reverse();
+  const proximos = ultimo
+    ? Array.from({ length: 3 }, (_, i) => {
+        const [ano, mes] = ultimo.split("-").map(Number);
+        const d = new Date(ano, mes + i, 1);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      })
+    : [];
   return (
-    <li className="rounded-[12px] p-2.5 sm:p-3" style={{ background: C.beigeLight, border: `1px solid ${C.beige}` }}>
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="text-sm font-semibold" style={{ color: C.text }}>Cronogramas mensais</span>
-        <div className="flex items-center gap-1">
-          <button type="button" aria-label="Ano anterior" onClick={() => setAno(ano - 1)} className="rounded p-1 hover:bg-white"><ChevronLeft size={14} /></button>
-          <span className="min-w-10 text-center text-xs font-bold" style={{ color: C.text }}>{ano}</span>
-          <button type="button" aria-label="Próximo ano" onClick={() => setAno(ano + 1)} className="rounded p-1 hover:bg-white"><ChevronRight size={14} /></button>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4">
-        {Array.from({ length: 12 }, (_, i) => `${ano}-${String(i + 1).padStart(2, "0")}`).map((k) => {
-          const n = porMes[k] ?? 0;
-          return (
-            <button key={k} type="button" disabled={!onOpenMonth} onClick={() => onOpenMonth?.(k)}
-              className="flex items-center justify-between gap-2 rounded-[10px] bg-white px-2.5 py-1.5 text-left text-xs transition-colors hover:border-foreground/30 disabled:cursor-default"
-              style={{ border: `1px solid ${k === atual ? C.mid : C.beige}`, color: n ? C.text : C.textMuted }}>
-              <span className="truncate font-semibold">{monthLabel(k)}</span>
-              <span className="shrink-0">{n}</span>
+    <li className="space-y-3 rounded-xl border border-border bg-secondary/40 p-3 sm:p-4">
+      <div className="text-sm font-semibold text-foreground">Cronogramas mensais</div>
+      {isLoading ? <p className="text-xs text-muted-foreground">Carregando planejamentos…</p> : ultimo ? (
+        <>
+          <div className="rounded-xl border border-border bg-card p-3">
+            <div className="mb-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Último planejamento disponível</div>
+            <button type="button" disabled={!onOpenMonth} onClick={() => onOpenMonth?.(ultimo)} className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-lg p-2 text-left hover:bg-secondary disabled:cursor-default">
+              <span className="font-semibold text-foreground">{monthLabel(ultimo)}</span>
+              <span className="flex items-center gap-2 text-xs text-muted-foreground">{porMes[ultimo]} conteúdos <ChevronRight size={16}/></span>
             </button>
-          );
-        })}
-      </div>
+          </div>
+          {anteriores.length > 0 && <div className="rounded-lg border border-border bg-card">
+            <button type="button" onClick={() => setHistoricoAberto((v) => !v)} aria-expanded={historicoAberto} className="flex w-full items-center gap-2 px-3 py-3 text-left text-sm text-foreground">
+              <Archive size={16} className="text-muted-foreground"/><span className="flex-1">Planejamentos anteriores ({anteriores.length})</span><ChevronDown size={16} className={historicoAberto ? "rotate-180" : ""}/>
+            </button>
+            {historicoAberto && <div className="space-y-1 border-t border-border p-2">{anteriores.map((mes) => <button key={mes} type="button" disabled={!onOpenMonth} onClick={() => onOpenMonth?.(mes)} className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs hover:bg-secondary disabled:cursor-default"><span>{monthLabel(mes)}</span><span className="text-muted-foreground">{porMes[mes]} conteúdos</span></button>)}</div>}
+          </div>}
+          <div className="space-y-1">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Próximos planejamentos</p>
+            {proximos.map((mes) => <div key={mes} className="flex items-center justify-between rounded-lg border border-border/60 px-3 py-2 text-xs text-muted-foreground"><span>{monthLabel(mes)}</span><span className="inline-flex items-center gap-1"><LockKeyhole size={12}/> Em breve</span></div>)}
+          </div>
+        </>
+      ) : <p className="text-xs text-muted-foreground">Nenhum planejamento disponibilizado ainda.</p>}
     </li>
   );
 }
