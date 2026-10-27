@@ -28,3 +28,23 @@ export function canAccess(path: string, roles: string[]): boolean {
   const key = Object.keys(SECTION_ROLES).find((p) => path === p || path.startsWith(`${p}/`));
   return !!key && SECTION_ROLES[key].some((r) => mine.includes(r));
 }
+
+/** Abas da página do cliente → perfis. Espelha RLS: arquivos/onboarding/edição do cadastro são só admin. */
+export const CLIENT_TAB_ROLES: Record<string, StaffRole[]> = {
+  "visao-geral": ["admin", "gestor", "editor", "social", "financeiro"],
+  estrategia: ["admin", "gestor"],
+  conteudos: ["admin", "gestor", "editor", "social"],
+  planejamento: ["admin", "gestor", "editor", "social"],
+  metricas: ["admin", "gestor", "social"],
+  arquivos: ["admin"],
+  financeiro: ["admin", "financeiro"],
+  portal: ["admin"],
+};
+
+export function canClientTab(tab: string, roles: string[]): boolean {
+  const mine = staffRoles(roles);
+  if (mine.includes("admin")) return true;
+  return (CLIENT_TAB_ROLES[tab] ?? []).some((r) => mine.includes(r));
+}
+
+export const isAdmin = (roles: string[]) => roles.includes("admin");

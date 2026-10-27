@@ -10,15 +10,17 @@ import { brl, type Workspace } from "./useClientWorkspace";
 import { btnOutline } from "./ui";
 import { cn } from "@/lib/utils";
 import { parseDate } from "./useClientWorkspace";
+import { useStaffAccess } from "@/lib/use-staff-roles";
 
 export function ClientHeader({ ws }: { ws: Workspace }) {
   const { openEdit, openDelete } = useCrud();
   const c = ws.cliente;
+  const { admin, canTab } = useStaffAccess();
   const onbPend = ws.onboarding.filter((o) => !o.concluido).length;
   const group = clientGroup(c.status_contrato, onbPend);
   const meta = [
     c.plano_label || c.plano_atual,
-    c.valor_mensal != null ? `${brl(Number(c.valor_mensal))}/mês` : null,
+    canTab("financeiro") && c.valor_mensal != null ? `${brl(Number(c.valor_mensal))}/mês` : null,
     c.status_contrato === "ativo" && c.data_vencimento_contrato && parseDate(c.data_vencimento_contrato) < new Date()
       ? "Contrato vencido"
       : CONTRATO_LABEL[c.status_contrato],
@@ -40,7 +42,7 @@ export function ClientHeader({ ws }: { ws: Workspace }) {
           </div>
           <p className="mt-1 text-sm text-muted-foreground">{meta.join(" · ")}</p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        {admin && <div className="flex shrink-0 items-center gap-2">
           <button onClick={() => openEdit("cliente", c)} className={cn(btnOutline, "hidden sm:inline-flex")}>
             <Pencil size={14} strokeWidth={1.6} /> Editar
           </button>
@@ -57,7 +59,7 @@ export function ClientHeader({ ws }: { ws: Workspace }) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
+        </div>}
       </div>
     </div>
   );

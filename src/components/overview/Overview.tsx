@@ -8,12 +8,18 @@ import { RecentActivity } from "./RecentActivity";
 import { WeekView } from "./WeekView";
 import { useOverviewData } from "./useOverviewData";
 import { useWeekWithCalendar } from "./useWeekWithCalendar";
+import { useStaffAccess } from "@/lib/use-staff-roles";
 
 const linkCls = "text-[13px] text-muted-foreground hover:text-foreground";
 
 export function Overview() {
   const { data, isLoading, error } = useOverviewData();
   const week = useWeekWithCalendar(data?.week);
+  const { can, canTab } = useStaffAccess();
+  const show = { clientes: can("/admin/clientes"), conteudo: can("/admin/conteudo"), financeiro: can("/admin/financeiro") };
+  // Itens cujo destino o perfil não acessa somem (a origem já é filtrada pelo banco).
+  const priorities = (data?.priorities ?? []).filter((p) => can(p.action.to) && (!p.action.search?.tab || canTab(p.action.search.tab)));
+  const activity = (data?.activity ?? []).filter((a) => !a.to || can(a.to));
 
   return (
     <div className="space-y-10">
@@ -29,14 +35,14 @@ export function Overview() {
 
       {data && (
         <>
-          <OverviewStats stats={data.stats} />
+          <OverviewStats stats={data.stats} show={show} />
 
           <OverviewSection
             title="Prioridades"
             description="Ordenadas por urgência."
             action={<Link to="/admin/sprints" className={linkCls}>Ver sprints</Link>}
           >
-            <PriorityList items={data.priorities} />
+            <PriorityList items={priorities} />
           </OverviewSection>
 
           <OverviewSection
@@ -47,22 +53,28 @@ export function Overview() {
             <WeekView week={week ?? data.week} />
           </OverviewSection>
 
-          <div className="grid gap-10 lg:grid-cols-2">
+          {(show.clientes || show.conteudo) && (
+          <div className={show.clientes && show.conteudo ? "grid gap-10 lg:grid-cols-2" : "grid gap-10"}>
+            {show.clientes && (
             <OverviewSection
               title="Clientes que precisam de atenção"
               action={<Link to="/admin/clientes" className={linkCls}>Todos os clientes</Link>}
             >
               <ClientsAttention clients={data.attention} />
             </OverviewSection>
+            )}
 
+            {show.conteudo && (
             <OverviewSection title="Produção de conteúdo" action={<Link to="/admin/conteudo" className={linkCls}>Abrir Conteúdo</Link>}>
               <ContentProduction counts={data.production} />
             </OverviewSection>
+            )}
           </div>
+          )}
 
-          {data.activity.length > 0 && (
+          {activity.length > 0 && (
             <OverviewSection title="Atividade recente">
-              <RecentActivity items={data.activity} />
+              <RecentActivity items={activity} />
             </OverviewSection>
           )}
         </>

@@ -9,6 +9,7 @@ import { brl, fmtDate, isDone, parseDate, type Workspace } from "./useClientWork
 import { useStrategy } from "@/components/strategy/useStrategy";
 import { strategyGaps } from "@/components/strategy/StrategyOverview";
 import { strategyProgress } from "@/lib/strategy";
+import { useStaffAccess } from "@/lib/use-staff-roles";
 import { WsEmpty, WsFact, WsList, WsRow, WsSection, btnOutline } from "./ui";
 
 type GoTab = (t: ClientTabKey) => void;
@@ -19,10 +20,11 @@ export function ClientOverview({ ws, goTab }: { ws: Workspace; goTab: GoTab }) {
   const prox = ws.agenda[0];
   const etapaAtual = PIPELINE_ETAPAS.find((e) => ws.pipeline.find((p) => p.etapa === e)?.status !== "concluido");
   const temPipeline = ws.pipeline.length > 0;
+  const { canTab, admin } = useStaffAccess();
 
   return (
     <div className="space-y-10">
-      <div className="grid grid-cols-2 rounded-lg border border-border bg-card lg:grid-cols-4 [&>*]:border-border [&>*:nth-child(odd)]:border-r lg:[&>*]:border-r lg:[&>*:last-child]:border-r-0 [&>*:nth-child(-n+2)]:border-b lg:[&>*:nth-child(-n+2)]:border-b-0">
+      <div className={`grid grid-cols-2 rounded-lg border border-border bg-card ${admin ? "lg:grid-cols-4" : "lg:grid-cols-3"} [&>*]:border-border [&>*:nth-child(odd)]:border-r lg:[&>*]:border-r lg:[&>*:last-child]:border-r-0 [&>*:nth-child(-n+2)]:border-b lg:[&>*:nth-child(-n+2)]:border-b-0`}>
         <WsFact
           label="Etapa do mês"
           value={temPipeline ? (etapaAtual ? ETAPA_LABEL[etapaAtual] : "Tudo concluído") : "—"}
@@ -34,17 +36,17 @@ export function ClientOverview({ ws, goTab }: { ws: Workspace; goTab: GoTab }) {
           value={prox ? fmtDate(new Date(prox.data_hora)) : "—"}
           hint={prox ? prox.titulo : "Nada agendado"}
         />
-        <WsFact label="Arquivos" value={ws.arquivos.length + ws.documentos.length} hint={`${ws.documentos.length} documento(s)`} />
+        {admin && <WsFact label="Arquivos" value={ws.arquivos.length + ws.documentos.length} hint={`${ws.documentos.length} documento(s)`} />}
       </div>
 
       <ClientAttention ws={ws} goTab={goTab} />
 
-      <div className="grid gap-10 lg:grid-cols-2">
-        <StrategySummary clienteId={ws.cliente.id} goTab={goTab} />
+      <div className={canTab("estrategia") ? "grid gap-10 lg:grid-cols-2" : "grid gap-10"}>
+        {canTab("estrategia") && <StrategySummary clienteId={ws.cliente.id} goTab={goTab} />}
         <ClientNextSteps ws={ws} />
       </div>
 
-      <WsSection title="Conteúdos recentes" action={<button onClick={() => goTab("conteudos")} className="text-[13px] text-muted-foreground hover:text-foreground">Ver todos</button>}>
+      {canTab("conteudos") && <WsSection title="Conteúdos recentes" action={<button onClick={() => goTab("conteudos")} className="text-[13px] text-muted-foreground hover:text-foreground">Ver todos</button>}>
         {ws.editoriais.length ? (
           <WsList>
             {ws.editoriais.map((c) => (
@@ -57,7 +59,7 @@ export function ClientOverview({ ws, goTab }: { ws: Workspace; goTab: GoTab }) {
             ))}
           </WsList>
         ) : <WsEmpty>Nenhum conteúdo editorial ainda.</WsEmpty>}
-      </WsSection>
+      </WsSection>}
 
       <WsSection title="Dados do cliente">
         <dl className="grid gap-x-8 gap-y-4 px-5 py-5 text-sm sm:grid-cols-2 lg:grid-cols-3">
@@ -70,7 +72,7 @@ export function ClientOverview({ ws, goTab }: { ws: Workspace; goTab: GoTab }) {
             {" → "}
             {ws.cliente.data_vencimento_contrato ? fmtDate(parseDate(ws.cliente.data_vencimento_contrato)) : "—"}
           </Info>
-          <Info label="Valor mensal">{ws.cliente.valor_mensal != null ? brl(Number(ws.cliente.valor_mensal)) : "—"}</Info>
+          {canTab("financeiro") && <Info label="Valor mensal">{ws.cliente.valor_mensal != null ? brl(Number(ws.cliente.valor_mensal)) : "—"}</Info>}
         </dl>
       </WsSection>
     </div>
@@ -89,8 +91,9 @@ function Info({ label, children }: { label: string; children: ReactNode }) {
 /** Objective, client-specific pendências. */
 export function ClientAttention({ ws, goTab }: { ws: Workspace; goTab: GoTab }) {
   const t0 = today();
+  const { canTab } = useStaffAccess();
   const items: { key: string; icon: typeof AlertCircle; text: string; meta: string; action: ReactNode; urgent?: boolean }[] = [];
-  const act = (label: string, tab: ClientTabKey) => <button onClick={() => goTab(tab)} className={btnOutline}>{label}</button>;
+  const act = (label: string, tab: ClientTabKey) => !canTab(tab) ? null : <button onClick={() => goTab(tab)} className={btnOutline}>{label}</button>;
   const sprint = <Link to="/admin/sprints" className={btnOutline}>Abrir tarefa</Link>;
 
   for (const t of ws.tarefas) {
