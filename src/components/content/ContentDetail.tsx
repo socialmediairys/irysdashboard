@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { StatusBadge } from "@/components/ui/status-badge";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  ACCEPT, CANAIS, IDEA_STATUS_LABEL, canSendIdea, canSendProduction, CONTENT_STATUS, CONTENT_STATUS_LABEL, CONTENT_STATUS_VARIANT, FORMATOS, cdb, fmtShort,
+  ACCEPT, CANAIS, IDEA_STATUS_LABEL, canSendIdea, canSendProduction, producaoFaltando, CONTENT_STATUS, CONTENT_STATUS_LABEL, CONTENT_STATUS_VARIANT, FORMATOS, cdb, fmtShort,
   signedUrl, uploadMidias, useContentActions, type Conteudo, type ContentStatus, type Midia,
 } from "@/lib/content";
 import { cn } from "@/lib/utils";
@@ -135,7 +135,7 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
           placeholder="O que será abordado, argumento central, direcionamento…" className={cn(inputCls, "resize-y leading-relaxed")} />
         {c.status_ideia !== "nao_enviada" && <p className="mt-1 text-[12px] text-muted-foreground">A cliente vê a versão enviada. Editar aqui não altera o que ela já recebeu; reenvie se ela pedir alterações.</p>}
       </div>
-      <SendBar c={c} sent={sent} onSend={() => save({ status: "com_cliente" })} />
+      <SendBar c={c} sent={sent} onSend={() => { const falta = producaoFaltando(c.formato, c.legenda, data.midias); if (falta) { toast.error(falta); return; } save({ status: "com_cliente" }); }} />
 
       <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1fr_1fr]">
         <section>

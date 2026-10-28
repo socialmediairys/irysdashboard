@@ -177,3 +177,15 @@ export const isMonthKey = (s: unknown): s is string => typeof s === "string" && 
 /** Mês de competência do conteúdo; cai para data prevista/criação quando ausente. */
 export const competencia = (c: { pipeline_mes: string | null; data_prevista?: string | null; created_at?: string }) =>
   (c.pipeline_mes ?? c.data_prevista ?? c.created_at ?? "").slice(0, 7);
+
+/** Material obrigatório para enviar a produção final (espelha private.producao_faltando no banco). */
+export function producaoFaltando(formato: string | null, legenda: string | null, midias: { tipo: string }[]): string | null {
+  const f = (formato ?? "").toLowerCase();
+  const img = midias.filter((m) => m.tipo === "imagem").length;
+  const vid = midias.filter((m) => m.tipo === "video").length;
+  if ((f === "post" || f === "carrossel") && img === 0) return "Adicione a arte antes de enviar a produção final.";
+  if ((f === "reels" || f === "vídeo" || f === "video") && vid === 0) return "Adicione o vídeo antes de enviar a produção final.";
+  if (!["post", "carrossel", "reels", "vídeo", "video", "live"].includes(f) && img + vid === 0) return "Adicione a arte antes de enviar a produção final.";
+  if (f !== "live" && !(legenda ?? "").trim()) return "Preencha a legenda da publicação antes de enviar.";
+  return null;
+}

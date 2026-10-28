@@ -57,6 +57,13 @@
       "when": 1793150924175,
       "tag": "0007_portal_conteudos_sem_rascunho",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793151750695,
+      "tag": "0008_validar_envio_producao_final",
+      "breakpoints": true
     }
   ]
 }
