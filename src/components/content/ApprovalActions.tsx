@@ -41,7 +41,7 @@ export function ApprovalActions({ c, etapa, onDone, onSend, canSend }: { c: Cont
   };
   const icon = (label: string, Icon: typeof Send, click: () => void) => <Tooltip><TooltipTrigger asChild><Button size="sm" variant="outline" title={label} aria-label={label} disabled={busy} onClick={click}><Icon /><span className="sm:sr-only">{label}</span></Button></TooltipTrigger><TooltipContent>{label}</TooltipContent></Tooltip>;
   return <TooltipProvider><div className="ml-auto flex flex-wrap gap-2">
-    {send && icon(`${(idea ? c.ideia_versao_atual : c.versao_atual) > 0 ? "Reenviar" : "Enviar"} ${name}`, Send, () => setAction("send"))}
+    {send && icon(`${(idea ? c.ideia_versao_atual > 0 : !!c.enviado_cliente_em) ? "Reenviar" : "Enviar"} ${name}`, Send, () => setAction("send"))}
     {withdraw && icon(`Retirar ${name} da aprovação`, Undo2, () => setAction("withdraw"))}
     {reopen && icon(`Reabrir aprovação da ${name}`, Undo2, () => setAction("reopen"))}
     {icon("Consultar histórico", History, () => document.getElementById("content-history")?.click())}
