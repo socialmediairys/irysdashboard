@@ -26,6 +26,16 @@ export const CONTENT_STATUS_VARIANT: Record<ContentStatus, StatusVariant> = {
 export const WORKFLOW: ContentStatus[] = CONTENT_STATUS.filter((s) => s !== "ideia");
 export const APPROVAL_STATUSES: ContentStatus[] = ["com_cliente", "alteracao_solicitada"];
 
+export type IdeaStatus = "nao_enviada" | "aguardando" | "alteracao_solicitada" | "aprovada";
+export const IDEA_STATUS_LABEL: Record<IdeaStatus, string> = {
+  nao_enviada: "Ideia não enviada", aguardando: "Ideia aguardando aprovação",
+  alteracao_solicitada: "Ideia com alterações solicitadas", aprovada: "Ideia aprovada",
+};
+/** Produção final só pode ir à cliente depois da ideia aprovada (conteúdos antigos já enviados seguem liberados). */
+export const canSendProduction = (statusIdeia: IdeaStatus, jaEnviado: boolean) => jaEnviado || statusIdeia === "aprovada";
+/** Ideia pode ser (re)enviada só quando ainda não foi ou quando a cliente pediu alteração. */
+export const canSendIdea = (statusIdeia: IdeaStatus) => statusIdeia === "nao_enviada" || statusIdeia === "alteracao_solicitada";
+
 export const CANAIS = ["Instagram", "TikTok", "YouTube", "LinkedIn", "Blog", "E-mail", "WhatsApp"];
 export const FORMATOS = ["Reels", "Carrossel", "Story", "Post", "Vídeo", "Live"];
 
@@ -34,7 +44,7 @@ export type Conteudo = {
   canal: string | null; formato: string | null; status: ContentStatus; origem: string;
   calendario_item_id: string | null; pipeline_mes: string | null;
   pilar_id: string | null; tema_id: string | null; mensagem_id: string | null; argumento_id: string | null; evidencia_id: string | null;
-  jornada: string | null; objetivo: string | null; cta: string | null; legenda: string | null; hashtags: string | null;
+  jornada: string | null; objetivo: string | null; cta: string | null; desenvolvimento: string | null; status_ideia: IdeaStatus; ideia_versao_atual: number; legenda: string | null; hashtags: string | null;
   versao_atual: number; status_arte: string; status_legenda: string; enviado_cliente_em: string | null;
   publicado_em: string | null; publicacao_url: string | null; plataforma: string | null; plataforma_post_id: string | null;
   created_at: string; updated_at: string; ordem: number;
