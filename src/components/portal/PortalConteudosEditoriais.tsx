@@ -32,13 +32,14 @@ async function load(clienteId: string): Promise<Item[]> {
     cdb("conteudo_comentarios").select("id,conteudo_id,texto,alvo,autor_id,created_at,versao_id,tipo").in("conteudo_id", ids).eq("tipo", "cliente"),
   ]);
   for (const r of [ve, ide, com]) if (r.error) throw r.error;
-  const by = <T extends { conteudo_id: string }>(arr: T[], id: string) => arr.filter((x) => x.conteudo_id === id);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const by = (arr: any[], id: string) => arr.filter((x) => x.conteudo_id === id);
   return [...base].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0) || a.created_at.localeCompare(b.created_at)).map((c) => ({
     ...c,
     versoes: by(ve.data ?? [], c.id).sort((a: Versao, b: Versao) => b.numero - a.numero),
     ideias: by(ide.data ?? [], c.id).sort((a: Ideia, b: Ideia) => b.numero - a.numero),
     comentarios: by(com.data ?? [], c.id).sort((a: Coment, b: Coment) => a.created_at.localeCompare(b.created_at)),
-  })) as Item[];
+  })) as unknown as Item[];
 }
 export function useClientContents(clienteId: string) {
   return useQuery({ queryKey: ["portal-conteudos", clienteId], queryFn: () => load(clienteId) });
