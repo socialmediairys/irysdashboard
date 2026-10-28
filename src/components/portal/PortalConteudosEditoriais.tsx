@@ -21,7 +21,7 @@ type Coment = { id: string; texto: string; alvo: string; autor_id: string | null
 /** Tudo aqui é lido direto do banco com as regras do cliente: só conteúdos enviados, versões enviadas e comentários do tipo "cliente". */
 async function load(clienteId: string): Promise<Item[]> {
   const { data, error } = await cdb("conteudos")
-    .select("id,titulo,canal,formato,data_prevista,pipeline_mes,ordem,created_at,status,versao_atual,status_ideia,ideia_versao_atual,ideias:conteudo_ideia_versoes(id,numero,titulo,desenvolvimento,formato,status,comentario,enviada_em,avaliada_em),publicacao_url,publicado_em,versoes:conteudo_versoes(id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em),comentarios:conteudo_comentarios(id,texto,alvo,autor_id,created_at,versao_id)")
+    .select("id,titulo,desenvolvimento,canal,formato,data_prevista,pipeline_mes,ordem,created_at,status,versao_atual,status_ideia,ideia_versao_atual,ideias:conteudo_ideia_versoes(id,numero,titulo,desenvolvimento,formato,status,comentario,enviada_em,avaliada_em),publicacao_url,publicado_em,versoes:conteudo_versoes(id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em),comentarios:conteudo_comentarios(id,texto,alvo,autor_id,created_at,versao_id)")
     .eq("cliente_id", clienteId).order("ordem", { ascending: true }).order("created_at", { ascending: true });
   if (error) throw error;
   return ((data ?? []) as Item[]).map((c) => ({ ...c, versoes: [...c.versoes].sort((a, b) => b.numero - a.numero), ideias: [...(c.ideias ?? [])].sort((a, b) => b.numero - a.numero), comentarios: [...(c.comentarios ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at)) }));
