@@ -71,6 +71,13 @@
       "when": 1793227013308,
       "tag": "0009_editorial_lote_retirada_reabertura",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793227933897,
+      "tag": "0010_normalizar_formatos_editoriais",
+      "breakpoints": true
     }
   ]
 }
