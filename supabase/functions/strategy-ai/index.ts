@@ -16,7 +16,10 @@ Deno.serve(async (req) => {
     const { data: userData, error: userError } = await sb.auth.getUser();
     if (userError || !userData.user) return json({ error: "Sessão inválida" }, 401);
 
-    const { clienteId, etapa, action, question } = await req.json();
+    const body = await req.json();
+    const { clienteId, action, question } = body;
+    // etapa goes into the system prompt: accept only a short simple identifier.
+    const etapa = typeof body.etapa === "string" && /^[a-z0-9_-]{1,40}$/i.test(body.etapa) ? body.etapa : null;
     if (!clienteId) return json({ error: "clienteId obrigatório" }, 400);
 
     // Every query runs with the caller JWT. Existing RLS is the authorization boundary.
