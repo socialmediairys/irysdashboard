@@ -1,0 +1,5 @@
+CREATE OR REPLACE FUNCTION private.normalizar_formatos_editoriais() RETURNS trigger LANGUAGE plpgsql SET search_path=public AS $$ BEGIN NEW.formatos := ARRAY(SELECT DISTINCT CASE WHEN lower(f) IN ('vídeo','video') THEN 'Reels' ELSE f END FROM unnest(NEW.formatos) f); RETURN NEW; END $$;
+CREATE TRIGGER normalizar_formatos_mensagens BEFORE INSERT OR UPDATE OF formatos ON public.editorial_mensagens FOR EACH ROW EXECUTE FUNCTION private.normalizar_formatos_editoriais();
+UPDATE public.editorial_mensagens SET formatos=ARRAY(SELECT DISTINCT CASE WHEN lower(f) IN ('vídeo','video') THEN 'Reels' ELSE f END FROM unnest(formatos) f) WHERE EXISTS(SELECT 1 FROM unnest(formatos) f WHERE lower(f) IN ('vídeo','video'));
+REVOKE ALL ON FUNCTION private.normalizar_formatos_editoriais() FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION private.normalizar_formato_publicacao() FROM PUBLIC,anon,authenticated;
