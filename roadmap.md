@@ -1,5 +1,12 @@
 # Roadmap
 
+## Fluxo editorial — melhorias solicitadas
+- [ ] Consolidar formato de publicação Vídeo em Reels, preservando registros
+- [ ] Enviar ideias elegíveis em lote com resultado individual e proteção contra duplicação
+- [ ] Retirar e reabrir aprovações com histórico e bloqueio de avaliações antigas
+- [ ] Atualizar painel e Portal sem alterar ordem, prévia ou rascunhos protegidos
+- [ ] Executar testes de regras, navegador e isolamento; remover somente dados temporários
+
 ## Fase 12 — QA final (concluída)
 - [x] Configurações, Receita por cliente mobile, Portal desktop/mobile
 - [x] Financeiro com cliente opcional em lançamentos

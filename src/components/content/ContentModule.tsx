@@ -21,6 +21,7 @@ import {
   fmtShort, isLate, isoDay, parseLocal, useClientesLite, useContentActions, useConteudos, type Conteudo, type ContentStatus,
 } from "@/lib/content";
 import { cn } from "@/lib/utils";
+import { BatchIdeas } from "./BatchIdeas";
 import { ContentDetail } from "./ContentDetail";
 import { MonthNav, useMonthState } from "./MonthNav";
 import { competencia, monthLabel, parseLocal as _pl } from "@/lib/content";
@@ -80,6 +81,8 @@ export function ContentModule({ clienteId, initialView = "calendario", initialOp
         <input type="date" value={f.ate} onChange={(e) => setF({ ...f, ate: e.target.value })} className={sel} aria-label="Até" />
         {Object.values(f).some(Boolean) && <button className={btnGhost} onClick={() => setF({ cliente: "", canal: "", formato: "", status: "", de: "", ate: "", q: "" })}>Limpar</button>}
       </div>
+
+      {(clienteId || f.cliente) && <BatchIdeas items={filtered} scope={`${clienteId ?? f.cliente}:${mes}:${JSON.stringify(f)}`} />}
 
       {isLoading && <div className="text-sm text-muted-foreground">Carregando…</div>}
       {error && <div className="text-sm text-destructive">Não foi possível carregar os conteúdos.</div>}

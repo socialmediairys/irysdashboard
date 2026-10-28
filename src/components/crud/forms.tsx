@@ -200,7 +200,7 @@ export type EstrategiaFormValues = {
   objetivo: string | null;
 };
 const PILARES = ["Educativo", "Vendas", "Bastidores", "Conexão", "Autoridade", "Entretenimento"];
-const FORMATOS = ["Reels", "Carrossel", "Story", "Post Feed", "Vídeo"];
+const FORMATOS = ["Reels", "Carrossel", "Story", "Post Feed"];
 
 function Chips({ options, value, onChange }: { options: string[]; value: string[]; onChange: (v: string[]) => void }) {
   const toggle = (o: string) => onChange(value.includes(o) ? value.filter((x) => x !== o) : [...value, o]);

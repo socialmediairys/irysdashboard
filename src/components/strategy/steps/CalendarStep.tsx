@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { cdb, conteudoFromCalendario } from "@/lib/content";
+import { cdb, conteudoFromCalendario, FORMATOS } from "@/lib/content";
 import { JORNADA_OPCOES } from "@/lib/strategy";
 import type { StepProps } from "../StrategyWorkspace";
 import { Block, Empty, btn, btnPrimary, inputCls } from "../ui";
@@ -10,7 +10,6 @@ import { MethodArtifacts } from "./MethodArtifacts";
 import { StrategyContext } from "../StrategyContext";
 
 const CANAIS = ["Instagram", "TikTok", "YouTube", "LinkedIn", "Blog", "E-mail", "WhatsApp"];
-const FORMATOS = ["Reels", "Carrossel", "Story", "Post", "Vídeo", "Live"];
 const ym = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 
 /** Planejamento estratégico por mês. Itens referenciam o Sistema Editorial (não duplicam texto). */

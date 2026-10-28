@@ -8,7 +8,7 @@ import { useStrategyActions, type Mensagem } from "../useStrategy";
 import { MethodArtifacts } from "./MethodArtifacts";
 import { StrategyContext } from "../StrategyContext";
 
-const FORMATOS = ["Reels", "Carrossel", "Story", "Post", "Vídeo", "Live"];
+import { FORMATOS } from "@/lib/content";
 
 /** Pilar → Tema → Mensagem → Argumento/Prova. Estrutura consumida pelo Calendário e, na Fase 5, pelo Conteúdo. */
 export function EditorialStep({ data, clienteId, touch }: StepProps) {

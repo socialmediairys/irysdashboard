@@ -32,12 +32,16 @@ export const IDEA_STATUS_LABEL: Record<IdeaStatus, string> = {
   alteracao_solicitada: "Ideia com alterações solicitadas", aprovada: "Ideia aprovada",
 };
 /** Produção final só pode ir à cliente depois da ideia aprovada (conteúdos antigos já enviados seguem liberados). */
-export const canSendProduction = (statusIdeia: IdeaStatus, jaEnviado: boolean) => jaEnviado || statusIdeia === "aprovada";
+export const canSendProduction = (statusIdeia: IdeaStatus, jaEnviado: boolean, reaberta = false) => statusIdeia === "aprovada" || (jaEnviado && !reaberta);
 /** Ideia pode ser (re)enviada só quando ainda não foi ou quando a cliente pediu alteração. */
 export const canSendIdea = (statusIdeia: IdeaStatus) => statusIdeia === "nao_enviada" || statusIdeia === "alteracao_solicitada";
 
 export const CANAIS = ["Instagram", "TikTok", "YouTube", "LinkedIn", "Blog", "E-mail", "WhatsApp"];
-export const FORMATOS = ["Reels", "Carrossel", "Story", "Post", "Vídeo", "Live"];
+export const FORMATOS = ["Reels", "Carrossel", "Story", "Post", "Live"];
+export const publicationFormat = (f: string | null) => f && ["video", "vídeo"].includes(f.toLowerCase()) ? "Reels" : f;
+export const ideaEligible = (c: Pick<Conteudo, "status_ideia" | "titulo" | "desenvolvimento">) => canSendIdea(c.status_ideia) && !!(c.titulo.trim() || c.desenvolvimento?.trim());
+export const canWithdrawIdea = (s: IdeaStatus) => ["aguardando", "alteracao_solicitada"].includes(s);
+export const canWithdrawProduction = (s: ContentStatus) => ["com_cliente", "alteracao_solicitada"].includes(s);
 
 export type Conteudo = {
   id: string; cliente_id: string; titulo: string; data_prevista: string | null; horario: string | null;
@@ -45,7 +49,7 @@ export type Conteudo = {
   calendario_item_id: string | null; pipeline_mes: string | null;
   pilar_id: string | null; tema_id: string | null; mensagem_id: string | null; argumento_id: string | null; evidencia_id: string | null;
   jornada: string | null; objetivo: string | null; cta: string | null; desenvolvimento: string | null; status_ideia: IdeaStatus; ideia_versao_atual: number; legenda: string | null; hashtags: string | null;
-  versao_atual: number; status_arte: string; status_legenda: string; enviado_cliente_em: string | null;
+  versao_atual: number; status_arte: string; status_legenda: string; enviado_cliente_em: string | null; ideia_reaberta_em: string | null;
   publicado_em: string | null; publicacao_url: string | null; plataforma: string | null; plataforma_post_id: string | null;
   created_at: string; updated_at: string; ordem: number;
   midias?: { id: string; tipo: string; ordem: number; storage_path: string }[];
@@ -89,6 +93,7 @@ export function useContentActions() {
     qc.invalidateQueries({ queryKey: ["conteudos"] });
     qc.invalidateQueries({ queryKey: ["conteudo"] });
     qc.invalidateQueries({ queryKey: ["overview"] });
+    qc.invalidateQueries({ queryKey: ["portal-conteudos"] });
   }, [qc]);
   const fail = (e: unknown) => { console.error(e); toast.error("Não foi possível salvar. Tente de novo."); };
 
