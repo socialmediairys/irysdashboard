@@ -14,23 +14,27 @@ import { MonthNav, useMonthState } from "@/components/content/MonthNav";
 
 type VMidia = { bucket: string; storage_path: string; tipo: string; ordem: number; url?: string };
 type Versao = { id: string; numero: number; legenda: string | null; hashtags: string | null; midias: VMidia[]; status: string; status_arte: string; status_legenda: string; enviada_em: string };
-type Item = { id: string; titulo: string; canal: string | null; formato: string | null; data_prevista: string | null; status: ContentStatus; versao_atual: number; publicacao_url: string | null; publicado_em: string | null; pipeline_mes: string | null; ordem: number | null; created_at: string; versoes: Versao[]; comentarios: Coment[] };
+type Ideia = { id: string; numero: number; titulo: string; desenvolvimento: string | null; formato: string | null; status: string; comentario: string | null; enviada_em: string; avaliada_em: string | null };
+type Item = { id: string; desenvolvimento?: string | null; status_ideia: string; ideia_versao_atual: number; ideias: Ideia[]; titulo: string; canal: string | null; formato: string | null; data_prevista: string | null; status: ContentStatus; versao_atual: number; publicacao_url: string | null; publicado_em: string | null; pipeline_mes: string | null; ordem: number | null; created_at: string; versoes: Versao[]; comentarios: Coment[] };
 type Coment = { id: string; texto: string; alvo: string; autor_id: string | null; created_at: string; versao_id: string | null };
 
 /** Tudo aqui é lido direto do banco com as regras do cliente: só conteúdos enviados, versões enviadas e comentários do tipo "cliente". */
 async function load(clienteId: string): Promise<Item[]> {
   const { data, error } = await cdb("conteudos")
-    .select("id,titulo,canal,formato,data_prevista,pipeline_mes,ordem,created_at,status,versao_atual,publicacao_url,publicado_em,versoes:conteudo_versoes(id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em),comentarios:conteudo_comentarios(id,texto,alvo,autor_id,created_at,versao_id)")
+    .select("id,titulo,canal,formato,data_prevista,pipeline_mes,ordem,created_at,status,versao_atual,status_ideia,ideia_versao_atual,ideias:conteudo_ideia_versoes(id,numero,titulo,desenvolvimento,formato,status,comentario,enviada_em,avaliada_em),publicacao_url,publicado_em,versoes:conteudo_versoes(id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em),comentarios:conteudo_comentarios(id,texto,alvo,autor_id,created_at,versao_id)")
     .eq("cliente_id", clienteId).order("ordem", { ascending: true }).order("created_at", { ascending: true });
   if (error) throw error;
-  return ((data ?? []) as Item[]).map((c) => ({ ...c, versoes: [...c.versoes].sort((a, b) => b.numero - a.numero), comentarios: [...(c.comentarios ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at)) }));
+  return ((data ?? []) as Item[]).map((c) => ({ ...c, versoes: [...c.versoes].sort((a, b) => b.numero - a.numero), ideias: [...(c.ideias ?? [])].sort((a, b) => b.numero - a.numero), comentarios: [...(c.comentarios ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at)) }));
 }
 export function useClientContents(clienteId: string) {
   return useQuery({ queryKey: ["portal-conteudos", clienteId], queryFn: () => load(clienteId) });
 }
 
 const current = (c: Item) => c.versoes.find((v) => v.numero === c.versao_atual) ?? c.versoes[0];
-const pending = (c: Item) => ["com_cliente", "alteracao_solicitada"].includes(c.status);
+const currentIdea = (c: Item) => c.ideias.find((v) => v.numero === c.ideia_versao_atual) ?? c.ideias[0];
+const ideaPending = (c: Item) => c.status_ideia === "aguardando";
+const prodPending = (c: Item) => ["com_cliente", "alteracao_solicitada"].includes(c.status);
+const pending = (c: Item) => ideaPending(c) || prodPending(c);
 
 export function PortalAprovacoes({ clienteId }: { clienteId: string }) {
   const { data = [], isLoading } = useClientContents(clienteId);
@@ -50,14 +54,17 @@ export function PortalAprovacoes({ clienteId }: { clienteId: string }) {
 type GalleryFilter = "todos" | "ideia" | "final" | "aprovados";
 function etapaCliente(c: Item): "ideia" | "final" | "aprovados" {
   if (["aprovado", "agendado", "publicado"].includes(c.status)) return "aprovados";
-  // A versão de arte/legenda enviada determina a revisão final.
-  // A aprovação prévia de ideias depende de um fluxo próprio no banco.
-  return "final";
+  // Produção final enviada → etapa 2; senão a peça está na etapa da ideia.
+  if (c.versoes.length) return "final";
+  return "ideia";
 }
 function clientStatus(c: Item) {
-  if (c.status === "alteracao_solicitada") return "Alterações solicitadas";
-  if (etapaCliente(c) === "aprovados") return "Aprovado";
-  return "Aguardando sua avaliação";
+  if (etapaCliente(c) === "aprovados") return "Arte e legenda aprovadas";
+  if (etapaCliente(c) === "final") return c.status === "alteracao_solicitada" ? "Arte/legenda: alterações solicitadas" : "Arte e legenda aguardando avaliação";
+  if (c.status_ideia === "aguardando") return "Ideia aguardando aprovação";
+  if (c.status_ideia === "alteracao_solicitada") return "Ideia: alterações solicitadas";
+  if (c.status_ideia === "aprovada") return "Ideia aprovada · produção em andamento";
+  return "Ideia ainda não enviada";
 }
 function PortalThumbnail({ c }: { c: Item }) {
   const v = current(c);
@@ -87,7 +94,8 @@ export function PortalConteudos({ clienteId, initialMonth, onOpen }: { clienteId
   if (error) return <Empty>Não foi possível carregar os conteúdos. Tente novamente.</Empty>;
   const filters: { id: GalleryFilter; label: string; count: number }[] = [
     { id: "todos", label: "Todos", count: data.length },
-    { id: "final", label: "Para avaliar", count: data.filter((c) => etapaCliente(c) === "final").length },
+    { id: "ideia", label: "Ideias", count: data.filter((c) => etapaCliente(c) === "ideia").length },
+    { id: "final", label: "Produção final", count: data.filter((c) => etapaCliente(c) === "final").length },
     { id: "aprovados", label: "Aprovados", count: approved },
   ];
   return <section className="space-y-6">
@@ -283,16 +291,56 @@ export function PortalConteudoDetalhe({ clienteId, conteudoId, onBack }: { clien
   const voltar = onBack ? <button type="button" onClick={onBack} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft size={16} /> Voltar aos conteúdos</button> : <Link to="/meu-portal" search={{ tab: "conteudos" }} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft size={16} /> Voltar aos conteúdos</Link>;
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando…</p>;
   if (error) return <div className="space-y-4">{voltar}<Empty>Não foi possível carregar. Tente novamente.</Empty></div>;
-  if (c && !current(c) && onBack) return <div className="space-y-4">{voltar}<div className="space-y-2"><span className="text-xs uppercase tracking-widest text-muted-foreground">{monthLabel(competencia(c))}</span><h1 className="text-2xl font-semibold tracking-tight">{c.titulo || "Conteúdo"}</h1></div><Empty>Este conteúdo ainda não foi enviado à cliente. Depois do envio, esta página mostrará a arte, a legenda e a avaliação, como a cliente verá.</Empty></div>;
-  if (!c || !current(c)) return <div className="space-y-4">{voltar}<Empty>Conteúdo não encontrado ou não disponível para você.</Empty></div>;
-  const v = current(c)!;
+  if (!c || (!current(c) && !currentIdea(c) && !onBack)) return <div className="space-y-4">{voltar}<Empty>Conteúdo não encontrado ou não disponível para você.</Empty></div>;
+  const v = current(c);
   return <div className="space-y-6">
     {voltar}
-    <div className="space-y-2"><div className="flex flex-wrap items-center gap-2"><span className="text-xs uppercase tracking-widest text-muted-foreground">{monthLabel(competencia(c))}</span><span className="rounded-full border border-border px-2.5 py-1 text-[11px]">{clientStatus(c)}</span></div><h1 className="text-2xl font-semibold tracking-tight">{c.titulo || "Avaliação do conteúdo"}</h1><p className="text-sm text-muted-foreground">{[c.formato, c.canal, fmtShort(c.data_prevista)].filter(Boolean).join(" · ")} · Versão {v.numero}</p></div>
-    <SimpleApproval c={c} clienteId={clienteId} readOnly={!!onBack}/>
-    <PortalHistory c={c}/>
+    <div className="space-y-2"><div className="flex flex-wrap items-center gap-2"><span className="text-xs uppercase tracking-widest text-muted-foreground">{monthLabel(competencia(c))}</span><span className="rounded-full border border-border px-2.5 py-1 text-[11px]">{clientStatus(c)}</span></div><h1 className="text-2xl font-semibold tracking-tight">{(currentIdea(c)?.titulo ?? c.titulo) || "Conteúdo"}</h1><p className="text-sm text-muted-foreground">{[currentIdea(c)?.formato ?? c.formato, c.canal, fmtShort(c.data_prevista)].filter(Boolean).join(" · ")}{v ? ` · Versão ${v.numero}` : ""}</p></div>
+    {onBack && <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">Prévia da equipe: você vê o que está cadastrado e o estado das aprovações, mas não pode aprovar nem pedir alterações pela cliente.</p>}
+    <IdeaApproval c={c} clienteId={clienteId} readOnly={!!onBack}/>
+    {v ? <SimpleApproval c={c} clienteId={clienteId} readOnly={!!onBack}/> : <Empty>Etapa 2 · A arte e a legenda da publicação aparecerão aqui quando a produção final for enviada.</Empty>}
+    {(c.versoes.length > 0 || c.ideias.length > 1) && <PortalHistory c={c}/>}
   </div>;
 }
+
+function IdeaApproval({ c, clienteId, readOnly }: { c: Item; clienteId: string; readOnly?: boolean }) {
+  const qc = useQueryClient();
+  const idea = currentIdea(c);
+  const [choice, setChoice] = useState<"" | "aprovada" | "alteracao_solicitada">("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  // Antes do envio só a prévia da equipe enxerga o rascunho (a cliente não lê conteúdos não enviados).
+  const titulo = idea?.titulo ?? c.titulo;
+  const dev = idea ? idea.desenvolvimento : c.desenvolvimento;
+  const formato = idea ? idea.formato : c.formato;
+  const canReview = !readOnly && !!idea && ideaPending(c);
+  const st = !idea ? "Ainda não enviada à cliente" : IDEA_LBL[idea.status] ?? idea.status;
+  const send = async () => {
+    if (!idea || !choice) return;
+    if (choice === "alteracao_solicitada" && !note.trim()) { toast.error("Descreva o que gostaria de alterar."); return; }
+    setBusy(true);
+    const { error } = await supabase.rpc("cliente_avaliar_ideia" as never, { _versao_id: idea.id, _decisao: choice, _comentario: note.trim() || null } as never);
+    setBusy(false);
+    if (error) { toast.error("Não foi possível registrar sua avaliação. Confira o status e tente novamente."); }
+    else { toast.success(choice === "aprovada" ? "Ideia aprovada." : "Pedido de alteração enviado."); setChoice(""); setNote(""); }
+    await qc.invalidateQueries({ queryKey: ["portal-conteudos", clienteId] });
+  };
+  return <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+    <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-sm font-semibold">Etapa 1 · Ideia do conteúdo</h2><span className="text-xs text-muted-foreground">{idea ? `Versão ${idea.numero} · ` : ""}{st}</span></div>
+    <dl className="space-y-3 text-sm">
+      <div><dt className="text-xs text-muted-foreground">Headline</dt><dd className="font-medium">{titulo || "—"}</dd></div>
+      <div><dt className="text-xs text-muted-foreground">Desenvolvimento da ideia</dt><dd className="whitespace-pre-wrap leading-7">{dev || <span className="text-muted-foreground">Não informado.</span>}</dd></div>
+      <div><dt className="text-xs text-muted-foreground">Formato</dt><dd>{formato || "—"}</dd></div>
+    </dl>
+    {idea?.status === "alteracao_solicitada" && idea.comentario && <p className="rounded-lg bg-muted/50 p-3 text-sm">Alteração pedida: {idea.comentario}</p>}
+    {canReview && <div className="space-y-2 border-t border-border pt-4">
+      {([["aprovada", "Aprovar ideia"], ["alteracao_solicitada", "Quero solicitar alterações"]] as const).map(([value, text]) => <label key={value} className={cn("flex cursor-pointer items-center gap-3 rounded-lg border p-3 text-sm", choice === value ? "border-foreground bg-muted/60" : "border-border hover:bg-muted/30")}><input type="radio" name={`ideia-${c.id}`} checked={choice === value} onChange={() => setChoice(value)} />{text}</label>)}
+      {choice === "alteracao_solicitada" && <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="O que você gostaria de mudar na ideia?" className="w-full rounded-lg border border-input bg-background p-3 text-sm" />}
+      <button disabled={busy || !choice} onClick={send} className="w-full rounded-lg bg-foreground px-5 py-3 text-sm font-medium text-background disabled:opacity-50">{busy ? "Enviando…" : "Enviar avaliação da ideia"}</button>
+    </div>}
+  </section>;
+}
+const IDEA_LBL: Record<string, string> = { aguardando: "Aguardando sua aprovação", aprovada: "Aprovada", alteracao_solicitada: "Alterações solicitadas" };
 
 function SimpleApproval({ c, clienteId, readOnly }: { c: Item; clienteId: string; readOnly?: boolean }) {
   const v = current(c)!;
@@ -318,7 +366,7 @@ function SimpleApproval({ c, clienteId, readOnly }: { c: Item; clienteId: string
     } catch { toast.error("Não foi possível concluir a avaliação. Confira o status antes de tentar novamente."); await qc.invalidateQueries({queryKey:["portal-conteudos",clienteId]}); }
     finally { setBusy(false); }
   };
-  const canReview = !readOnly && pending(c);
+  const canReview = !readOnly && prodPending(c);
   const part = (key: "arte" | "legenda", label: string) => <div className="space-y-3 rounded-xl border border-border p-4">
     <div className="flex items-center justify-between gap-2"><h3 className="text-sm font-semibold">{label}</h3><span className="text-xs text-muted-foreground">{lbl(v[`status_${key}`])}</span></div>
     {canReview && v[`status_${key}`] !== "aprovado" ? <div className="space-y-2">
@@ -339,7 +387,7 @@ function PortalHistory({c}:{c:Item}) {
   const [open,setOpen]=useState(false);
   const versions=[...c.versoes].sort((a,b)=>b.numero-a.numero);
   return <section className="rounded-xl border border-border bg-card">
-    <button type="button" onClick={()=>setOpen(!open)} aria-expanded={open} className="flex w-full items-center justify-between gap-3 p-4 text-left sm:p-5"><span className="flex items-center gap-2 text-sm font-semibold"><History size={17}/> Histórico e versões <span className="text-xs font-normal text-muted-foreground">({versions.length})</span></span><ChevronRight size={16} className={cn("transition-transform",open&&"rotate-90")}/></button>
-    {open&&<div className="space-y-5 border-t border-border p-4 sm:p-5"><div className="space-y-3">{versions.map((v)=><div key={v.id} className="rounded-lg border border-border p-3"><div className="flex flex-wrap justify-between gap-2"><span className="text-sm font-medium">Versão {v.numero}</span><span className="text-xs text-muted-foreground">{v.enviada_em ? new Date(v.enviada_em).toLocaleString("pt-BR") : ""}</span></div><div className="mt-1 text-xs text-muted-foreground">Arte: {lbl(v.status_arte)} · Legenda: {lbl(v.status_legenda)}</div>{v.numero!==current(c)?.numero&&<div className="mt-3"><VersionView v={v}/></div>}</div>)}</div>{c.comentarios.length>0&&<div className="border-t border-border pt-4"><Conversa c={c}/></div>}</div>}
+    <button type="button" onClick={()=>setOpen(!open)} aria-expanded={open} className="flex w-full items-center justify-between gap-3 p-4 text-left sm:p-5"><span className="flex items-center gap-2 text-sm font-semibold"><History size={17}/> Histórico e versões <span className="text-xs font-normal text-muted-foreground">({versions.length + c.ideias.length})</span></span><ChevronRight size={16} className={cn("transition-transform",open&&"rotate-90")}/></button>
+    {open&&<div className="space-y-5 border-t border-border p-4 sm:p-5"><div className="space-y-3">{c.ideias.map((x)=><div key={x.id} className="rounded-lg border border-border p-3"><div className="flex flex-wrap justify-between gap-2"><span className="text-sm font-medium">Ideia · versão {x.numero}</span><span className="text-xs text-muted-foreground">{new Date(x.enviada_em).toLocaleString("pt-BR")}</span></div><div className="mt-1 text-xs text-muted-foreground">{IDEA_LBL[x.status] ?? x.status}{x.comentario ? ` · “${x.comentario}”` : ""}</div>{x.numero!==c.ideia_versao_atual&&<div className="mt-2 whitespace-pre-wrap text-sm"><b>{x.titulo}</b>{x.desenvolvimento ? `\n${x.desenvolvimento}` : ""}</div>}</div>)}{versions.map((v)=><div key={v.id} className="rounded-lg border border-border p-3"><div className="flex flex-wrap justify-between gap-2"><span className="text-sm font-medium">Produção · versão {v.numero}</span><span className="text-xs text-muted-foreground">{v.enviada_em ? new Date(v.enviada_em).toLocaleString("pt-BR") : ""}</span></div><div className="mt-1 text-xs text-muted-foreground">Arte: {lbl(v.status_arte)} · Legenda: {lbl(v.status_legenda)}</div>{v.numero!==current(c)?.numero&&<div className="mt-3"><VersionView v={v}/></div>}</div>)}</div>{c.comentarios.length>0&&<div className="border-t border-border pt-4"><Conversa c={c}/></div>}</div>}
   </section>;
 }
