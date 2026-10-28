@@ -283,17 +283,18 @@ export function PortalConteudoDetalhe({ clienteId, conteudoId, onBack }: { clien
   const voltar = onBack ? <button type="button" onClick={onBack} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft size={16} /> Voltar aos conteúdos</button> : <Link to="/meu-portal" search={{ tab: "conteudos" }} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft size={16} /> Voltar aos conteúdos</Link>;
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando…</p>;
   if (error) return <div className="space-y-4">{voltar}<Empty>Não foi possível carregar. Tente novamente.</Empty></div>;
+  if (c && !current(c) && onBack) return <div className="space-y-4">{voltar}<div className="space-y-2"><span className="text-xs uppercase tracking-widest text-muted-foreground">{monthLabel(competencia(c))}</span><h1 className="text-2xl font-semibold tracking-tight">{c.titulo || "Conteúdo"}</h1></div><Empty>Este conteúdo ainda não foi enviado à cliente. Depois do envio, esta página mostrará a arte, a legenda e a avaliação, como a cliente verá.</Empty></div>;
   if (!c || !current(c)) return <div className="space-y-4">{voltar}<Empty>Conteúdo não encontrado ou não disponível para você.</Empty></div>;
   const v = current(c)!;
   return <div className="space-y-6">
     {voltar}
     <div className="space-y-2"><div className="flex flex-wrap items-center gap-2"><span className="text-xs uppercase tracking-widest text-muted-foreground">{monthLabel(competencia(c))}</span><span className="rounded-full border border-border px-2.5 py-1 text-[11px]">{clientStatus(c)}</span></div><h1 className="text-2xl font-semibold tracking-tight">{c.titulo || "Avaliação do conteúdo"}</h1><p className="text-sm text-muted-foreground">{[c.formato, c.canal, fmtShort(c.data_prevista)].filter(Boolean).join(" · ")} · Versão {v.numero}</p></div>
-    <SimpleApproval c={c} clienteId={clienteId}/>
+    <SimpleApproval c={c} clienteId={clienteId} readOnly={!!onBack}/>
     <PortalHistory c={c}/>
   </div>;
 }
 
-function SimpleApproval({ c, clienteId }: { c: Item; clienteId: string }) {
+function SimpleApproval({ c, clienteId, readOnly }: { c: Item; clienteId: string; readOnly?: boolean }) {
   const v = current(c)!;
   const qc = useQueryClient();
   const [choices, setChoices] = useState<Record<string, "aprovado" | "alteracao_solicitada" | "">>({arte:"",legenda:""});
@@ -317,7 +318,7 @@ function SimpleApproval({ c, clienteId }: { c: Item; clienteId: string }) {
     } catch { toast.error("Não foi possível concluir a avaliação. Confira o status antes de tentar novamente."); await qc.invalidateQueries({queryKey:["portal-conteudos",clienteId]}); }
     finally { setBusy(false); }
   };
-  const canReview = pending(c);
+  const canReview = !readOnly && pending(c);
   const part = (key: "arte" | "legenda", label: string) => <div className="space-y-3 rounded-xl border border-border p-4">
     <div className="flex items-center justify-between gap-2"><h3 className="text-sm font-semibold">{label}</h3><span className="text-xs text-muted-foreground">{lbl(v[`status_${key}`])}</span></div>
     {canReview && v[`status_${key}`] !== "aprovado" ? <div className="space-y-2">
