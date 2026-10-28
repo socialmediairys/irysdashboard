@@ -440,26 +440,26 @@ function FaseAccordion({
 
   return (
     <div className="rounded-[18px] overflow-hidden" style={{ background: "#fff", boxShadow: SHADOW }}>
-      <button type="button" onClick={onToggle} aria-expanded={open} className="w-full p-4 sm:p-5 flex items-center gap-3 sm:gap-4 text-left transition-colors" style={open ? { background: "#333333", color: "#FFFFFF" } : undefined}>
+      <button type="button" onClick={onToggle} aria-expanded={open} className="w-full p-4 sm:p-5 flex items-center gap-3 sm:gap-4 text-left transition-colors">
         <div
           className="h-10 w-10 sm:h-11 sm:w-11 rounded-full flex items-center justify-center shrink-0 text-sm font-extrabold"
-          style={open ? { background: "#333333", color: "#FFFFFF", border: "1px solid #FFFFFF" } : { background: ativa ? C.gold : C.beigeLight, color: C.dark }}
+          style={open ? { background: "#333333", color: "#FFFFFF" } : { background: C.beigeLight, color: C.dark }}
         >
           {fase}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: open ? "#FFFFFF" : ativa ? C.mid : C.textMid }}>
+          <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: ativa ? C.mid : C.textMid }}>
             Fase {fase} {ativa && "· Em andamento"}
           </div>
-          <div className="font-extrabold mt-0.5 text-sm sm:text-base break-words" style={{ color: open ? "#FFFFFF" : C.text }}>{nome}</div>
+          <div className="font-extrabold mt-0.5 text-sm sm:text-base break-words" style={{ color: C.text }}>{nome}</div>
         </div>
         <span
           className="hidden sm:inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold"
-          style={open ? { background: "#333333", color: "#FFFFFF", border: "1px solid #FFFFFF" } : { background: C.beigeLight, color: C.mid, border: `1px solid ${C.beige}` }}
+          style={{ background: C.beigeLight, color: C.mid, border: `1px solid ${C.beige}` }}
         >
           {count} conteúdos
         </span>
-        {open ? <ChevronDown size={18} style={{ color: "#FFFFFF" }} className="shrink-0" /> : <ChevronRight size={18} style={{ color: C.textMid }} className="shrink-0" />}
+        {open ? <ChevronDown size={18} style={{ color: C.textMid }} className="shrink-0" /> : <ChevronRight size={18} style={{ color: C.textMid }} className="shrink-0" />}
       </button>
       {open && (
         <div className="px-4 sm:px-5 pb-4 sm:pb-5 sm:pl-[76px]">
@@ -561,18 +561,18 @@ function BloqueadorCard({
 }: { n: number; t: string; sub: string; por: string; open: boolean; onToggle: () => void }) {
   return (
     <div className="rounded-[18px] overflow-hidden" style={{ background: "#fff", boxShadow: SHADOW }}>
-      <button type="button" onClick={onToggle} aria-expanded={open} className="w-full p-4 sm:p-5 flex items-center gap-3 sm:gap-4 text-left transition-colors" style={open ? { background: "#333333", color: "#FFFFFF" } : undefined}>
+      <button type="button" onClick={onToggle} aria-expanded={open} className="w-full p-4 sm:p-5 flex items-center gap-3 sm:gap-4 text-left transition-colors">
         <div
           className="h-10 w-10 rounded-[12px] flex items-center justify-center shrink-0 text-sm font-extrabold"
-          style={open ? { background: "#333333", color: "#FFFFFF", border: "1px solid #FFFFFF" } : { background: C.beigeLight, color: C.dark }}
+          style={open ? { background: "#333333", color: "#FFFFFF" } : { background: C.beigeLight, color: C.dark }}
         >
           {n}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-sm sm:text-base break-words" style={{ color: open ? "#FFFFFF" : C.text }}>{t}</div>
-          <div className="text-[11px] sm:text-xs mt-0.5 break-words" style={{ color: open ? "#FFFFFF" : C.textMid }}>{sub}</div>
+          <div className="font-extrabold text-sm sm:text-base break-words" style={{ color: C.text }}>{t}</div>
+          <div className="text-[11px] sm:text-xs mt-0.5 break-words" style={{ color: C.textMid }}>{sub}</div>
         </div>
-        {open ? <ChevronDown size={18} style={{ color: "#FFFFFF" }} className="shrink-0" /> : <ChevronRight size={18} style={{ color: C.textMid }} className="shrink-0" />}
+        {open ? <ChevronDown size={18} style={{ color: C.textMid }} className="shrink-0" /> : <ChevronRight size={18} style={{ color: C.textMid }} className="shrink-0" />}
       </button>
       {open && (
         <div className="px-4 sm:px-5 pb-4 sm:pb-5 sm:pl-[72px]">
