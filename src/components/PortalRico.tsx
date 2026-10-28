@@ -604,6 +604,7 @@ export function PortalRico({
   const [openFase, setOpenFase] = useState<number | null>(null);
   const [openBloq, setOpenBloq] = useState<number | null>(null);
   const [mediaModal, setMediaModal] = useState<{ tipo: "video" | "audio"; url: string; titulo: string } | null>(null);
+  const [welcomePlaying, setWelcomePlaying] = useState(false);
 
   const openMediaFor = (c: Conteudo) => {
     if (!c.url) return;
@@ -748,23 +749,50 @@ export function PortalRico({
 
       {/* Vídeo de boas-vindas + guia */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 items-center">
+        {welcomePlaying && videoBoasVindas?.url ? (
+          (() => {
+            const embed = toEmbedUrl(videoBoasVindas.url);
+            const titulo = videoBoasVindas.titulo || "Vídeo de boas-vindas";
+            return (
+              <div className="aspect-video rounded-[18px] overflow-hidden relative bg-black" style={{ boxShadow: SHADOW }}>
+                {embed.kind === "iframe" ? (
+                  <iframe
+                    src={embed.src + (embed.src.includes("?") ? "&" : "?") + "autoplay=1"}
+                    title={titulo}
+                    className="absolute inset-0 h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video
+                    src={embed.src}
+                    title={titulo}
+                    controls
+                    autoPlay
+                    playsInline
+                    className="absolute inset-0 h-full w-full object-contain bg-black"
+                  />
+                )}
+              </div>
+            );
+          })()
+        ) : (
         <button
           type="button"
+          aria-label="Reproduzir vídeo de boas-vindas"
           className="aspect-video rounded-[18px] overflow-hidden relative flex items-center justify-center cursor-pointer group text-left"
           style={{ background: `linear-gradient(135deg, ${C.dark}, #4A2510)`, boxShadow: SHADOW }}
           onClick={() => {
-            if (videoBoasVindas && videoBoasVindas.url) {
-              openMediaFor(videoBoasVindas);
-            }
+            if (videoBoasVindas?.url) setWelcomePlaying(true);
           }}
           disabled={!videoBoasVindas?.url}
         >
           <div className="absolute inset-0 flex items-center justify-center">
             <div
-              className="h-16 w-16 sm:h-20 sm:w-20 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
-              style={{ background: C.gold, color: C.dark }}
+              className="h-16 w-16 sm:h-20 sm:w-20 rounded-full flex items-center justify-center transition-transform group-hover:scale-105"
+              style={{ background: "rgba(255,255,255,0.88)", color: "#333333", boxShadow: "0 6px 20px rgba(0,0,0,0.18)", backdropFilter: "blur(4px)" }}
             >
-              <Play size={24} className="ml-1" />
+              <Play size={24} className="ml-1" fill="#333333" strokeWidth={1.5} />
             </div>
           </div>
           <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 flex items-center gap-2 text-[11px] sm:text-xs font-semibold" style={{ color: "rgba(255,255,255,0.85)" }}>
@@ -776,6 +804,7 @@ export function PortalRico({
             </div>
           )}
         </button>
+        )}
         <div>
           <Eyebrow>Guia de navegação</Eyebrow>
           <h3 className="text-lg sm:text-2xl font-extrabold mt-2 mb-2 sm:mb-3" style={{ color: C.text, letterSpacing: "-0.02em" }}>
