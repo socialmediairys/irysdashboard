@@ -82,7 +82,8 @@ export function ContentModule({ clienteId, initialView = "calendario", initialOp
         {Object.values(f).some(Boolean) && <button className={btnGhost} onClick={() => setF({ cliente: "", canal: "", formato: "", status: "", de: "", ate: "", q: "" })}>Limpar</button>}
       </div>
 
-      {(clienteId || f.cliente) && <BatchIdeas items={filtered} scope={`${clienteId ?? f.cliente}:${mes}:${JSON.stringify(f)}`} />}
+      {!clienteId && f.cliente && <MonthNav value={mes} onChange={setMes} />}
+      {(clienteId || f.cliente) && <BatchIdeas items={filtered.filter((c) => competencia(c) === mes).sort(byOrdem)} scope={`${clienteId ?? f.cliente}:${mes}:${JSON.stringify(f)}`} />}
 
       {isLoading && <div className="text-sm text-muted-foreground">Carregando…</div>}
       {error && <div className="text-sm text-destructive">Não foi possível carregar os conteúdos.</div>}
