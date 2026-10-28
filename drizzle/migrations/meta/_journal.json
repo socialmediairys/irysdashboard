@@ -29,6 +29,13 @@
       "when": 1793145517765,
       "tag": "0003_conteudos_cliente_ordem",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793145769364,
+      "tag": "0004_restrict_catalog_reads",
+      "breakpoints": true
     }
   ]
 }
