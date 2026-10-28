@@ -187,7 +187,7 @@ function AudioItem({
         disabled={!url}
         onClick={() => setActiveId(isPlaying ? null : id)}
         className="h-11 w-11 sm:h-12 sm:w-12 rounded-full flex items-center justify-center shrink-0 transition-transform hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed"
-        style={{ background: isPlaying ? C.gold : C.dark, color: isPlaying ? C.dark : "#fff" }}
+        style={{ background: isPlaying ? "#333333" : C.dark, color: isPlaying ? "#FFFFFF" : "#fff" }}
         aria-label={isPlaying ? "Pausar" : "Reproduzir"}
       >
         {isPlaying ? <Pause size={16} /> : <Play size={16} className="ml-0.5" />}
@@ -390,8 +390,8 @@ function CronogramasMensais({ clienteId, onOpenMonth }: { clienteId: string; onO
             <button type="button" onClick={() => void copiarLink(ultimo)} className="mt-2 inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary"><Link2 size={14}/> Copiar link deste planejamento</button>
           </div>
           {anteriores.length > 0 && <div className="rounded-lg border border-border bg-card">
-            <button type="button" onClick={() => setHistoricoAberto((v) => !v)} aria-expanded={historicoAberto} className="flex w-full items-center gap-2 px-3 py-3 text-left text-sm text-foreground">
-              <Archive size={16} className="text-muted-foreground"/><span className="flex-1">Planejamentos anteriores ({anteriores.length})</span><ChevronDown size={16} className={historicoAberto ? "rotate-180" : ""}/>
+            <button type="button" onClick={() => setHistoricoAberto((v) => !v)} aria-expanded={historicoAberto} className={`flex w-full items-center gap-2 rounded-lg px-3 py-3 text-left text-sm ${historicoAberto ? "" : "text-foreground"}`} style={historicoAberto ? { background: "#333333", color: "#FFFFFF" } : undefined}>
+              <Archive size={16} className={historicoAberto ? "" : "text-muted-foreground"}/><span className="flex-1">Planejamentos anteriores ({anteriores.length})</span><ChevronDown size={16} className={historicoAberto ? "rotate-180" : ""}/>
             </button>
             {historicoAberto && <div className="space-y-1 border-t border-border p-2">{anteriores.map((mes) => <button key={mes} type="button" disabled={!onOpenMonth} onClick={() => onOpenMonth?.(mes)} className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs hover:bg-secondary disabled:cursor-default"><span>{monthLabel(mes)}</span><span className="text-muted-foreground">{porMes[mes]} conteúdos</span></button>)}</div>}
           </div>}
@@ -440,26 +440,26 @@ function FaseAccordion({
 
   return (
     <div className="rounded-[18px] overflow-hidden" style={{ background: "#fff", boxShadow: SHADOW }}>
-      <button type="button" onClick={onToggle} className="w-full p-4 sm:p-5 flex items-center gap-3 sm:gap-4 text-left">
+      <button type="button" onClick={onToggle} aria-expanded={open} className="w-full p-4 sm:p-5 flex items-center gap-3 sm:gap-4 text-left transition-colors" style={open ? { background: "#333333", color: "#FFFFFF" } : undefined}>
         <div
           className="h-10 w-10 sm:h-11 sm:w-11 rounded-full flex items-center justify-center shrink-0 text-sm font-extrabold"
-          style={{ background: ativa ? C.gold : C.beigeLight, color: C.dark }}
+          style={open ? { background: "#333333", color: "#FFFFFF", border: "1px solid #FFFFFF" } : { background: ativa ? C.gold : C.beigeLight, color: C.dark }}
         >
           {fase}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: ativa ? C.mid : C.textMid }}>
+          <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: open ? "#FFFFFF" : ativa ? C.mid : C.textMid }}>
             Fase {fase} {ativa && "· Em andamento"}
           </div>
-          <div className="font-extrabold mt-0.5 text-sm sm:text-base break-words" style={{ color: C.text }}>{nome}</div>
+          <div className="font-extrabold mt-0.5 text-sm sm:text-base break-words" style={{ color: open ? "#FFFFFF" : C.text }}>{nome}</div>
         </div>
         <span
           className="hidden sm:inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold"
-          style={{ background: C.beigeLight, color: C.mid, border: `1px solid ${C.beige}` }}
+          style={open ? { background: "#333333", color: "#FFFFFF", border: "1px solid #FFFFFF" } : { background: C.beigeLight, color: C.mid, border: `1px solid ${C.beige}` }}
         >
           {count} conteúdos
         </span>
-        {open ? <ChevronDown size={18} style={{ color: C.textMid }} className="shrink-0" /> : <ChevronRight size={18} style={{ color: C.textMid }} className="shrink-0" />}
+        {open ? <ChevronDown size={18} style={{ color: "#FFFFFF" }} className="shrink-0" /> : <ChevronRight size={18} style={{ color: C.textMid }} className="shrink-0" />}
       </button>
       {open && (
         <div className="px-4 sm:px-5 pb-4 sm:pb-5 sm:pl-[76px]">
@@ -561,18 +561,18 @@ function BloqueadorCard({
 }: { n: number; t: string; sub: string; por: string; open: boolean; onToggle: () => void }) {
   return (
     <div className="rounded-[18px] overflow-hidden" style={{ background: "#fff", boxShadow: SHADOW }}>
-      <button type="button" onClick={onToggle} className="w-full p-4 sm:p-5 flex items-center gap-3 sm:gap-4 text-left">
+      <button type="button" onClick={onToggle} aria-expanded={open} className="w-full p-4 sm:p-5 flex items-center gap-3 sm:gap-4 text-left transition-colors" style={open ? { background: "#333333", color: "#FFFFFF" } : undefined}>
         <div
           className="h-10 w-10 rounded-[12px] flex items-center justify-center shrink-0 text-sm font-extrabold"
-          style={{ background: C.beigeLight, color: C.dark }}
+          style={open ? { background: "#333333", color: "#FFFFFF", border: "1px solid #FFFFFF" } : { background: C.beigeLight, color: C.dark }}
         >
           {n}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-sm sm:text-base break-words" style={{ color: C.text }}>{t}</div>
-          <div className="text-[11px] sm:text-xs mt-0.5 break-words" style={{ color: C.textMid }}>{sub}</div>
+          <div className="font-extrabold text-sm sm:text-base break-words" style={{ color: open ? "#FFFFFF" : C.text }}>{t}</div>
+          <div className="text-[11px] sm:text-xs mt-0.5 break-words" style={{ color: open ? "#FFFFFF" : C.textMid }}>{sub}</div>
         </div>
-        {open ? <ChevronDown size={18} style={{ color: C.textMid }} className="shrink-0" /> : <ChevronRight size={18} style={{ color: C.textMid }} className="shrink-0" />}
+        {open ? <ChevronDown size={18} style={{ color: "#FFFFFF" }} className="shrink-0" /> : <ChevronRight size={18} style={{ color: C.textMid }} className="shrink-0" />}
       </button>
       {open && (
         <div className="px-4 sm:px-5 pb-4 sm:pb-5 sm:pl-[72px]">
