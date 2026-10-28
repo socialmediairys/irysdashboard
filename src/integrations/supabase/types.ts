@@ -566,6 +566,65 @@ export type Database = {
           },
         ]
       }
+      conteudo_ideia_versoes: {
+        Row: {
+          avaliada_em: string | null
+          avaliada_por: string | null
+          cliente_id: string
+          comentario: string | null
+          conteudo_id: string
+          desenvolvimento: string | null
+          enviada_em: string
+          enviada_por: string | null
+          formato: string | null
+          id: string
+          numero: number
+          org_id: string | null
+          status: string
+          titulo: string
+        }
+        Insert: {
+          avaliada_em?: string | null
+          avaliada_por?: string | null
+          cliente_id: string
+          comentario?: string | null
+          conteudo_id: string
+          desenvolvimento?: string | null
+          enviada_em?: string
+          enviada_por?: string | null
+          formato?: string | null
+          id?: string
+          numero: number
+          org_id?: string | null
+          status?: string
+          titulo?: string
+        }
+        Update: {
+          avaliada_em?: string | null
+          avaliada_por?: string | null
+          cliente_id?: string
+          comentario?: string | null
+          conteudo_id?: string
+          desenvolvimento?: string | null
+          enviada_em?: string
+          enviada_por?: string | null
+          formato?: string | null
+          id?: string
+          numero?: number
+          org_id?: string | null
+          status?: string
+          titulo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conteudo_ideia_versoes_conteudo_id_fkey"
+            columns: ["conteudo_id"]
+            isOneToOne: false
+            referencedRelation: "conteudos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conteudo_midias: {
         Row: {
           bucket: string
@@ -702,12 +761,14 @@ export type Database = {
           created_by: string | null
           cta: string | null
           data_prevista: string | null
+          desenvolvimento: string | null
           enviado_cliente_em: string | null
           evidencia_id: string | null
           formato: string | null
           hashtags: string | null
           horario: string | null
           id: string
+          ideia_versao_atual: number
           jornada: string | null
           legenda: string | null
           mensagem_id: string | null
@@ -723,6 +784,7 @@ export type Database = {
           publicado_em: string | null
           status: string
           status_arte: string
+          status_ideia: string
           status_legenda: string
           tema_id: string | null
           titulo: string
@@ -738,12 +800,14 @@ export type Database = {
           created_by?: string | null
           cta?: string | null
           data_prevista?: string | null
+          desenvolvimento?: string | null
           enviado_cliente_em?: string | null
           evidencia_id?: string | null
           formato?: string | null
           hashtags?: string | null
           horario?: string | null
           id?: string
+          ideia_versao_atual?: number
           jornada?: string | null
           legenda?: string | null
           mensagem_id?: string | null
@@ -759,6 +823,7 @@ export type Database = {
           publicado_em?: string | null
           status?: string
           status_arte?: string
+          status_ideia?: string
           status_legenda?: string
           tema_id?: string | null
           titulo?: string
@@ -774,12 +839,14 @@ export type Database = {
           created_by?: string | null
           cta?: string | null
           data_prevista?: string | null
+          desenvolvimento?: string | null
           enviado_cliente_em?: string | null
           evidencia_id?: string | null
           formato?: string | null
           hashtags?: string | null
           horario?: string | null
           id?: string
+          ideia_versao_atual?: number
           jornada?: string | null
           legenda?: string | null
           mensagem_id?: string | null
@@ -795,6 +862,7 @@ export type Database = {
           publicado_em?: string | null
           status?: string
           status_arte?: string
+          status_ideia?: string
           status_legenda?: string
           tema_id?: string | null
           titulo?: string
@@ -3675,7 +3743,12 @@ export type Database = {
         }
         Returns: string
       }
+      cliente_avaliar_ideia: {
+        Args: { _comentario?: string; _decisao: string; _versao_id: string }
+        Returns: string
+      }
       current_cliente_id: { Args: never; Returns: string }
+      enviar_ideia: { Args: { _conteudo_id: string }; Returns: number }
       excluir_sprint: {
         Args: { _destino?: string; _sprint_id: string }
         Returns: number
