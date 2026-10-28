@@ -20,11 +20,25 @@ type Coment = { id: string; texto: string; alvo: string; autor_id: string | null
 
 /** Tudo aqui é lido direto do banco com as regras do cliente: só conteúdos enviados, versões enviadas e comentários do tipo "cliente". */
 async function load(clienteId: string): Promise<Item[]> {
-  const { data, error } = await cdb("conteudos")
-    .select("id,titulo,desenvolvimento,canal,formato,data_prevista,pipeline_mes,ordem,created_at,status,versao_atual,status_ideia,ideia_versao_atual,ideias:conteudo_ideia_versoes(id,numero,titulo,desenvolvimento,formato,status,comentario,enviada_em,avaliada_em),publicacao_url,publicado_em,versoes:conteudo_versoes(id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em),comentarios:conteudo_comentarios(id,texto,alvo,autor_id,created_at,versao_id)")
-    .eq("cliente_id", clienteId).order("ordem", { ascending: true }).order("created_at", { ascending: true });
+  // Conteúdos vêm de uma leitura do banco que só devolve colunas seguras (nunca a legenda em rascunho).
+  const { data: rows, error } = await supabase.rpc("portal_conteudos" as never, { _cliente_id: clienteId } as never);
   if (error) throw error;
-  return ((data ?? []) as Item[]).map((c) => ({ ...c, versoes: [...c.versoes].sort((a, b) => b.numero - a.numero), ideias: [...(c.ideias ?? [])].sort((a, b) => b.numero - a.numero), comentarios: [...(c.comentarios ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at)) }));
+  const base = (rows ?? []) as unknown as Omit<Item, "versoes" | "ideias" | "comentarios">[];
+  const ids = base.map((c) => c.id);
+  if (!ids.length) return [];
+  const [ve, ide, com] = await Promise.all([
+    cdb("conteudo_versoes").select("id,conteudo_id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em").in("conteudo_id", ids),
+    cdb("conteudo_ideia_versoes").select("id,conteudo_id,numero,titulo,desenvolvimento,formato,status,comentario,enviada_em,avaliada_em").in("conteudo_id", ids),
+    cdb("conteudo_comentarios").select("id,conteudo_id,texto,alvo,autor_id,created_at,versao_id,tipo").in("conteudo_id", ids).eq("tipo", "cliente"),
+  ]);
+  for (const r of [ve, ide, com]) if (r.error) throw r.error;
+  const by = <T extends { conteudo_id: string }>(arr: T[], id: string) => arr.filter((x) => x.conteudo_id === id);
+  return [...base].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0) || a.created_at.localeCompare(b.created_at)).map((c) => ({
+    ...c,
+    versoes: by(ve.data ?? [], c.id).sort((a: Versao, b: Versao) => b.numero - a.numero),
+    ideias: by(ide.data ?? [], c.id).sort((a: Ideia, b: Ideia) => b.numero - a.numero),
+    comentarios: by(com.data ?? [], c.id).sort((a: Coment, b: Coment) => a.created_at.localeCompare(b.created_at)),
+  })) as Item[];
 }
 export function useClientContents(clienteId: string) {
   return useQuery({ queryKey: ["portal-conteudos", clienteId], queryFn: () => load(clienteId) });

@@ -351,11 +351,9 @@ function CronogramasMensais({ clienteId, onOpenMonth }: { clienteId: string; onO
     queryKey: ["cronogramas", clienteId],
     // O banco e suas regras de acesso determinam o que está liberado para este cliente.
     queryFn: async () => {
-      const { data, error } = await cdb("conteudos")
-        .select("pipeline_mes,status")
-        .eq("cliente_id", clienteId)
-        .neq("status", "ideia");
+      const { data: rows, error } = await supabase.rpc("portal_conteudos" as never, { _cliente_id: clienteId } as never);
       if (error) throw error;
+      const data = ((rows ?? []) as unknown as { pipeline_mes: string | null; status: string }[]).filter((c) => c.status !== "ideia");
       const meses: Record<string, number> = {};
       for (const item of (data ?? []) as { pipeline_mes: string | null }[]) {
         if (!item.pipeline_mes) continue;
