@@ -7,14 +7,14 @@ import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { supabase } from "@/integrations/supabase/client";
-import { CONTENT_STATUS_LABEL, CONTENT_STATUS_VARIANT, cdb, fmtShort, signedUrl, type ContentStatus } from "@/lib/content";
+import { CONTENT_STATUS_LABEL, CONTENT_STATUS_VARIANT, cdb, fmtShort, signedUrl, type ContentStatus, publicationFormat } from "@/lib/content";
 import { cn } from "@/lib/utils";
 import { competencia, monthLabel } from "@/lib/content";
 import { MonthNav, useMonthState } from "@/components/content/MonthNav";
 
 type VMidia = { bucket: string; storage_path: string; tipo: string; ordem: number; url?: string };
-type Versao = { id: string; numero: number; legenda: string | null; hashtags: string | null; midias: VMidia[]; status: string; status_arte: string; status_legenda: string; enviada_em: string };
-type Ideia = { id: string; numero: number; titulo: string; desenvolvimento: string | null; formato: string | null; status: string; comentario: string | null; enviada_em: string; avaliada_em: string | null };
+type Versao = { id: string; numero: number; legenda: string | null; hashtags: string | null; midias: VMidia[]; status: string; status_arte: string; status_legenda: string; enviada_em: string; retirada_em: string | null; retirada_acao: string | null };
+type Ideia = { id: string; numero: number; titulo: string; desenvolvimento: string | null; formato: string | null; status: string; comentario: string | null; enviada_em: string; avaliada_em: string | null; retirada_em: string | null; retirada_acao: string | null };
 type Item = { id: string; desenvolvimento?: string | null; status_ideia: string; ideia_versao_atual: number; ideias: Ideia[]; titulo: string; canal: string | null; formato: string | null; data_prevista: string | null; status: ContentStatus; versao_atual: number; publicacao_url: string | null; publicado_em: string | null; pipeline_mes: string | null; ordem: number | null; created_at: string; versoes: Versao[]; comentarios: Coment[] };
 type Coment = { id: string; texto: string; alvo: string; autor_id: string | null; created_at: string; versao_id: string | null };
 
@@ -27,8 +27,8 @@ async function load(clienteId: string): Promise<Item[]> {
   const ids = base.map((c) => c.id);
   if (!ids.length) return [];
   const [ve, ide, com] = await Promise.all([
-    cdb("conteudo_versoes").select("id,conteudo_id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em").in("conteudo_id", ids),
-    cdb("conteudo_ideia_versoes").select("id,conteudo_id,numero,titulo,desenvolvimento,formato,status,comentario,enviada_em,avaliada_em").in("conteudo_id", ids),
+    cdb("conteudo_versoes").select("id,conteudo_id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em,retirada_em,retirada_acao").in("conteudo_id", ids),
+    cdb("conteudo_ideia_versoes").select("id,conteudo_id,numero,titulo,desenvolvimento,formato,status,comentario,enviada_em,avaliada_em,retirada_em,retirada_acao").in("conteudo_id", ids),
     cdb("conteudo_comentarios").select("id,conteudo_id,texto,alvo,autor_id,created_at,versao_id,tipo").in("conteudo_id", ids).eq("tipo", "cliente"),
   ]);
   for (const r of [ve, ide, com]) if (r.error) throw r.error;
@@ -42,13 +42,13 @@ async function load(clienteId: string): Promise<Item[]> {
   })) as unknown as Item[];
 }
 export function useClientContents(clienteId: string) {
-  return useQuery({ queryKey: ["portal-conteudos", clienteId], queryFn: () => load(clienteId) });
+  return useQuery({ queryKey: ["portal-conteudos", clienteId], queryFn: () => load(clienteId), refetchInterval: 3000, refetchIntervalInBackground: true });
 }
 
 const current = (c: Item) => c.versoes.find((v) => v.numero === c.versao_atual) ?? c.versoes[0];
 const currentIdea = (c: Item) => c.ideias.find((v) => v.numero === c.ideia_versao_atual) ?? c.ideias[0];
-const ideaPending = (c: Item) => c.status_ideia === "aguardando";
-const prodPending = (c: Item) => ["com_cliente", "alteracao_solicitada"].includes(c.status);
+const ideaPending = (c: Item) => c.status_ideia === "aguardando" && !currentIdea(c)?.retirada_em;
+const prodPending = (c: Item) => ["com_cliente", "alteracao_solicitada"].includes(c.status) && !current(c)?.retirada_em;
 const pending = (c: Item) => ideaPending(c) || prodPending(c);
 
 export function PortalAprovacoes({ clienteId }: { clienteId: string }) {
@@ -74,6 +74,8 @@ function etapaCliente(c: Item): "ideia" | "final" | "aprovados" {
   return "ideia";
 }
 function clientStatus(c: Item) {
+  if (currentIdea(c)?.retirada_em && c.status_ideia === "nao_enviada") return "Ideia retirada para revisão";
+  if (current(c)?.retirada_em && !prodPending(c)) return "Produção retirada para revisão";
   if (etapaCliente(c) === "aprovados") return "Arte e legenda aprovadas";
   if (etapaCliente(c) === "final") return c.status === "alteracao_solicitada" ? "Arte/legenda: alterações solicitadas" : "Arte e legenda aguardando avaliação";
   if (c.status_ideia === "aguardando") return "Ideia aguardando aprovação";
@@ -127,7 +129,7 @@ export function PortalConteudos({ clienteId, initialMonth, onOpen }: { clienteId
     {!filtrados.length ? <Empty>{data.length ? "Nenhum conteúdo neste filtro." : `Nenhum conteúdo disponível em ${monthLabel(mes)}.`}</Empty> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {filtrados.map((c) => <Link key={c.id} to="/meu-portal/conteudo/$conteudoId" params={{ conteudoId: c.id }} onClick={onOpen ? (e) => { e.preventDefault(); onOpen(c.id); } : undefined} className="group overflow-hidden rounded-xl border border-border bg-card transition-shadow hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
         <PortalThumbnail c={c}/>
-        <div className="space-y-2 p-4"><h3 className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-foreground">{c.titulo || "Conteúdo"}</h3><p className="text-xs text-muted-foreground">{[c.formato || c.canal, fmtShort(c.data_prevista)].filter(Boolean).join(" · ") || monthLabel(competencia(c))}</p>
+        <div className="space-y-2 p-4"><h3 className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-foreground">{c.titulo || "Conteúdo"}</h3><p className="text-xs text-muted-foreground">{[publicationFormat(c.formato) || c.canal, fmtShort(c.data_prevista)].filter(Boolean).join(" · ") || monthLabel(competencia(c))}</p>
         <div className="flex items-center justify-between border-t border-border pt-3 text-xs font-medium"><span>{pending(c) ? "Avaliar conteúdo" : "Ver conteúdo"}</span><ChevronRight size={15} className="transition-transform group-hover:translate-x-1"/></div></div>
       </Link>)}
     </div>}
@@ -310,7 +312,7 @@ export function PortalConteudoDetalhe({ clienteId, conteudoId, onBack }: { clien
   const v = current(c);
   return <div className="space-y-6">
     {voltar}
-    <div className="space-y-2"><div className="flex flex-wrap items-center gap-2"><span className="text-xs uppercase tracking-widest text-muted-foreground">{monthLabel(competencia(c))}</span><span className="rounded-full border border-border px-2.5 py-1 text-[11px]">{clientStatus(c)}</span></div><h1 className="text-2xl font-semibold tracking-tight">{(currentIdea(c)?.titulo ?? c.titulo) || "Conteúdo"}</h1><p className="text-sm text-muted-foreground">{[currentIdea(c)?.formato ?? c.formato, c.canal, fmtShort(c.data_prevista)].filter(Boolean).join(" · ")}{v ? ` · Versão ${v.numero}` : ""}</p></div>
+    <div className="space-y-2"><div className="flex flex-wrap items-center gap-2"><span className="text-xs uppercase tracking-widest text-muted-foreground">{monthLabel(competencia(c))}</span><span className="rounded-full border border-border px-2.5 py-1 text-[11px]">{clientStatus(c)}</span></div><h1 className="text-2xl font-semibold tracking-tight">{(currentIdea(c)?.titulo ?? c.titulo) || "Conteúdo"}</h1><p className="text-sm text-muted-foreground">{[publicationFormat(currentIdea(c)?.formato ?? c.formato), c.canal, fmtShort(c.data_prevista)].filter(Boolean).join(" · ")}{v ? ` · Versão ${v.numero}` : ""}</p></div>
     {onBack && <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">Prévia da equipe: você vê o que está cadastrado e o estado das aprovações, mas não pode aprovar nem pedir alterações pela cliente.</p>}
     <IdeaApproval c={c} clienteId={clienteId} readOnly={!!onBack}/>
     {v ? <SimpleApproval c={c} clienteId={clienteId} readOnly={!!onBack}/> : <Empty>Etapa 2 · A arte e a legenda da publicação aparecerão aqui quando a produção final for enviada.</Empty>}
@@ -329,7 +331,7 @@ function IdeaApproval({ c, clienteId, readOnly }: { c: Item; clienteId: string; 
   const dev = idea ? idea.desenvolvimento : c.desenvolvimento;
   const formato = idea ? idea.formato : c.formato;
   const canReview = !readOnly && !!idea && ideaPending(c);
-  const st = !idea ? "Ainda não enviada à cliente" : IDEA_LBL[idea.status] ?? idea.status;
+  const st = idea?.retirada_em ? "Retirada para revisão" : !idea ? "Ainda não enviada à cliente" : IDEA_LBL[idea.status] ?? idea.status;
   const send = async () => {
     if (!idea || !choice) return;
     if (choice === "alteracao_solicitada" && !note.trim()) { toast.error("Descreva o que gostaria de alterar."); return; }
@@ -348,6 +350,7 @@ function IdeaApproval({ c, clienteId, readOnly }: { c: Item; clienteId: string; 
       <div><dt className="text-xs text-muted-foreground">Formato</dt><dd>{formato || "—"}</dd></div>
     </dl>
     {idea?.status === "alteracao_solicitada" && idea.comentario && <p className="rounded-lg bg-muted/50 p-3 text-sm">Alteração pedida: {idea.comentario}</p>}
+    {idea?.retirada_em && <p role="status" className="text-sm text-muted-foreground">Esta versão foi retirada para revisão. Aguarde um novo envio.</p>}
     {canReview && <div className="space-y-2 border-t border-border pt-4">
       {([["aprovada", "Aprovar ideia"], ["alteracao_solicitada", "Quero solicitar alterações"]] as const).map(([value, text]) => <label key={value} className={cn("flex cursor-pointer items-center gap-3 rounded-lg border p-3 text-sm", choice === value ? "border-foreground bg-muted/60" : "border-border hover:bg-muted/30")}><input type="radio" name={`ideia-${c.id}`} checked={choice === value} onChange={() => setChoice(value)} />{text}</label>)}
       {choice === "alteracao_solicitada" && <textarea rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="O que você gostaria de mudar na ideia?" className="w-full rounded-lg border border-input bg-background p-3 text-sm" />}
@@ -358,13 +361,14 @@ function IdeaApproval({ c, clienteId, readOnly }: { c: Item; clienteId: string; 
 const IDEA_LBL: Record<string, string> = { aguardando: "Aguardando sua aprovação", aprovada: "Aprovada", alteracao_solicitada: "Alterações solicitadas" };
 
 function SimpleApproval({ c, clienteId, readOnly }: { c: Item; clienteId: string; readOnly?: boolean }) {
-  const v = current(c)!;
+  const v = current(c);
   const qc = useQueryClient();
   const [choices, setChoices] = useState<Record<string, "aprovado" | "alteracao_solicitada" | "">>({arte:"",legenda:""});
   const [notes, setNotes] = useState<Record<string,string>>({arte:"",legenda:""});
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const send = async () => {
+    if (!v) return;
     const decisions = (["arte", "legenda"] as const).filter((part) => v[`status_${part}`] !== "aprovado" && choices[part]);
     if (!decisions.length) return;
     if (decisions.some((part) => choices[part] === "alteracao_solicitada" && !notes[part].trim())) { toast.error("Descreva o que gostaria de alterar."); return; }
@@ -381,6 +385,7 @@ function SimpleApproval({ c, clienteId, readOnly }: { c: Item; clienteId: string
     } catch { toast.error("Não foi possível concluir a avaliação. Confira o status antes de tentar novamente."); await qc.invalidateQueries({queryKey:["portal-conteudos",clienteId]}); }
     finally { setBusy(false); }
   };
+  if (!v) return null;
   const canReview = !readOnly && prodPending(c);
   const part = (key: "arte" | "legenda", label: string) => <div className="space-y-3 rounded-xl border border-border p-4">
     <div className="flex items-center justify-between gap-2"><h3 className="text-sm font-semibold">{label}</h3><span className="text-xs text-muted-foreground">{lbl(v[`status_${key}`])}</span></div>
@@ -390,6 +395,7 @@ function SimpleApproval({ c, clienteId, readOnly }: { c: Item; clienteId: string
     </div> : <p className="text-sm text-muted-foreground">{v[`status_${key}`] === "aprovado" ? "Esta parte já foi aprovada." : "Nenhuma avaliação pendente no momento."}</p>}
   </div>;
   return <div className="space-y-5">
+    {v.retirada_em && <p role="status" className="text-sm text-muted-foreground">Esta versão foi retirada para revisão. Aguarde um novo envio.</p>}
     <div className="grid gap-5 lg:grid-cols-2">
       <section className="space-y-3"><div className="rounded-xl border border-border bg-card p-3"><Media midias={v.midias}/></div>{part("arte","1. Avaliar arte")}</section>
       <section className="space-y-3"><div className="rounded-xl border border-border bg-card p-5"><div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold">Legenda para Instagram</h2><span className="text-xs text-muted-foreground">Versão {v.numero}</span></div><div className="whitespace-pre-wrap text-sm leading-7">{v.legenda || <span className="text-muted-foreground">Legenda ainda não disponível.</span>}{v.hashtags && <p className="mt-4 text-muted-foreground">{v.hashtags}</p>}</div><button type="button" onClick={()=>{void navigator.clipboard.writeText([v.legenda,v.hashtags].filter(Boolean).join("\n\n")); toast.success("Legenda copiada.");}} className="mt-4 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs"><Copy size={13}/> Copiar legenda</button></div>{part("legenda","2. Avaliar legenda")}</section>
@@ -403,6 +409,6 @@ function PortalHistory({c}:{c:Item}) {
   const versions=[...c.versoes].sort((a,b)=>b.numero-a.numero);
   return <section className="rounded-xl border border-border bg-card">
     <button type="button" onClick={()=>setOpen(!open)} aria-expanded={open} className="flex w-full items-center justify-between gap-3 p-4 text-left sm:p-5"><span className="flex items-center gap-2 text-sm font-semibold"><History size={17}/> Histórico e versões <span className="text-xs font-normal text-muted-foreground">({versions.length + c.ideias.length})</span></span><ChevronRight size={16} className={cn("transition-transform",open&&"rotate-90")}/></button>
-    {open&&<div className="space-y-5 border-t border-border p-4 sm:p-5"><div className="space-y-3">{c.ideias.map((x)=><div key={x.id} className="rounded-lg border border-border p-3"><div className="flex flex-wrap justify-between gap-2"><span className="text-sm font-medium">Ideia · versão {x.numero}</span><span className="text-xs text-muted-foreground">{new Date(x.enviada_em).toLocaleString("pt-BR")}</span></div><div className="mt-1 text-xs text-muted-foreground">{IDEA_LBL[x.status] ?? x.status}{x.comentario ? ` · “${x.comentario}”` : ""}</div>{x.numero!==c.ideia_versao_atual&&<div className="mt-2 whitespace-pre-wrap text-sm"><b>{x.titulo}</b>{x.desenvolvimento ? `\n${x.desenvolvimento}` : ""}</div>}</div>)}{versions.map((v)=><div key={v.id} className="rounded-lg border border-border p-3"><div className="flex flex-wrap justify-between gap-2"><span className="text-sm font-medium">Produção · versão {v.numero}</span><span className="text-xs text-muted-foreground">{v.enviada_em ? new Date(v.enviada_em).toLocaleString("pt-BR") : ""}</span></div><div className="mt-1 text-xs text-muted-foreground">Arte: {lbl(v.status_arte)} · Legenda: {lbl(v.status_legenda)}</div>{v.numero!==current(c)?.numero&&<div className="mt-3"><VersionView v={v}/></div>}</div>)}</div>{c.comentarios.length>0&&<div className="border-t border-border pt-4"><Conversa c={c}/></div>}</div>}
+    {open&&<div className="space-y-5 border-t border-border p-4 sm:p-5"><div className="space-y-3">{c.ideias.map((x)=><div key={x.id} className="rounded-lg border border-border p-3"><div className="flex flex-wrap justify-between gap-2"><span className="text-sm font-medium">Ideia · versão {x.numero}</span><span className="text-xs text-muted-foreground">{new Date(x.enviada_em).toLocaleString("pt-BR")}</span></div><div className="mt-1 text-xs text-muted-foreground">{IDEA_LBL[x.status] ?? x.status}{x.retirada_em ? ` · ${x.retirada_acao === "reaberta" ? "Reaberta" : "Retirada"} em ${new Date(x.retirada_em).toLocaleString("pt-BR")}` : ""}{x.comentario ? ` · “${x.comentario}”` : ""}</div>{x.numero!==c.ideia_versao_atual&&<div className="mt-2 whitespace-pre-wrap text-sm"><b>{x.titulo}</b>{x.desenvolvimento ? `\n${x.desenvolvimento}` : ""}</div>}</div>)}{versions.map((v)=><div key={v.id} className="rounded-lg border border-border p-3"><div className="flex flex-wrap justify-between gap-2"><span className="text-sm font-medium">Produção · versão {v.numero}</span><span className="text-xs text-muted-foreground">{v.enviada_em ? new Date(v.enviada_em).toLocaleString("pt-BR") : ""}</span></div><div className="mt-1 text-xs text-muted-foreground">Arte: {lbl(v.status_arte)} · Legenda: {lbl(v.status_legenda)}{v.retirada_em ? ` · Retirada/reaberta em ${new Date(v.retirada_em).toLocaleString("pt-BR")}` : ""}</div>{v.numero!==current(c)?.numero&&<div className="mt-3"><VersionView v={v}/></div>}</div>)}</div>{c.comentarios.length>0&&<div className="border-t border-border pt-4"><Conversa c={c}/></div>}</div>}
   </section>;
 }
