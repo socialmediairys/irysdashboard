@@ -3767,6 +3767,26 @@ export type Database = {
           nome: string
         }[]
       }
+      portal_conteudos: {
+        Args: { _cliente_id: string }
+        Returns: {
+          canal: string
+          created_at: string
+          data_prevista: string
+          desenvolvimento: string
+          formato: string
+          id: string
+          ideia_versao_atual: number
+          ordem: number
+          pipeline_mes: string
+          publicacao_url: string
+          publicado_em: string
+          status: string
+          status_ideia: string
+          titulo: string
+          versao_atual: number
+        }[]
+      }
     }
     Enums: {
       app_role:
