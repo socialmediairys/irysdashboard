@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { StatusBadge } from "@/components/ui/status-badge";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  ACCEPT, CANAIS, CONTENT_STATUS, CONTENT_STATUS_LABEL, CONTENT_STATUS_VARIANT, FORMATOS, cdb, fmtShort,
+  ACCEPT, CANAIS, IDEA_STATUS_LABEL, canSendIdea, canSendProduction, CONTENT_STATUS, CONTENT_STATUS_LABEL, CONTENT_STATUS_VARIANT, FORMATOS, cdb, fmtShort,
   signedUrl, uploadMidias, useContentActions, type Conteudo, type ContentStatus, type Midia,
 } from "@/lib/content";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,7 @@ type Detail = {
   comentarios: { id: string; texto: string; tipo: string; alvo: string; created_at: string }[];
   eventos: { id: string; tipo: string; de: string | null; para: string | null; detalhe: string | null; created_at: string }[];
   versoes: { id: string; numero: number; status: string; status_arte: string; status_legenda: string; enviada_em: string }[];
+  ideias: { id: string; numero: number; titulo: string; desenvolvimento: string | null; formato: string | null; status: string; comentario: string | null; enviada_em: string; avaliada_em: string | null }[];
   tarefas: { id: string; titulo: string; status: string; prazo: string | null }[];
   estrategia: { pilar?: string; tema?: string; mensagem?: string; argumento?: string; prova?: string | null; evidencia?: string };
 };
@@ -28,7 +29,7 @@ async function loadDetail(id: string): Promise<Detail> {
   const { data: c, error } = await cdb("conteudos").select("*").eq("id", id).single();
   if (error) throw error;
   const one = (t: string, cid: string | null, sel: string) => (cid ? cdb(t).select(sel).eq("id", cid).maybeSingle() : Promise.resolve({ data: null }));
-  const [cli, mid, int, com, ev, ve, pi, te, me, ar, evi, ta] = await Promise.all([
+  const [cli, mid, int, com, ev, ve, pi, te, me, ar, evi, ta, ide] = await Promise.all([
     supabase.from("clientes").select("nome").eq("id", c.cliente_id).maybeSingle(),
     cdb("conteudo_midias").select("*").eq("conteudo_id", id).order("ordem"),
     cdb("conteudos_internos").select("observacoes").eq("conteudo_id", id).maybeSingle(),
@@ -39,11 +40,12 @@ async function loadDetail(id: string): Promise<Detail> {
     one("editorial_mensagens", c.mensagem_id, "mensagem"), one("editorial_argumentos", c.argumento_id, "argumento,prova"),
     one("estrategia_evidencias", c.evidencia_id, "informacao"),
     cdb("tarefas").select("id,titulo,status,prazo").eq("conteudo_id", id).order("created_at"),
+    cdb("conteudo_ideia_versoes").select("id,numero,titulo,desenvolvimento,formato,status,comentario,enviada_em,avaliada_em").eq("conteudo_id", id).order("numero"),
   ]);
   const midias = await Promise.all(((mid.data ?? []) as Midia[]).map(async (m) => ({ ...m, url: await signedUrl(m.bucket, m.storage_path) })));
   return {
     c, cliente: cli.data?.nome ?? "—", midias, interno: int.data?.observacoes ?? "",
-    tarefas: ta.data ?? [], comentarios: com.data ?? [], eventos: ev.data ?? [], versoes: ve.data ?? [],
+    tarefas: ta.data ?? [], comentarios: com.data ?? [], eventos: ev.data ?? [], versoes: ve.data ?? [], ideias: ide.data ?? [],
     estrategia: { pilar: pi.data?.nome, tema: te.data?.nome, mensagem: me.data?.mensagem, argumento: ar.data?.argumento, prova: ar.data?.prova, evidencia: evi.data?.informacao },
   };
 }
@@ -126,6 +128,13 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
         </div>
       </SheetHeader>
 
+      <IdeaBar c={c} ideias={data.ideias} onSent={() => { reload(); a.refresh(); }} />
+      <div className="border-b border-border px-6 py-5">
+        <h3 className="mb-2 text-sm font-medium text-foreground">Desenvolvimento da ideia</h3>
+        <textarea defaultValue={c.desenvolvimento ?? ""} key={`dv-${c.updated_at}`} rows={6} onBlur={(e) => e.target.value !== (c.desenvolvimento ?? "") && save({ desenvolvimento: e.target.value || null })}
+          placeholder="O que será abordado, argumento central, direcionamento…" className={cn(inputCls, "resize-y leading-relaxed")} />
+        {c.status_ideia !== "nao_enviada" && <p className="mt-1 text-[12px] text-muted-foreground">A cliente vê a versão enviada. Editar aqui não altera o que ela já recebeu; reenvie se ela pedir alterações.</p>}
+      </div>
       <SendBar c={c} sent={sent} onSend={() => save({ status: "com_cliente" })} />
 
       <div className="grid gap-6 px-6 py-6 lg:grid-cols-[1fr_1fr]">
@@ -167,11 +176,11 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
         <section className="space-y-3">
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-medium text-foreground">Legenda</h3>
+              <h3 className="text-sm font-medium text-foreground">Legenda da publicação</h3>
               {sent && <span className="text-[12px] text-muted-foreground">V{c.versao_atual} enviada — editar cria V{c.versao_atual + 1}</span>}
             </div>
             <textarea defaultValue={c.legenda ?? ""} key={`l-${c.updated_at}`} rows={12} onBlur={(e) => e.target.value !== (c.legenda ?? "") && save({ legenda: e.target.value })}
-              placeholder="Escreva a legenda…" className={cn(inputCls, "resize-y leading-relaxed")} />
+              placeholder="Texto final que acompanhará a publicação…" className={cn(inputCls, "resize-y leading-relaxed")} />
           </div>
           <input defaultValue={c.hashtags ?? ""} key={`ht-${c.updated_at}`} onBlur={(e) => e.target.value !== (c.hashtags ?? "") && save({ hashtags: e.target.value || null })} placeholder="Hashtags (opcional)" className={inputCls} />
         </section>
@@ -207,10 +216,20 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
           <Comments conteudoId={c.id} clienteId={c.cliente_id} items={data.comentarios} onDone={reload} />
         </Fold>
         <Fold title="Versões e histórico">
+          {data.ideias.length > 0 && (
+            <ul className="mb-4 space-y-2 text-[13px]">
+              {data.ideias.map((v) => (
+                <li key={v.id} className="rounded-md border border-border px-3 py-2">
+                  <div className="flex flex-wrap gap-x-3"><span className="font-medium text-foreground">Ideia V{v.numero}</span><span className="text-muted-foreground">Enviada {new Date(v.enviada_em).toLocaleDateString("pt-BR")} · {IDEA_PART[v.status] ?? v.status}</span></div>
+                  {v.comentario && <p className="mt-1 text-foreground">Cliente: {v.comentario}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
           {data.versoes.length > 0 && (
             <ul className="mb-4 space-y-1 text-[13px]">
               {data.versoes.map((v) => (
-                <li key={v.id} className="flex gap-3"><span className="w-8 font-medium text-foreground">V{v.numero}</span><span className="text-muted-foreground">Enviada {new Date(v.enviada_em).toLocaleDateString("pt-BR")} · Arte: {PART[v.status_arte]} · Legenda: {PART[v.status_legenda]}</span></li>
+                <li key={v.id} className="flex gap-3"><span className="w-20 shrink-0 font-medium text-foreground">Produção V{v.numero}</span><span className="text-muted-foreground">Enviada {new Date(v.enviada_em).toLocaleDateString("pt-BR")} · Arte: {PART[v.status_arte]} · Legenda: {PART[v.status_legenda]}</span></li>
               ))}
             </ul>
           )}
@@ -218,7 +237,7 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
             {data.eventos.map((e) => (
               <li key={e.id} className="flex gap-3">
                 <span className="w-28 shrink-0">{new Date(e.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
-                <span>{e.tipo === "criado" ? `Criado em ${label(e.para)}` : e.tipo === "status" ? `${label(e.de)} → ${label(e.para)}` : e.tipo === "nova_versao" ? `Nova versão ${e.detalhe}` : e.tipo === "avaliacao_cliente" ? `Cliente: ${e.detalhe?.replace("alteracao_solicitada", "alteração solicitada")}` : e.tipo}</span>
+                <span>{e.tipo === "criado" ? `Criado em ${label(e.para)}` : e.tipo === "status" ? `${label(e.de)} → ${label(e.para)}` : e.tipo === "nova_versao" ? `Nova versão ${e.detalhe}` : e.tipo === "ideia_enviada" ? `${e.detalhe} enviada à cliente` : e.tipo === "avaliacao_ideia" ? `Cliente: ${e.detalhe?.replace("alteracao_solicitada", "alteração solicitada").replace("aprovada", "aprovada")}` : e.tipo === "avaliacao_cliente" ? `Cliente: ${e.detalhe?.replace("alteracao_solicitada", "alteração solicitada")}` : e.tipo}</span>
               </li>
             ))}
           </ul>
@@ -233,12 +252,39 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
   );
 }
 
+const IDEA_PART: Record<string, string> = { aguardando: "Aguardando aprovação", aprovada: "Aprovada", alteracao_solicitada: "Alteração solicitada" };
+
+function IdeaBar({ c, ideias, onSent }: { c: Conteudo; ideias: Detail["ideias"]; onSent: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const last = ideias[ideias.length - 1];
+  const send = async () => {
+    const resend = c.status_ideia === "alteracao_solicitada";
+    if (!confirm(resend ? `Enviar nova versão da ideia (V${c.ideia_versao_atual + 1})? A anterior fica no histórico.` : "Enviar headline, desenvolvimento e formato para a cliente aprovar a ideia?")) return;
+    setBusy(true);
+    const { error } = await supabase.rpc("enviar_ideia" as never, { _conteudo_id: c.id } as never);
+    setBusy(false);
+    if (error) return toast.error("Não foi possível enviar a ideia.");
+    toast.success("Ideia enviada à cliente."); onSent();
+  };
+  const cls = c.status_ideia === "aprovada" ? "text-success" : c.status_ideia === "alteracao_solicitada" ? "text-destructive" : "text-muted-foreground";
+  return (
+    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-border bg-muted/30 px-6 py-3 text-[13px]">
+      <span className="text-muted-foreground">Etapa 1 · Ideia{c.ideia_versao_atual ? ` V${c.ideia_versao_atual}` : ""}</span>
+      <span className={cls}>{IDEA_STATUS_LABEL[c.status_ideia]}</span>
+      {c.status_ideia === "alteracao_solicitada" && last?.comentario && <span className="basis-full text-foreground">Cliente pediu: {last.comentario}</span>}
+      {canSendIdea(c.status_ideia) && (
+        <button className={cn(btnPrimary, "ml-auto")} disabled={busy} onClick={send}><Send size={13} /> {c.status_ideia === "alteracao_solicitada" ? "Reenviar ideia" : "Enviar ideia"}</button>
+      )}
+    </div>
+  );
+}
+
 const PART: Record<string, string> = { pendente: "Pendente", aprovado: "Aprovada", alteracao_solicitada: "Alteração solicitada" };
 const partCls = (s: string) => (s === "aprovado" ? "text-success" : s === "alteracao_solicitada" ? "text-destructive" : "text-muted-foreground");
 
 function SendBar({ c, sent, onSend }: { c: Conteudo; sent: boolean; onSend: () => void }) {
   const waiting = ["com_cliente", "alteracao_solicitada", "aprovado", "agendado", "publicado"].includes(c.status);
-  const canSend = ["em_producao", "revisao_interna", "alteracao_solicitada", "planejado"].includes(c.status);
+  const canSend = ["em_producao", "revisao_interna", "alteracao_solicitada", "planejado"].includes(c.status) && canSendProduction(c.status_ideia, sent || waiting);
   const resend = c.status === "alteracao_solicitada";
   return (
     <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-border bg-muted/30 px-6 py-3 text-[13px]">
@@ -249,10 +295,10 @@ function SendBar({ c, sent, onSend }: { c: Conteudo; sent: boolean; onSend: () =
           <span>Legenda: <span className={partCls(c.status_legenda)}>{PART[c.status_legenda]}</span></span>
           {c.enviado_cliente_em && <span className="text-muted-foreground">Enviado {new Date(c.enviado_cliente_em).toLocaleDateString("pt-BR")}</span>}
         </>
-      ) : <span className="text-muted-foreground">Ainda não enviado ao cliente.</span>}
+      ) : <span className="text-muted-foreground">{c.status_ideia === "aprovada" ? "Produção final ainda não enviada." : "Produção final: envie depois que a ideia for aprovada."}</span>}
       {canSend && (
         <button className={cn(btnPrimary, "ml-auto")} onClick={() => { if (confirm(resend ? `Enviar nova versão (V${sent ? c.versao_atual + 1 : c.versao_atual}) ao cliente? A versão anterior fica preservada.` : "Enviar ao cliente para aprovação? Legenda e mídias desta versão ficam congeladas.")) onSend(); }}>
-          <Send size={13} /> {resend ? "Reenviar nova versão" : "Enviar ao cliente"}
+          <Send size={13} /> {resend ? "Reenviar nova versão" : "Enviar produção final"}
         </button>
       )}
     </div>
