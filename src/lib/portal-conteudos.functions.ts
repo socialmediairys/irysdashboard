@@ -340,7 +340,7 @@ async function assinarConteudo(
   if (c.storage_bucket && c.storage_path) {
     const { data: signed } = await supabaseAdmin.storage
       .from(c.storage_bucket)
-      .createSignedUrl(c.storage_path, 60 * 60 * 6);
+      .createSignedUrl(c.storage_path, 60 * 10); // curto: acesso revogado expira rápido
     if (signed?.signedUrl) signedUrl = signed.signedUrl;
   }
   const topicoFase = c.topicos_fase ?? null;

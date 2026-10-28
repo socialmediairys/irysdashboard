@@ -29,7 +29,7 @@ const client = createClient("https://cadastros-test.invalid", "test-key", {
 mock.module("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
     from: client.from.bind(client),
-    auth: { admin: { getUserById: async () => ({ data: { user: { id: "user-1" } }, error: null }) } },
+    auth: { admin: { getUserById: async () => ({ data: { user: { id: "user-1", email: "new@example.test", email_confirmed_at: null, created_at: new Date().toISOString() } }, error: null }) } },
   },
 }));
 const functions = await import("./cadastros.functions");

@@ -108,15 +108,27 @@ export const registrarSolicitacaoPublica = createServerFn({ method: "POST" })
       data.authUserId,
     );
     if (userErr) throw userErr;
-    if (!userRes?.user) throw new Error("Usuário não encontrado.");
+    const u = userRes?.user;
+    if (!u) throw new Error("Usuário não encontrado.");
+    // Vincula ao próprio cadastro recém-criado: e-mail deve bater, conta ainda
+    // não confirmada e criada há poucos minutos — impede registrar por terceiros.
+    const createdMs = Date.parse(u.created_at);
+    if (
+      (u.email ?? "").toLowerCase() !== data.email ||
+      u.email_confirmed_at ||
+      !Number.isFinite(createdMs) ||
+      Date.now() - createdMs > 15 * 60 * 1000
+    ) {
+      throw new Error("Não foi possível registrar a solicitação.");
+    }
 
     const { error } = await supabaseAdmin
       .from("solicitacoes_cadastro")
       .upsert(
         {
-          auth_user_id: data.authUserId,
-          nome: data.nome,
-          email: data.email,
+          auth_user_id: u.id,
+          nome: data.nome.slice(0, 200),
+          email: (u.email ?? "").toLowerCase(),
           status: "pendente",
         },
         { onConflict: "auth_user_id", ignoreDuplicates: true },
