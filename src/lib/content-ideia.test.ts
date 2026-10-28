@@ -17,3 +17,13 @@ describe("aprovação em duas etapas", () => {
     expect(canSendIdea("aprovada")).toBe(false);
   });
 });
+
+import { producaoFaltando } from "./content";
+describe("validação da produção final", () => {
+  const img = [{ tipo: "imagem" }], vid = [{ tipo: "video" }];
+  it("post sem arte é bloqueado", () => expect(producaoFaltando("Post", "x", [])).toMatch(/arte/));
+  it("carrossel sem legenda é bloqueado", () => expect(producaoFaltando("Carrossel", " ", img)).toMatch(/legenda/));
+  it("reels com só imagem é bloqueado", () => expect(producaoFaltando("Reels", "x", img)).toMatch(/vídeo/));
+  it("reels completo passa", () => expect(producaoFaltando("Reels", "x", vid)).toBeNull());
+  it("live não exige mídia nem legenda", () => expect(producaoFaltando("Live", null, [])).toBeNull());
+});
