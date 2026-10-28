@@ -7,6 +7,10 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "Painel 360° — Thamirys" },
       { name: "description", content: "Sistema de gestão 360° para Social Media Managers." },
+      { property: "og:title", content: "Irys Dashboard — Gestão editorial" },
+      { property: "og:description", content: "Gestão de clientes, estratégia, conteúdo e aprovações no Irys Dashboard." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: IndexRedirect,

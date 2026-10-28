@@ -15,7 +15,7 @@ import { MonthNav, useMonthState } from "@/components/content/MonthNav";
 type VMidia = { bucket: string; storage_path: string; tipo: string; ordem: number; url?: string };
 type Versao = { id: string; numero: number; legenda: string | null; hashtags: string | null; midias: VMidia[]; status: string; status_arte: string; status_legenda: string; enviada_em: string; retirada_em: string | null; retirada_acao: string | null };
 type Ideia = { id: string; numero: number; titulo: string; desenvolvimento: string | null; formato: string | null; status: string; comentario: string | null; enviada_em: string; avaliada_em: string | null; retirada_em: string | null; retirada_acao: string | null };
-type Item = { id: string; desenvolvimento?: string | null; status_ideia: string; ideia_versao_atual: number; ideias: Ideia[]; titulo: string; canal: string | null; formato: string | null; data_prevista: string | null; status: ContentStatus; versao_atual: number; publicacao_url: string | null; publicado_em: string | null; pipeline_mes: string | null; ordem: number | null; created_at: string; versoes: Versao[]; comentarios: Coment[] };
+type Item = { id: string; desenvolvimento?: string | null; status_ideia: string; ideia_versao_atual: number; ideias: Ideia[]; titulo: string; canal: string | null; formato: string | null; data_prevista: string | null; status: ContentStatus; versao_atual: number; publicacao_url: string | null; publicado_em: string | null; pipeline_mes: string | null; ordem: number | null; created_at: string; versoes: Versao[]; comentarios: Coment[]; eventos: { id: string; detalhe: string | null; tipo: string; created_at: string; autor_id: string | null }[] };
 type Coment = { id: string; texto: string; alvo: string; autor_id: string | null; created_at: string; versao_id: string | null };
 
 /** Tudo aqui é lido direto do banco com as regras do cliente: só conteúdos enviados, versões enviadas e comentários do tipo "cliente". */
@@ -26,12 +26,13 @@ async function load(clienteId: string): Promise<Item[]> {
   const base = (rows ?? []) as unknown as Omit<Item, "versoes" | "ideias" | "comentarios">[];
   const ids = base.map((c) => c.id);
   if (!ids.length) return [];
-  const [ve, ide, com] = await Promise.all([
+  const [ve, ide, com, ev] = await Promise.all([
     cdb("conteudo_versoes").select("id,conteudo_id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em,retirada_em,retirada_acao").in("conteudo_id", ids),
     cdb("conteudo_ideia_versoes").select("id,conteudo_id,numero,titulo,desenvolvimento,formato,status,comentario,enviada_em,avaliada_em,retirada_em,retirada_acao").in("conteudo_id", ids),
     cdb("conteudo_comentarios").select("id,conteudo_id,texto,alvo,autor_id,created_at,versao_id,tipo").in("conteudo_id", ids).eq("tipo", "cliente"),
+    cdb("conteudo_eventos").select("id,conteudo_id,tipo,detalhe,created_at,autor_id").in("conteudo_id", ids).in("tipo", ["ideia_enviada", "avaliacao_ideia", "avaliacao_cliente", "ideia_retirada", "ideia_reaberta", "producao_retirada", "producao_reaberta"]),
   ]);
-  for (const r of [ve, ide, com]) if (r.error) throw r.error;
+  for (const r of [ve, ide, com, ev]) if (r.error) throw r.error;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const by = (arr: any[], id: string) => arr.filter((x) => x.conteudo_id === id);
   return [...base].sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0) || a.created_at.localeCompare(b.created_at)).map((c) => ({
@@ -39,6 +40,7 @@ async function load(clienteId: string): Promise<Item[]> {
     versoes: by(ve.data ?? [], c.id).sort((a: Versao, b: Versao) => b.numero - a.numero),
     ideias: by(ide.data ?? [], c.id).sort((a: Ideia, b: Ideia) => b.numero - a.numero),
     comentarios: by(com.data ?? [], c.id).sort((a: Coment, b: Coment) => a.created_at.localeCompare(b.created_at)),
+    eventos: by(ev.data ?? [], c.id),
   })) as unknown as Item[];
 }
 export function useClientContents(clienteId: string) {
@@ -329,7 +331,7 @@ function IdeaApproval({ c, clienteId, readOnly }: { c: Item; clienteId: string; 
   // Antes do envio só a prévia da equipe enxerga o rascunho (a cliente não lê conteúdos não enviados).
   const titulo = idea?.titulo ?? c.titulo;
   const dev = idea ? idea.desenvolvimento : c.desenvolvimento;
-  const formato = idea ? idea.formato : c.formato;
+  const formato = publicationFormat(idea ? idea.formato : c.formato);
   const canReview = !readOnly && !!idea && ideaPending(c);
   const st = idea?.retirada_em ? "Retirada para revisão" : !idea ? "Ainda não enviada à cliente" : IDEA_LBL[idea.status] ?? idea.status;
   const send = async () => {
