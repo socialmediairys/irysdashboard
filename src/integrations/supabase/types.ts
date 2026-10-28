@@ -576,10 +576,14 @@ export type Database = {
           desenvolvimento: string | null
           enviada_em: string
           enviada_por: string | null
+          envio_chave: string | null
           formato: string | null
           id: string
           numero: number
           org_id: string | null
+          retirada_acao: string | null
+          retirada_em: string | null
+          retirada_por: string | null
           status: string
           titulo: string
         }
@@ -592,10 +596,14 @@ export type Database = {
           desenvolvimento?: string | null
           enviada_em?: string
           enviada_por?: string | null
+          envio_chave?: string | null
           formato?: string | null
           id?: string
           numero: number
           org_id?: string | null
+          retirada_acao?: string | null
+          retirada_em?: string | null
+          retirada_por?: string | null
           status?: string
           titulo?: string
         }
@@ -608,10 +616,14 @@ export type Database = {
           desenvolvimento?: string | null
           enviada_em?: string
           enviada_por?: string | null
+          envio_chave?: string | null
           formato?: string | null
           id?: string
           numero?: number
           org_id?: string | null
+          retirada_acao?: string | null
+          retirada_em?: string | null
+          retirada_por?: string | null
           status?: string
           titulo?: string
         }
@@ -688,6 +700,7 @@ export type Database = {
           created_at: string
           enviada_em: string
           enviada_por: string | null
+          formato: string | null
           hashtags: string | null
           id: string
           legenda: string | null
@@ -696,15 +709,20 @@ export type Database = {
           org_id: string
           recebida_em: string | null
           recebida_por: string | null
+          retirada_acao: string | null
+          retirada_em: string | null
+          retirada_por: string | null
           status: string
           status_arte: string
           status_legenda: string
+          titulo: string | null
         }
         Insert: {
           conteudo_id: string
           created_at?: string
           enviada_em?: string
           enviada_por?: string | null
+          formato?: string | null
           hashtags?: string | null
           id?: string
           legenda?: string | null
@@ -713,15 +731,20 @@ export type Database = {
           org_id: string
           recebida_em?: string | null
           recebida_por?: string | null
+          retirada_acao?: string | null
+          retirada_em?: string | null
+          retirada_por?: string | null
           status?: string
           status_arte?: string
           status_legenda?: string
+          titulo?: string | null
         }
         Update: {
           conteudo_id?: string
           created_at?: string
           enviada_em?: string
           enviada_por?: string | null
+          formato?: string | null
           hashtags?: string | null
           id?: string
           legenda?: string | null
@@ -730,9 +753,13 @@ export type Database = {
           org_id?: string
           recebida_em?: string | null
           recebida_por?: string | null
+          retirada_acao?: string | null
+          retirada_em?: string | null
+          retirada_por?: string | null
           status?: string
           status_arte?: string
           status_legenda?: string
+          titulo?: string | null
         }
         Relationships: [
           {
@@ -768,6 +795,7 @@ export type Database = {
           hashtags: string | null
           horario: string | null
           id: string
+          ideia_reaberta_em: string | null
           ideia_versao_atual: number
           jornada: string | null
           legenda: string | null
@@ -807,6 +835,7 @@ export type Database = {
           hashtags?: string | null
           horario?: string | null
           id?: string
+          ideia_reaberta_em?: string | null
           ideia_versao_atual?: number
           jornada?: string | null
           legenda?: string | null
@@ -846,6 +875,7 @@ export type Database = {
           hashtags?: string | null
           horario?: string | null
           id?: string
+          ideia_reaberta_em?: string | null
           ideia_versao_atual?: number
           jornada?: string | null
           legenda?: string | null
@@ -3749,6 +3779,10 @@ export type Database = {
       }
       current_cliente_id: { Args: never; Returns: string }
       enviar_ideia: { Args: { _conteudo_id: string }; Returns: number }
+      enviar_ideias_lote: {
+        Args: { _chave: string; _itens: Json }
+        Returns: Json
+      }
       excluir_sprint: {
         Args: { _destino?: string; _sprint_id: string }
         Returns: number
@@ -3786,6 +3820,15 @@ export type Database = {
           titulo: string
           versao_atual: number
         }[]
+      }
+      retirar_aprovacao: {
+        Args: {
+          _conteudo_id: string
+          _etapa: string
+          _reabrir: boolean
+          _versao: number
+        }
+        Returns: undefined
       }
     }
     Enums: {

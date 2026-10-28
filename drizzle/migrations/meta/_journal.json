@@ -64,6 +64,13 @@
       "when": 1793151750695,
       "tag": "0008_validar_envio_producao_final",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793227013308,
+      "tag": "0009_editorial_lote_retirada_reabertura",
+      "breakpoints": true
     }
   ]
 }
