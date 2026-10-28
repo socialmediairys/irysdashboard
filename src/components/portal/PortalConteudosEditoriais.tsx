@@ -14,14 +14,14 @@ import { MonthNav, useMonthState } from "@/components/content/MonthNav";
 
 type VMidia = { bucket: string; storage_path: string; tipo: string; ordem: number; url?: string };
 type Versao = { id: string; numero: number; legenda: string | null; hashtags: string | null; midias: VMidia[]; status: string; status_arte: string; status_legenda: string; enviada_em: string };
-type Item = { id: string; titulo: string; canal: string | null; formato: string | null; data_prevista: string | null; status: ContentStatus; versao_atual: number; publicacao_url: string | null; publicado_em: string | null; pipeline_mes: string | null; created_at: string; versoes: Versao[]; comentarios: Coment[] };
+type Item = { id: string; titulo: string; canal: string | null; formato: string | null; data_prevista: string | null; status: ContentStatus; versao_atual: number; publicacao_url: string | null; publicado_em: string | null; pipeline_mes: string | null; ordem: number | null; created_at: string; versoes: Versao[]; comentarios: Coment[] };
 type Coment = { id: string; texto: string; alvo: string; autor_id: string | null; created_at: string; versao_id: string | null };
 
 /** Tudo aqui é lido direto do banco com as regras do cliente: só conteúdos enviados, versões enviadas e comentários do tipo "cliente". */
 async function load(clienteId: string): Promise<Item[]> {
   const { data, error } = await cdb("conteudos")
-    .select("id,titulo,canal,formato,data_prevista,pipeline_mes,created_at,status,versao_atual,publicacao_url,publicado_em,versoes:conteudo_versoes(id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em),comentarios:conteudo_comentarios(id,texto,alvo,autor_id,created_at,versao_id)")
-    .eq("cliente_id", clienteId).order("data_prevista", { ascending: true, nullsFirst: false });
+    .select("id,titulo,canal,formato,data_prevista,pipeline_mes,ordem,created_at,status,versao_atual,publicacao_url,publicado_em,versoes:conteudo_versoes(id,numero,legenda,hashtags,midias,status,status_arte,status_legenda,enviada_em),comentarios:conteudo_comentarios(id,texto,alvo,autor_id,created_at,versao_id)")
+    .eq("cliente_id", clienteId).order("ordem", { ascending: true }).order("created_at", { ascending: true });
   if (error) throw error;
   return ((data ?? []) as Item[]).map((c) => ({ ...c, versoes: [...c.versoes].sort((a, b) => b.numero - a.numero), comentarios: [...(c.comentarios ?? [])].sort((a, b) => a.created_at.localeCompare(b.created_at)) }));
 }
