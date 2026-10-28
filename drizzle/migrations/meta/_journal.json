@@ -43,6 +43,13 @@
       "when": 1793150365682,
       "tag": "0005_ideia_aprovacao_duas_etapas",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793150539457,
+      "tag": "0006_comentarios_alvo_ideia",
+      "breakpoints": true
     }
   ]
 }
