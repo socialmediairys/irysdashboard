@@ -316,8 +316,8 @@ export function PortalConteudoDetalhe({ clienteId, conteudoId, onBack }: { clien
     {voltar}
     <div className="space-y-2"><div className="flex flex-wrap items-center gap-2"><span className="text-xs uppercase tracking-widest text-muted-foreground">{monthLabel(competencia(c))}</span><span className="rounded-full border border-border px-2.5 py-1 text-[11px]">{clientStatus(c)}</span></div><h1 className="text-2xl font-semibold tracking-tight">{(currentIdea(c)?.titulo ?? c.titulo) || "Conteúdo"}</h1><p className="text-sm text-muted-foreground">{[publicationFormat(currentIdea(c)?.formato ?? c.formato), c.canal, fmtShort(c.data_prevista)].filter(Boolean).join(" · ")}{v ? ` · Versão ${v.numero}` : ""}</p></div>
     {onBack && <p className="rounded-lg border border-border bg-muted/40 px-4 py-3 text-xs text-muted-foreground">Prévia da equipe: você vê o que está cadastrado e o estado das aprovações, mas não pode aprovar nem pedir alterações pela cliente.</p>}
-    <IdeaApproval c={c} clienteId={clienteId} readOnly={!!onBack}/>
-    {v ? <SimpleApproval c={c} clienteId={clienteId} readOnly={!!onBack}/> : <Empty>Etapa 2 · A arte e a legenda da publicação aparecerão aqui quando a produção final for enviada.</Empty>}
+    <IdeaApproval key={`${currentIdea(c)?.id}:${currentIdea(c)?.retirada_em ?? ""}`} c={c} clienteId={clienteId} readOnly={!!onBack}/>
+    {v ? <SimpleApproval key={`${v.id}:${v.retirada_em ?? ""}`} c={c} clienteId={clienteId} readOnly={!!onBack}/> : <Empty>Etapa 2 · A arte e a legenda da publicação aparecerão aqui quando a produção final for enviada.</Empty>}
     {(c.versoes.length > 0 || c.ideias.length > 1) && <PortalHistory c={c}/>}
   </div>;
 }
