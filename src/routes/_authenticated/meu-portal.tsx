@@ -23,6 +23,11 @@ export const Route = createFileRoute("/_authenticated/meu-portal")({
   head: () => ({
     meta: [
       { title: "Meu portal — Irys" },
+      { name: "description", content: "Seu planejamento, conteúdos e aprovações no Portal Irys." },
+      { property: "og:title", content: "Meu portal — Irys" },
+      { property: "og:description", content: "Seu planejamento, conteúdos e aprovações no Portal Irys." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),

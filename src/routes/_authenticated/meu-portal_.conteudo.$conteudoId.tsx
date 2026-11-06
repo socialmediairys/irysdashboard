@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PortalConteudoDetalhe } from "@/components/portal/PortalConteudosEditoriais";
 
 export const Route = createFileRoute("/_authenticated/meu-portal_/conteudo/$conteudoId")({
-  head: () => ({ meta: [{ title: "Conteúdo — Meu portal Irys" }, { name: "robots", content: "noindex, nofollow" }] }),
+  head: () => ({ meta: [{ title: "Conteúdo — Meu portal Irys" }, { name: "description", content: "Ideia, produção e histórico de aprovação do seu conteúdo no Irys." }, { property: "og:title", content: "Conteúdo — Meu portal Irys" }, { property: "og:description", content: "Ideia, produção e histórico de aprovação do seu conteúdo no Irys." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex, nofollow" }] }),
   component: PortalConteudoPage,
 });
 

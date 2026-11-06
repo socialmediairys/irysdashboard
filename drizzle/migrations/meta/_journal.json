@@ -36,6 +36,48 @@
       "when": 1793145769364,
       "tag": "0004_restrict_catalog_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793150365682,
+      "tag": "0005_ideia_aprovacao_duas_etapas",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793150539457,
+      "tag": "0006_comentarios_alvo_ideia",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793150924175,
+      "tag": "0007_portal_conteudos_sem_rascunho",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793151750695,
+      "tag": "0008_validar_envio_producao_final",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793227013308,
+      "tag": "0009_editorial_lote_retirada_reabertura",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793227933897,
+      "tag": "0010_normalizar_formatos_editoriais",
+      "breakpoints": true
     }
   ]
 }

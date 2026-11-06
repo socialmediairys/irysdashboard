@@ -1,0 +1,2 @@
+ALTER TABLE public.conteudo_comentarios DROP CONSTRAINT conteudo_comentarios_alvo_check;
+ALTER TABLE public.conteudo_comentarios ADD CONSTRAINT conteudo_comentarios_alvo_check CHECK (alvo IN ('geral','arte','legenda','ideia'));
