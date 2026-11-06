@@ -1,243 +1,205 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import { STEPS, STATUS_LABEL, BRIEFING_AREAS, DEFINICAO_CAMPOS, type EtapaStatus } from "@/lib/strategy";
-import type { StrategyData } from "@/components/strategy/useStrategy";
+/** Metodologia estratégica IRYS — definição das 13 etapas e estruturas de apoio. */
+import type { StatusVariant } from "@/components/ui/status-badge";
 
-/** Exportação A4 com fluxo de texto paginado (sem cortes/colisões entre blocos). */
-const clean = (v: unknown) => String(v ?? "").replace(/\r\n?/g, "\n").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "").trim();
-const safeName = (v: string) => v.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
-const humanize = (v: string) => v.replaceAll("_", " ").replace(/^./, (first) => first.toUpperCase());
-const NAVY: [number, number, number] = [35, 43, 60];
-const MUTED: [number, number, number] = [102, 111, 126];
-const PAGE_W = 210;
-const PAGE_H = 297;
-const MARGIN = 17;
-const CONTENT_W = PAGE_W - MARGIN * 2;
-const TOP = 21;
-const BOTTOM = 278;
+export type EtapaStatus = "nao_iniciada" | "em_andamento" | "revisar" | "concluida";
+export type Macro = "investigar" | "diagnosticar" | "definir" | "executar";
+export type SectionKey = "visao" | "pesquisa" | "diagnostico" | "direcionamento" | "editorial";
 
-export function exportStrategyPdf(clienteNome: string, data: StrategyData) {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-  let y = TOP;
+export type StepKind = "briefing" | "fontes" | "consumidor" | "mercado" | "concorrencia" | "evidencias" | "diagnostico" | "definicao" | "editorial" | "calendario";
 
-  const ensure = (height: number) => {
-    if (y + height > BOTTOM && y > TOP) {
-      doc.addPage();
-      y = TOP;
-    }
-  };
+export type StepDef = { n: number; titulo: string; macro: Macro; section: SectionKey; kind: StepKind; acao: string; porque: string };
 
-  const writeLines = (value: unknown, opts: { x?: number; width?: number; fontSize?: number; bold?: boolean; color?: [number, number, number]; lineHeight?: number; after?: number } = {}) => {
-    const str = clean(value);
-    if (!str) return;
-    const { x = MARGIN, width = CONTENT_W, fontSize = 9.5, bold = false, color = NAVY, lineHeight = 4.8, after = 3 } = opts;
-    doc.setFont("helvetica", bold ? "bold" : "normal");
-    doc.setFontSize(fontSize);
-    doc.setTextColor(...color);
-    // Preserva parágrafos e divide também valores maiores que uma página.
-    for (const paragraph of str.split("\n")) {
-      if (!paragraph.trim()) {
-        ensure(lineHeight);
-        y += lineHeight;
-        continue;
-      }
-      const lines: string[] = doc.splitTextToSize(paragraph, width);
-      for (const line of lines) {
-        ensure(lineHeight);
-        doc.text(line, x, y);
-        y += lineHeight;
-      }
-    }
-    y += after;
-  };
+export const STEPS: StepDef[] = [
+  { n: 1, titulo: "Briefing Estratégico", macro: "investigar", section: "pesquisa", kind: "briefing", acao: "Registrar o que se sabe e o que ainda é desconhecido sobre o negócio.", porque: "Separar o que já sabemos do que ainda precisa ser investigado antes de concluir qualquer coisa." },
+  { n: 2, titulo: "Pesquisa da Empresa", macro: "investigar", section: "pesquisa", kind: "fontes", acao: "Mapear fontes da empresa e registrar evidências observadas.", porque: "Entender como a empresa se apresenta hoje, a partir de fontes reais, e não da percepção interna." },
+  { n: 3, titulo: "Pesquisa do Consumidor", macro: "investigar", section: "pesquisa", kind: "consumidor", acao: "Coletar a voz do cliente: dores, desejos, objeções e linguagem.", porque: "Ouvir o cliente com as palavras dele: dores, desejos, objeções e linguagem." },
+  { n: 4, titulo: "Pesquisa de Mercado", macro: "investigar", section: "pesquisa", kind: "mercado", acao: "Registrar contexto, tendências, oportunidades e ameaças com fonte.", porque: "Situar a marca no contexto: tendências, oportunidades e ameaças com fonte verificável." },
+  { n: 5, titulo: "Engenharia Reversa da Concorrência", macro: "investigar", section: "pesquisa", kind: "concorrencia", acao: "Cadastrar concorrentes e comparar posicionamento e oferta.", porque: "Comparar lado a lado para encontrar padrões, saturação e espaços livres." },
+  { n: 6, titulo: "Organização das Evidências", macro: "diagnosticar", section: "diagnostico", kind: "evidencias", acao: "Revisar e categorizar todas as evidências coletadas.", porque: "Ver o conjunto das evidências e começar a enxergar padrões antes de interpretar." },
+  { n: 7, titulo: "Diagnóstico e Gargalo", macro: "diagnosticar", section: "diagnostico", kind: "diagnostico", acao: "Identificar padrões, formular hipóteses e definir o gargalo principal.", porque: "Transformar evidências em raciocínio: padrões, hipóteses, o gargalo principal e a decisão." },
+  { n: 8, titulo: "Objetivo Estratégico", macro: "definir", section: "direcionamento", kind: "definicao", acao: "Definir objetivo, mudança desejada e critério de sucesso.", porque: "Definir aonde queremos chegar diante do gargalo identificado." },
+  { n: 9, titulo: "Público Prioritário", macro: "definir", section: "direcionamento", kind: "definicao", acao: "Comparar segmentos e escolher o público com maior potencial estratégico.", porque: "Priorizar quem tem maior potencial para a transformação definida no objetivo estratégico." },
+  { n: 10, titulo: "Posicionamento", macro: "definir", section: "direcionamento", kind: "definicao", acao: "Definir território, diferenciação, promessa e provas.", porque: "Escolher o espaço que a marca vai ocupar e por que acreditariam nela." },
+  { n: 11, titulo: "Narrativa e Mensagens", macro: "definir", section: "direcionamento", kind: "definicao", acao: "Construir crenças, tese, argumentos, provas, objeções e mensagens por jornada.", porque: "Transformar posicionamento em uma arquitetura de crenças, argumentos, provas e mensagens que muda critérios de decisão." },
+  { n: 12, titulo: "Sistema Editorial", macro: "executar", section: "editorial", kind: "editorial", acao: "Organizar o inventário estratégico em temas editoriais, funções, prioridades, mensagens e provas.", porque: "Dar função e prioridade aos grandes temas antes de transformá-los em publicações." },
+  { n: 13, titulo: "Calendário Estratégico", macro: "executar", section: "editorial", kind: "calendario", acao: "Planejar itens por data ligados ao sistema editorial.", porque: "Levar o sistema editorial para datas concretas, sem perder a ligação com a estratégia." },
+];
 
-  const section = (heading: string) => {
-    // Evita título órfão e reserva ao menos duas linhas de conteúdo.
-    ensure(23);
-    y += 3;
-    doc.setDrawColor(221, 225, 231);
-    doc.line(MARGIN, y - 4, PAGE_W - MARGIN, y - 4);
-    writeLines(heading, { fontSize: 14, bold: true, lineHeight: 7, after: 5 });
-  };
+export const stepByN = (n: number) => STEPS.find((s) => s.n === n)!;
 
-  const field = (label: string, value: unknown, showEmpty = false) => {
-    const str = clean(value);
-    if (!str && !showEmpty) return;
-    // Rótulo permanece junto das primeiras linhas da resposta.
-    ensure(18);
-    writeLines(humanize(label), { fontSize: 8.5, bold: true, color: MUTED, lineHeight: 4.5, after: 1.5 });
-    writeLines(str || "Não informado", { fontSize: 9.5, lineHeight: 5, after: 4, color: str ? NAVY : MUTED });
-  };
+export const MACROS: { key: Macro; label: string }[] = [
+  { key: "investigar", label: "Investigar" },
+  { key: "diagnosticar", label: "Diagnosticar" },
+  { key: "definir", label: "Definir estratégia" },
+  { key: "executar", label: "Executar" },
+];
 
-  const table = (headers: string[], rows: string[][], widths?: Record<number, { cellWidth: number }>) => {
-    if (!rows.length) return;
-    ensure(19);
-    autoTable(doc, {
-      startY: y,
-      margin: { left: MARGIN, right: MARGIN, top: TOP, bottom: PAGE_H - BOTTOM },
-      head: [headers],
-      body: rows,
-      theme: "striped",
-      styles: { font: "helvetica", fontSize: 8, cellPadding: 2.8, overflow: "linebreak", valign: "top", textColor: NAVY, lineColor: [229, 233, 239] },
-      headStyles: { fillColor: NAVY, textColor: [255, 255, 255], fontStyle: "bold" },
-      alternateRowStyles: { fillColor: [248, 249, 251] },
-      columnStyles: widths,
-      rowPageBreak: "auto",
-      showHead: "everyPage",
-      pageBreak: "auto",
-    });
-    const finalY = (doc as jsPDF & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY;
-    y = (finalY ?? y) + 8;
-    if (y > BOTTOM) { doc.addPage(); y = TOP; }
-  };
+export const SECTIONS: { key: SectionKey; label: string }[] = [
+  { key: "visao", label: "Visão geral" },
+  { key: "pesquisa", label: "Pesquisa" },
+  { key: "diagnostico", label: "Diagnóstico" },
+  { key: "direcionamento", label: "Direcionamento" },
+  { key: "editorial", label: "Sistema editorial" },
+];
 
-  // Cabeçalho do documento, sem consumir uma página inteira de capa.
-  doc.setFillColor(...NAVY);
-  doc.rect(0, 0, PAGE_W, 8, "F");
-  y = 29;
-  writeLines("ESTRATÉGIA DE SOCIAL MEDIA", { fontSize: 19, bold: true, lineHeight: 9, after: 4 });
-  writeLines(clienteNome, { fontSize: 13, lineHeight: 7, after: 2 });
-  writeLines(`Documento exportado em ${new Date().toLocaleDateString("pt-BR")}`, { fontSize: 8.5, color: MUTED, lineHeight: 5, after: 9 });
+export const STATUS_LABEL: Record<EtapaStatus, string> = {
+  nao_iniciada: "Não iniciada", em_andamento: "Em andamento", revisar: "Revisar", concluida: "Concluída",
+};
+export const STATUS_VARIANT: Record<EtapaStatus, StatusVariant> = {
+  nao_iniciada: "neutral", em_andamento: "info", revisar: "warning", concluida: "success",
+};
 
-  section("Jornada estratégica");
-  table(["Etapa", "Status"], STEPS.map((step) => [
-    `${step.n}. ${step.titulo}`,
-    STATUS_LABEL[(data.etapas.find((e) => e.etapa === step.n)?.status ?? "nao_iniciada") as EtapaStatus],
-  ]), { 0: { cellWidth: 130 } });
+/* ---------- Briefing ---------- */
+export type BriefingStatus = "completa" | "incompleta" | "desconhecida";
+export type BriefingAnswer = { valor?: string; status?: BriefingStatus };
+export type BriefingMapa = Record<string, BriefingAnswer>;
 
-  // A fonte única das perguntas é a mesma que alimenta a interface de briefing.
-  // O banco armazena respostas como { valor, status }, e NÃO como { resposta }.
-  section("Briefing estratégico — perguntas e respostas");
-  const mapa = data.briefing?.mapa ?? {};
-  const briefingStatus: Record<string, string> = {
-    completa: "Completa", incompleta: "Incompleta", desconhecida: "Desconhecida",
-  };
-  for (const area of BRIEFING_AREAS) {
-    ensure(20);
-    writeLines(area.label, { fontSize: 11.5, bold: true, lineHeight: 6, after: 3 });
-    for (const pergunta of area.perguntas) {
-      const resposta = mapa[pergunta.key];
-      field(pergunta.label, resposta?.valor, true);
-      writeLines(`Situação: ${briefingStatus[resposta?.status ?? ""] ?? "Não avaliada"}`, {
-        fontSize: 8, color: MUTED, lineHeight: 4, after: 4,
-      });
-    }
+export const BRIEFING_AREAS: { key: string; label: string; perguntas: { key: string; label: string }[] }[] = [
+  { key: "negocio", label: "Negócio", perguntas: [
+    { key: "negocio_oferta", label: "O que a empresa vende e como entrega" },
+    { key: "negocio_modelo", label: "Modelo de receita e ticket médio" },
+    { key: "negocio_historia", label: "História e momento atual" },
+    { key: "negocio_diferencial", label: "Diferencial percebido pela própria empresa" },
+  ] },
+  { key: "cliente", label: "Cliente", perguntas: [
+    { key: "cliente_quem", label: "Quem compra hoje" },
+    { key: "cliente_motivo", label: "Por que compram" },
+    { key: "cliente_objecoes", label: "Principais objeções conhecidas" },
+  ] },
+  { key: "mercado", label: "Mercado", perguntas: [
+    { key: "mercado_contexto", label: "Contexto e sazonalidade" },
+    { key: "mercado_concorrentes", label: "Concorrentes conhecidos" },
+  ] },
+  { key: "comercial", label: "Comercial", perguntas: [
+    { key: "comercial_processo", label: "Como a venda acontece" },
+    { key: "comercial_gargalo", label: "Onde a venda trava" },
+    { key: "comercial_metas", label: "Metas comerciais" },
+  ] },
+  { key: "marketing", label: "Marketing", perguntas: [
+    { key: "marketing_canais", label: "Canais usados e resultados" },
+    { key: "marketing_historico", label: "O que já foi testado" },
+    { key: "marketing_recursos", label: "Recursos disponíveis (equipe, verba, tempo)" },
+  ] },
+];
+export const BRIEFING_TOTAL = BRIEFING_AREAS.reduce((a, b) => a + b.perguntas.length, 0);
+
+/** Indicador operacional de preenchimento do mapa. O Briefing Score metodológico de qualidade é registrado separadamente nos artefatos da etapa 1. */
+export function briefingScore(mapa: BriefingMapa) {
+  let completas = 0, incompletas = 0, desconhecidas = 0;
+  for (const a of BRIEFING_AREAS) for (const p of a.perguntas) {
+    const s = mapa[p.key]?.status;
+    if (s === "completa") completas++; else if (s === "incompleta") incompletas++; else if (s === "desconhecida") desconhecidas++;
   }
-  // Questões de versões anteriores do SaaS também são preservadas no PDF.
-  const knownBriefing = new Set(BRIEFING_AREAS.flatMap((area) => area.perguntas.map((p) => p.key)));
-  const extraBriefing = Object.entries(mapa).filter(([key]) => !knownBriefing.has(key));
-  if (extraBriefing.length) {
-    ensure(20);
-    writeLines("Outras informações cadastradas", { fontSize: 11.5, bold: true, lineHeight: 6, after: 3 });
-    for (const [key, answer] of extraBriefing) {
-      field(humanize(key), answer?.valor, true);
-      writeLines(`Situação: ${briefingStatus[answer?.status ?? ""] ?? "Não avaliada"}`, {
-        fontSize: 8, color: MUTED, lineHeight: 4, after: 4,
-      });
-    }
-  }
-  if (data.briefing?.lacunas) field("Lacunas e pontos de atenção", data.briefing.lacunas);
+  const avaliadas = completas + incompletas + desconhecidas;
+  return { completas, incompletas, desconhecidas, avaliadas, total: BRIEFING_TOTAL };
+}
 
-  if (data.fontes.length) {
-    section("Fontes");
-    table(["Fonte", "Tipo", "Etapa", "Referência"], data.fontes.map((f) => [
-      clean(f.nome), clean(f.tipo), String(f.etapa), clean(f.url || f.data_ref) || "—",
-    ]), { 0: { cellWidth: 49 }, 1: { cellWidth: 33 }, 2: { cellWidth: 17 }, 3: { cellWidth: 77 } });
-  }
+/* ---------- Definições (etapas 8–11) ---------- */
+export const DEFINICAO_CAMPOS: Record<number, { key: string; label: string; hint?: string }[]> = {
+  8: [
+    { key: "objetivo", label: "Objetivo", hint: "O que queremos alcançar?" },
+    { key: "mudanca", label: "Mudança desejada", hint: "De onde → para onde?" },
+    { key: "indicadores", label: "Indicadores", hint: "Como perceberemos avanço?" },
+    { key: "prazo", label: "Prazo", hint: "Até quando?" },
+    { key: "criterio", label: "Critério de sucesso", hint: "O que precisa ser verdade para considerarmos que deu certo?" },
+  ],
+  9: [
+    { key: "segmentos", label: "Segmentos" },
+    { key: "dores", label: "Dores" },
+    { key: "desejos", label: "Desejos" },
+    { key: "objecoes", label: "Objeções" },
+    { key: "contexto", label: "Contexto" },
+    { key: "jornada", label: "Jornada" },
+    { key: "comportamentos", label: "Comportamentos relevantes" },
+    { key: "persona", label: "Persona (opcional)", hint: "Não é obrigatório criar persona" },
+  ],
+  10: [
+    { key: "territorio", label: "Território" },
+    { key: "diferenciacao", label: "Diferenciação" },
+    { key: "promessa", label: "Promessa" },
+    { key: "provas", label: "Provas" },
+    { key: "alternativas", label: "Alternativas concorrentes" },
+    { key: "razoes", label: "Razões para acreditar" },
+  ],
+  11: [
+    { key: "mensagens", label: "Mensagens centrais" },
+    { key: "temas", label: "Temas" },
+    { key: "argumentos", label: "Argumentos" },
+    { key: "provas", label: "Provas" },
+    { key: "tensoes", label: "Tensões" },
+    { key: "linguagem", label: "Linguagem" },
+    { key: "limites", label: "Limites de comunicação" },
+  ],
+};
 
-  if (data.evidencias.length) {
-    section("Banco de evidências");
-    table(["Evidência", "Classificação", "Categoria", "Etapa"], data.evidencias.map((e) => [
-      clean(e.informacao), clean(e.classificacao), clean(e.categoria) || "—", e.etapa ? String(e.etapa) : "—",
-    ]), { 0: { cellWidth: 91 }, 1: { cellWidth: 39 }, 2: { cellWidth: 30 }, 3: { cellWidth: 16 } });
-  }
+/* ---------- Evidências, fontes, achados ---------- */
+export const FONTE_TIPOS = ["site", "instagram", "google_business", "documento", "material_institucional", "link", "upload", "entrevista", "formulario", "avaliacao", "comentario", "whatsapp", "dm", "pesquisa", "outro"] as const;
+export const FONTE_TIPO_LABEL: Record<string, string> = {
+  site: "Site", instagram: "Instagram", google_business: "Google Business", documento: "Documento", material_institucional: "Material institucional",
+  link: "Link", upload: "Upload", entrevista: "Entrevista", formulario: "Formulário", avaliacao: "Avaliação", comentario: "Comentário",
+  whatsapp: "WhatsApp", dm: "DM", pesquisa: "Pesquisa", outro: "Outra fonte",
+};
+export const FONTES_POR_ETAPA: Record<number, readonly string[]> = {
+  2: ["site", "instagram", "google_business", "documento", "material_institucional", "link", "upload", "outro"],
+  3: ["entrevista", "formulario", "avaliacao", "comentario", "whatsapp", "dm", "pesquisa", "outro"],
+  4: ["link", "documento", "pesquisa", "outro"],
+};
+export const FONTE_STATUS_LABEL: Record<string, string> = { a_analisar: "A analisar", em_analise: "Em análise", analisada: "Analisada" };
 
-  if (data.concorrentes.length) {
-    section("Análise de concorrentes");
-    // Um bloco por concorrente: evita colunas minúsculas quando há muitos nomes.
-    const fields = ["tipo", "posicionamento", "publico", "oferta", "conteudo", "prova", "cta", "diferencial"];
-    for (const [index, competitor] of data.concorrentes.entries()) {
-      ensure(20);
-      writeLines(`${index + 1}. ${clean(competitor.nome) || "Concorrente"}`, { fontSize: 11, bold: true, lineHeight: 6, after: 3 });
-      table(["Critério", "Análise"], fields
-        .filter((key) => clean(competitor[key]))
-        .map((key) => [humanize(key), clean(competitor[key])]), { 0: { cellWidth: 44 }, 1: { cellWidth: 132 } });
-    }
-  }
+/** Categorias únicas de evidência (valem para qualquer etapa). */
+export const EVIDENCIA_CATEGORIAS: { key: string; label: string }[] = [
+  { key: "empresa", label: "Empresa" },
+  { key: "publico", label: "Público/Consumidor" },
+  { key: "mercado", label: "Mercado" },
+  { key: "concorrencia", label: "Concorrência" },
+  { key: "comunicacao", label: "Comunicação" },
+  { key: "comercial", label: "Comercial" },
+  { key: "produto", label: "Produto/Serviço" },
+  { key: "marca", label: "Marca/Posicionamento" },
+  { key: "performance", label: "Performance/Métricas" },
+  { key: "comportamento", label: "Comportamento" },
+  { key: "outra", label: "Outra" },
+];
+/** Categoria sugerida por etapa de pesquisa (apenas pré-seleção). */
+export const CATEGORIA_PADRAO_ETAPA: Record<number, string> = { 2: "empresa", 3: "publico", 4: "mercado", 5: "concorrencia" };
+/** Chaves antigas continuam legíveis. */
+const LEGADO_CATEGORIA: Record<string, string> = {
+  dor: "Dor", desejo: "Desejo", objecao: "Objeção", linguagem: "Linguagem utilizada", necessidade: "Necessidade",
+  contexto: "Contexto", tendencia: "Tendência", oportunidade: "Oportunidade", ameaca: "Ameaça",
+};
+export const CATEGORIA_LABEL: Record<string, string> = {
+  ...LEGADO_CATEGORIA, ...Object.fromEntries(EVIDENCIA_CATEGORIAS.map((c) => [c.key, c.label])),
+};
 
-  const findings = data.achados.filter((a) => a.status !== "descartado");
-  if (findings.length) {
-    section("Diagnóstico e decisões");
-    for (const finding of findings) {
-      field(humanize(finding.tipo), finding.titulo);
-      writeLines(finding.descricao, { lineHeight: 5, after: 5 });
-    }
-  }
+export type AchadoTipo = "padrao" | "tensao" | "problema" | "oportunidade" | "hipotese" | "gargalo_principal" | "gargalo_secundario" | "decisao";
+export const ACHADO_LABEL: Record<AchadoTipo, string> = {
+  padrao: "Padrão", tensao: "Tensão", problema: "Problema", oportunidade: "Oportunidade", hipotese: "Hipótese",
+  gargalo_principal: "Gargalo principal", gargalo_secundario: "Gargalo secundário", decisao: "Decisão",
+};
 
-  // Perguntas dos formulários estratégicos: reproduz os rótulos do próprio sistema.
-  // Inclui perguntas sem resposta e campos adicionais de etapas anteriores.
-  section("Perguntas e definições estratégicas");
-  const listedDefinitions = new Set<string>();
-  for (const [stepText, questions] of Object.entries(DEFINICAO_CAMPOS)) {
-    const stepNumber = Number(stepText);
-    const stepTitle = STEPS.find((step) => step.n === stepNumber)?.titulo ?? `Etapa ${stepNumber}`;
-    ensure(20);
-    writeLines(stepTitle, { fontSize: 11.5, bold: true, lineHeight: 6, after: 3 });
-    for (const question of questions) {
-      const key = `${stepNumber}:${question.key}`;
-      listedDefinitions.add(key);
-      const saved = data.definicoes.find((d) => d.etapa === stepNumber && d.campo === question.key);
-      field(question.label, saved?.valor, true);
-    }
-  }
-  const otherDefinitions = [...data.definicoes]
-    .filter((d) => !listedDefinitions.has(`${d.etapa}:${d.campo}`))
-    .sort((a, b) => a.etapa - b.etapa || a.campo.localeCompare(b.campo));
-  if (otherDefinitions.length) {
-    ensure(22);
-    writeLines("Artefatos e informações complementares", { fontSize: 11.5, bold: true, lineHeight: 6, after: 3 });
-    for (const definition of otherDefinitions) {
-      field(`${STEPS[definition.etapa - 1]?.titulo ?? `Etapa ${definition.etapa}`} · ${humanize(definition.campo)}`, definition.valor, true);
-    }
-  }
+export const CONCORRENTE_CAMPOS = [
+  { key: "posicionamento", label: "Posicionamento" }, { key: "publico", label: "Público" }, { key: "oferta", label: "Oferta" },
+  { key: "preco", label: "Preço" }, { key: "comunicacao", label: "Comunicação" }, { key: "conteudo", label: "Conteúdo" },
+  { key: "provas", label: "Prova" }, { key: "cta", label: "CTA" }, { key: "diferenciais", label: "Diferencial" },
+  { key: "oportunidades", label: "Oportunidades" },
+] as const;
 
-  if (data.pilares.length) {
-    section("Sistema editorial");
-    for (const pillar of data.pilares) {
-      field("Pilar", pillar.nome);
-      writeLines(pillar.descricao, { lineHeight: 5, after: 3 });
-      for (const topic of data.temas.filter((t) => t.pilar_id === pillar.id)) {
-        field("Tema", topic.nome);
-        writeLines(topic.descricao, { lineHeight: 5, after: 2 });
-        for (const message of data.mensagens.filter((m) => m.tema_id === topic.id)) {
-          field("Mensagem", message.mensagem);
-          field("CTA", message.cta);
-        }
-      }
-      y += 3;
-    }
-  }
+/** Síntese competitiva (etapa 5) gravada em estrategia_definicoes. */
+export const SINTESE_COMPETITIVA = [
+  { key: "padroes", label: "Padrões encontrados", hint: "O que os concorrentes fazem em comum?" },
+  { key: "lacunas", label: "Lacunas", hint: "O que ninguém está ocupando ou fazendo bem?" },
+  { key: "oportunidades", label: "Oportunidades para a marca", hint: "Onde a marca pode se diferenciar?" },
+];
 
-  if (data.calendario.length) {
-    section("Calendário estratégico");
-    table(["Data", "Tema", "Canal", "Formato", "Objetivo"], data.calendario.map((item) => [
-      item.data ? new Date(`${item.data}T12:00:00`).toLocaleDateString("pt-BR") : "—",
-      clean(item.titulo) || "—", clean(item.canal) || "—", clean(item.formato) || "—", clean(item.objetivo) || "—",
-    ]), { 0: { cellWidth: 23 }, 1: { cellWidth: 45 }, 2: { cellWidth: 30 }, 3: { cellWidth: 31 }, 4: { cellWidth: 47 } });
-  }
+export const JORNADA_OPCOES = ["Descoberta", "Consideração", "Decisão", "Pós-compra"];
 
-  // Rodapé discreto e constante, inclusive nas páginas criadas pelo autoTable.
-  const totalPages = doc.getNumberOfPages();
-  for (let page = 1; page <= totalPages; page++) {
-    doc.setPage(page);
-    doc.setDrawColor(225, 229, 234);
-    doc.line(MARGIN, 285, PAGE_W - MARGIN, 285);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(...MUTED);
-    doc.text("Irys Dashboard · Estratégia", MARGIN, 291);
-    doc.text(`${page} / ${totalPages}`, PAGE_W - MARGIN, 291, { align: "right" });
-  }
+/* ---------- Progresso ---------- */
+export type EtapaRow = { etapa: number; status: EtapaStatus; iniciado_em: string | null; concluido_em: string | null; updated_at: string };
 
-  doc.save(`estrategia-${safeName(clienteNome) || "cliente"}.pdf`);
+export function strategyProgress(rows: EtapaRow[]) {
+  const map = new Map(rows.map((r) => [r.etapa, r]));
+  const concluidas = STEPS.filter((s) => map.get(s.n)?.status === "concluida").length;
+  const atual = STEPS.find((s) => map.get(s.n)?.status !== "concluida") ?? null;
+  const last = rows.reduce<string | null>((a, r) => (!a || r.updated_at > a ? r.updated_at : a), null);
+  return { concluidas, pct: Math.round((concluidas / STEPS.length) * 100), atual, last, map, iniciada: rows.some((r) => r.status !== "nao_iniciada") };
 }
