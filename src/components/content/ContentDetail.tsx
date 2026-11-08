@@ -10,7 +10,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { StatusBadge } from "@/components/ui/status-badge";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  ACCEPT, CANAIS, IDEA_STATUS_LABEL, canSendIdea, canSendProduction, producaoFaltando, CONTENT_STATUS, CONTENT_STATUS_LABEL, CONTENT_STATUS_VARIANT, FORMATOS, cdb, fmtShort,
+  ACCEPT, CANAIS, IDEA_STATUS_LABEL, etapaMinhaFila, canSendIdea, canSendProduction, producaoFaltando, CONTENT_STATUS, CONTENT_STATUS_LABEL, CONTENT_STATUS_VARIANT, FORMATOS, cdb, fmtShort,
   signedUrl, uploadMidias, useContentActions, type Conteudo, type ContentStatus, type Midia,
 } from "@/lib/content";
 import { cn } from "@/lib/utils";
@@ -129,6 +129,29 @@ function DetailBody({ id, onClose }: { id: string; onClose: () => void }) {
         </div>
       </SheetHeader>
 
+      {(() => {
+        const etapa = etapaMinhaFila(c);
+        const meta = {
+          ajustar_ideia: ["Ajustar ideia", "Revise o desenvolvimento e reenvie a ideia ao cliente."],
+          produzir: ["Sua vez: produzir arte e legenda", "A ideia foi aprovada. Insira as mídias e a legenda e envie a produção final para a segunda aprovação."],
+          ajustar_producao: ["Sua vez: corrigir a produção", "Consulte o comentário do cliente, corrija a arte e/ou a legenda e reenvie uma nova versão."],
+          agendar: ["Sua vez: agendar", "Arte e legenda aprovadas. Registre a data e o horário e altere o status para Agendado. Depois da publicação, marque como Publicado."],
+          aguardando_cliente: ["Com o cliente", "Aguardando a avaliação da ideia ou da arte e legenda."],
+        } as const;
+        if (!etapa) return null;
+        return <div className="mx-6 mt-4 rounded-md border border-border bg-muted/40 p-4 text-[13px]" role="status">
+          <div className="font-semibold">{meta[etapa][0]}</div><p className="mt-1 text-muted-foreground">{meta[etapa][1]}</p>
+          {etapa === "produzir" && c.status === "ideia" && <button className={cn(btnPrimary, "mt-3")} onClick={() => void save({ status: "em_producao" })}>Iniciar produção</button>}
+          {etapa === "agendar" && <button className={cn(btnPrimary, "mt-3")} onClick={() => {
+            if (!c.data_prevista || !c.horario) { toast.error("Preencha a data e o horário antes de confirmar o agendamento."); return; }
+            void save({ status: "agendado" });
+          }}>Confirmar agendamento</button>}
+        </div>;
+      })()}
+      {c.status === "agendado" && <div className="mx-6 mt-4 rounded-md border border-border bg-muted/40 p-4 text-[13px]">
+        <div className="font-semibold">Agendado</div><p className="mt-1 text-muted-foreground">Depois da publicação, finalize o fluxo.</p>
+        <button className={cn(btnPrimary, "mt-3")} onClick={() => void save({ status: "publicado" })}>Marcar como publicado</button>
+      </div>}
       <IdeaBar c={c} ideias={data.ideias} onSent={() => { reload(); a.refresh(); }} />
       <div className="border-b border-border px-6 py-5">
         <h3 className="mb-2 text-sm font-medium text-foreground">Desenvolvimento da ideia</h3>
