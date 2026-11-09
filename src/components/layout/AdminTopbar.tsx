@@ -50,7 +50,7 @@ export function AdminTopbar({ onOpenMobile }: { onOpenMobile: () => void }) {
     <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background/90 px-4 backdrop-blur md:px-8">
       <button
         onClick={onOpenMobile}
-        className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-accent md:hidden"
+        className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-accent md:hidden"
         aria-label="Abrir menu"
       >
         <Menu size={20} strokeWidth={1.6} />

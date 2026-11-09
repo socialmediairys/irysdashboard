@@ -240,3 +240,22 @@
 .rte ul[data-checklist] > li[data-checked="true"] { color: var(--muted-foreground); text-decoration: line-through; }
 .rte ul[data-checklist] > li[data-checked="true"]::before { background: var(--primary); border-color: var(--primary); }
 .comment-body .mention { color: var(--primary); font-weight: 500; }
+
+/* IRYS responsive foundation: applies to admin and customer portal. */
+html, body, #root { min-width: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body { overflow-x: clip; }
+.mobile-scroll-tabs { scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
+@media (max-width: 767px) {
+  /* Avoid sideways page scrolling from long client names, tables and attachments. */
+  main, main > div, header, section { min-width: 0; }
+  main img, main video, main canvas { max-width: 100%; height: auto; }
+  main table { max-width: 100%; }
+  main [role="tablist"] { max-width: 100%; }
+  /* Keep form fields at a readable size (also avoids iOS focus zoom). */
+  input:not([type="checkbox"]):not([type="radio"]), textarea, select { max-width: 100%; font-size: 16px; }
+  /* Accessible minimum touch size for interactive navigation. */
+  .mobile-scroll-tabs button { min-height: 44px; }
+  /* Make popups workable on small or short screens. */
+  [role="dialog"] { max-height: calc(100dvh - 24px); max-width: calc(100vw - 24px); overflow-y: auto; overscroll-behavior: contain; }
+}

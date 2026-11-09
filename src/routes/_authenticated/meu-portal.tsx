@@ -148,7 +148,7 @@ function MeuPortalPage() {
         </Button>
       </header>
 
-      <nav className="flex gap-1 overflow-x-auto border-b border-border bg-card px-4 sm:px-6" aria-label="Seções do portal">
+      <nav className="mobile-scroll-tabs flex gap-1 overflow-x-auto overscroll-x-contain border-b border-border bg-card px-2 sm:px-6" aria-label="Seções do portal">
         {(
           [
             { k: "jornada", label: "Início", icon: Route2 },
@@ -161,7 +161,7 @@ function MeuPortalPage() {
           <button
             key={k}
             onClick={() => setTab(k)}
-            className={`flex cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition ${
+            className={`flex min-h-12 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition sm:px-4 ${
               tab === k
                 ? "border-primary text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground"
@@ -173,7 +173,7 @@ function MeuPortalPage() {
         ))}
       </nav>
 
-      <main className="max-w-4xl mx-auto p-4 sm:p-6">
+      <main className="mx-auto w-full min-w-0 max-w-4xl px-3 py-4 sm:p-6">
         {tab === "jornada" ? (
           <PortalRico
             cliente={cliente}

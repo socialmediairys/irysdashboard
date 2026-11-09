@@ -79,7 +79,7 @@ export function AdminSidebar({
         title={collapsed ? n.label : undefined}
         aria-current={active ? "page" : undefined}
         className={cn(
-          "relative flex h-9 items-center gap-3 rounded-md px-2.5 text-sm transition-colors",
+          "relative flex min-h-11 items-center gap-3 rounded-md px-2.5 text-sm transition-colors md:min-h-9",
           active
             ? "bg-sidebar-accent font-medium text-foreground"
             : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground",
@@ -106,7 +106,7 @@ export function AdminSidebar({
       )}
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 flex h-screen w-60 flex-col border-r border-sidebar-border bg-sidebar transition-[width,transform] duration-200",
+          "fixed left-0 top-0 z-40 flex h-[100dvh] w-[min(86vw,19rem)] flex-col border-r border-sidebar-border bg-sidebar transition-[width,transform] duration-200 md:w-60",
           collapsed ? "md:w-16" : "md:w-60",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
         )}

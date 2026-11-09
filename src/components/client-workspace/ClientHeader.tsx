@@ -31,16 +31,16 @@ export function ClientHeader({ ws }: { ws: Workspace }) {
       <Link to="/admin/clientes" className="mb-4 inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground">
         <ArrowLeft size={14} strokeWidth={1.6} /> Clientes
       </Link>
-      <div className="flex items-start gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-secondary text-base font-semibold text-muted-foreground">
+      <div className="flex min-w-0 items-start gap-2 sm:gap-4">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center sm:h-12 sm:w-12 rounded-lg bg-secondary text-base font-semibold text-muted-foreground">
           {(c.init || c.nome.charAt(0)).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold leading-tight tracking-tight text-foreground md:text-[28px]">{c.nome}</h1>
+            <h1 className="break-words text-xl font-semibold leading-tight sm:text-2xl tracking-tight text-foreground md:text-[28px]">{c.nome}</h1>
             <ClientStatusPill group={group} />
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">{meta.join(" · ")}</p>
+          <p className="mt-1 break-words text-sm text-muted-foreground">{meta.join(" · ")}</p>
         </div>
         {admin && <div className="flex shrink-0 items-center gap-2">
           <button onClick={() => openEdit("cliente", c)} className={cn(btnOutline, "hidden sm:inline-flex")}>

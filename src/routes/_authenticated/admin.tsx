@@ -53,7 +53,7 @@ function AdminLayout() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-[100dvh] min-h-0 overflow-hidden bg-background">
       <AdminSidebar
         roles={roles}
         collapsed={collapsed}
@@ -68,8 +68,8 @@ function AdminLayout() {
         )}
       >
         <AdminTopbar onOpenMobile={() => setMobileOpen(true)} />
-        <main ref={scrollRef} className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[1360px] px-4 py-6 md:px-8 md:py-8">
+        <main ref={scrollRef} className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
+          <div className="mx-auto min-w-0 max-w-[1360px] px-3 py-4 sm:px-4 sm:py-6 md:px-8 md:py-8">
             <Outlet />
           </div>
         </main>

@@ -50,7 +50,7 @@ export function AppShell({
           </div>
         )}
         <main className={cn("min-w-0 flex-1", contentClassName)}>
-          <div className="mx-auto max-w-[1400px] p-4 md:p-8">{children}</div>
+          <div className="mx-auto min-w-0 max-w-[1400px] p-3 sm:p-4 md:p-8">{children}</div>
         </main>
       </div>
     </div>

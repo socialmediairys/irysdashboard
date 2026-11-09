@@ -465,16 +465,16 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
       />
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <div className="flex rounded-md border border-border bg-card p-0.5" role="tablist" aria-label="Visualização">
+        <div className="mobile-scroll-tabs flex max-w-full overflow-x-auto rounded-md border border-border bg-card p-0.5" role="tablist" aria-label="Visualização">
           {VIEWS.map((v) => (
             <button key={v.key} role="tab" aria-selected={view === v.key} type="button" onClick={() => setView(v.key)}
-              className={`rounded px-3 py-1 text-[13px] ${view === v.key ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
+              className={`min-h-10 shrink-0 whitespace-nowrap rounded px-3 py-1 text-[13px] ${view === v.key ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}>
               {v.label}
             </button>
           ))}
         </div>
         <Select value={sprintFilter === NO_ACTIVE ? undefined : sprintFilter ?? ALL} onValueChange={selectSprint}>
-          <SelectTrigger className="h-8 w-auto min-w-[180px] text-[13px]" aria-label="Sprint"><SelectValue placeholder="Nenhuma sprint ativa" /></SelectTrigger>
+          <SelectTrigger className="h-10 w-full min-w-0 text-[13px] sm:w-auto sm:min-w-[180px]" aria-label="Sprint"><SelectValue placeholder="Nenhuma sprint ativa" /></SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>Todas as sprints</SelectItem>
             <SelectItem value={NONE}>Sem sprint</SelectItem>
@@ -556,7 +556,7 @@ export function SprintsBoard({ initialTaskId }: { initialTaskId?: string } = {})
               <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por título, cliente ou responsável" className="h-9 pl-8 text-[13px]" aria-label="Buscar tarefas" />
             </div>
             <Select value={statusF} onValueChange={setStatusF}>
-              <SelectTrigger className="h-9 w-[160px] text-[13px]" aria-label="Filtrar status"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-10 w-full text-[13px] sm:w-[160px]" aria-label="Filtrar status"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>Todos os status</SelectItem>
                 {TASK_STATUS.map((s) => <SelectItem key={s.key} value={s.key}>{s.label}</SelectItem>)}
