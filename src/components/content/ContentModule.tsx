@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight, Film, GripVertical, Images, Lightbulb, Plus,
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, closestCorners, pointerWithin, type CollisionDetection, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { byOrdem, contentDragCheck, ordemForDrop } from "@/lib/kanban";
 
@@ -12,13 +12,13 @@ const kanbanCollision: CollisionDetection = (args) => {
   if (hits.length) { const card = hits.find((h) => !String(h.id).startsWith("col:")); return card ? [card] : hits; }
   return closestCorners(args);
 };
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { btn, btnGhost, btnPrimary, inputCls } from "@/components/strategy/ui";
 import {
   APPROVAL_STATUSES, CANAIS, CONTENT_STATUS, CONTENT_STATUS_LABEL, CONTENT_STATUS_VARIANT, FORMATOS, WORKFLOW,
-  etapaMinhaFila, fmtShort, isLate, isoDay, parseLocal, useClientesLite, useContentActions, useConteudos, type Conteudo, type ContentStatus, type MinhaFilaEtapa,
+  etapaMinhaFila, fmtShort, isLate, isoDay, parseLocal, signedUrl, useClientesLite, useContentActions, useConteudos, type Conteudo, type ContentStatus, type MinhaFilaEtapa,
 } from "@/lib/content";
 import { cn } from "@/lib/utils";
 import { BatchIdeas } from "./BatchIdeas";
@@ -40,6 +40,7 @@ export function ContentModule({ clienteId, initialView = "calendario", initialOp
   const [view, setView] = useState<ContentView>(initialView);
   const [f, setF] = useState({ cliente: "", canal: "", formato: "", status: "", de: "", ate: "", q: "" });
   const [openId, setOpenId] = useState<string | null>(initialOpenId ?? null);
+  const [preview, setPreview] = useState<Conteudo | null>(null);
   const [creating, setCreating] = useState<null | "conteudo" | "ideia">(null);
   const [mes, setMes] = useMonthState(`conteudos:${clienteId ?? "all"}`);
 
@@ -91,7 +92,7 @@ export function ContentModule({ clienteId, initialView = "calendario", initialOp
         <>
           {view === "minha_fila" && <MinhaFilaView items={filtered} {...common} />}
           {view === "calendario" && <CalendarView key={clienteId ? mes : "all"} initialMonth={clienteId ? mes : undefined} items={filtered.filter((c) => c.status !== "ideia")} {...common} />}
-          {view === "producao" && <ProductionView items={filtered.filter((c) => c.status !== "ideia")} {...common} />}
+          {view === "producao" && <ProductionView items={filtered.filter((c) => c.status !== "ideia")} {...common} preview={setPreview} />}
           {view === "aprovacao" && <ListView items={filtered.filter((c) => APPROVAL_STATUSES.includes(c.status))} empty="Nada aguardando o cliente." {...common} />}
           {view === "publicados" && <ListView items={filtered.filter((c) => c.status === "publicado").reverse()} empty="Nenhum conteúdo publicado ainda." {...common} />}
           {view === "ideias" && <IdeasView items={filtered.filter((c) => c.status === "ideia")} {...common} />}
@@ -99,6 +100,7 @@ export function ContentModule({ clienteId, initialView = "calendario", initialOp
       )}
 
       <ContentDetail id={openId} onClose={() => setOpenId(null)} />
+      <MediaPreview content={preview} onClose={() => setPreview(null)} />
       <NewContentDialog mode={creating} onClose={() => setCreating(null)} clienteId={clienteId} mes={clienteId ? mes : undefined} clientes={clientes} onCreated={(id) => { setCreating(null); if (id) setOpenId(id); }} />
     </div>
   );
@@ -111,6 +113,66 @@ function Thumb({ c }: { c: Conteudo }) {
   if (!n) return null;
   const Icon = c.midias!.some((m) => m.tipo === "video") ? Film : Images;
   return <span className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground"><Icon size={11} strokeWidth={1.6} />{n > 1 ? n : ""}</span>;
+}
+
+/* Miniaturas sob demanda: URLs assinadas, com cache e sem tornar o bucket público. */
+function CardArtwork({ c, onPreview }: { c: Conteudo; onPreview: (c: Conteudo) => void }) {
+  const medias = [...(c.midias ?? [])].sort((a, b) => a.ordem - b.ordem);
+  const firstImage = medias.find((m) => m.tipo === "imagem");
+  const first = firstImage ?? medias[0];
+  const { data: url } = useQuery({
+    queryKey: ["content-card-art", first?.id, first?.storage_path],
+    queryFn: () => signedUrl("midias-conteudo", first!.storage_path),
+    enabled: !!first,
+    staleTime: 45 * 60 * 1000,
+    retry: 1,
+  });
+  if (!first) return null;
+  return (
+    <button type="button" aria-label={`Visualizar arte de ${c.titulo || "conteúdo"}`} title="Abrir prévia das artes"
+      onPointerDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onPreview(c); }}
+      className="group/art relative mb-2 block w-full overflow-hidden rounded-md border border-border bg-muted/40 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <div className="flex aspect-[4/5] max-h-56 w-full items-center justify-center overflow-hidden">
+        {first.tipo === "imagem" && url ? <img src={url} alt={`Arte de ${c.titulo || "conteúdo"}`} loading="lazy" className="h-full w-full object-contain" />
+          : <span className="flex flex-col items-center gap-1.5 text-xs text-muted-foreground">{first.tipo === "video" ? <Film size={24} /> : <Images size={24} />}{first.tipo === "video" ? "Visualizar vídeo" : "Carregando arte…"}</span>}
+      </div>
+      <span className="absolute bottom-1.5 right-1.5 rounded bg-background/90 px-2 py-1 text-[11px] font-medium text-foreground shadow-sm">{medias.length > 1 ? `${medias.length} mídias · ` : ""}Ampliar</span>
+    </button>
+  );
+}
+
+function MediaPreview({ content, onClose }: { content: Conteudo | null; onClose: () => void }) {
+  const medias = useMemo(() => [...(content?.midias ?? [])].sort((a, b) => a.ordem - b.ordem), [content]);
+  const [index, setIndex] = useState(0);
+  const touchStart = useRef<number | null>(null);
+  const { data: urls = [], isLoading } = useQuery({
+    queryKey: ["content-art-preview", content?.id, medias.map((m) => `${m.id}:${m.storage_path}`).join("|")],
+    queryFn: () => Promise.all(medias.map((m) => signedUrl("midias-conteudo", m.storage_path))),
+    enabled: !!content && medias.length > 0,
+    staleTime: 45 * 60 * 1000,
+  });
+  const at = Math.min(index, Math.max(0, medias.length - 1));
+  const selected = medias[at];
+  const go = (delta: number) => setIndex((n) => Math.max(0, Math.min(medias.length - 1, n + delta)));
+  return (
+    <Dialog open={!!content} onOpenChange={(open) => { if (!open) { onClose(); setIndex(0); } }}>
+      <DialogContent className="flex max-h-[95dvh] w-[calc(100vw-1rem)] max-w-3xl flex-col gap-3 overflow-hidden p-3 sm:p-5">
+        <DialogHeader className="pr-8"><DialogTitle className="line-clamp-2 text-sm sm:text-base">{content?.titulo || "Prévia da arte"}</DialogTitle><DialogDescription>Visualização da produção · {medias.length ? `${at + 1} de ${medias.length}` : "sem mídia"}</DialogDescription></DialogHeader>
+        <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-lg bg-muted/50"
+          onTouchStart={(e) => { touchStart.current = e.touches[0]?.clientX ?? null; }}
+          onTouchEnd={(e) => { if (touchStart.current === null) return; const delta = (e.changedTouches[0]?.clientX ?? touchStart.current) - touchStart.current; if (Math.abs(delta) > 45) go(delta < 0 ? 1 : -1); touchStart.current = null; }}>
+          {isLoading ? <p className="p-10 text-sm text-muted-foreground">Carregando prévia…</p> : selected && urls[at] ? (
+            selected.tipo === "video" ? <video key={selected.id} src={urls[at]} controls playsInline className="max-h-[68dvh] w-full object-contain" /> :
+            <img src={urls[at]} alt={`Arte ${at + 1} de ${medias.length}`} className="max-h-[68dvh] max-w-full object-contain" />
+          ) : <p className="p-10 text-sm text-muted-foreground">Não foi possível carregar esta mídia.</p>}
+          {at > 0 && <button type="button" aria-label="Imagem anterior" onClick={() => go(-1)} className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 shadow-md"><ChevronLeft size={24} /></button>}
+          {at < medias.length - 1 && <button type="button" aria-label="Próxima imagem" onClick={() => go(1)} className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-background/90 shadow-md"><ChevronRight size={24} /></button>}
+        </div>
+        {medias.length > 1 && <div className="flex items-center justify-center gap-3"><button type="button" onClick={() => go(-1)} disabled={at === 0} className="rounded border px-3 py-2 text-xs disabled:opacity-40">Anterior</button><span className="text-xs text-muted-foreground">{at + 1} / {medias.length} · Deslize para navegar</span><button type="button" onClick={() => go(1)} disabled={at === medias.length - 1} className="rounded border px-3 py-2 text-xs disabled:opacity-40">Próxima</button></div>}
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 /* ---------- Fila operacional baseada nas duas aprovações ---------- */
@@ -247,9 +309,10 @@ const DOT: Record<ContentStatus, string> = {
 };
 
 /* ---------- Produção (Kanban no desktop, etapa única no mobile) ---------- */
-function ProdCard({ c, cli, showClient, handle }: { c: Conteudo; cli: (id: string) => string; showClient: boolean; handle?: React.HTMLAttributes<HTMLButtonElement> }) {
+function ProdCard({ c, cli, showClient, handle, preview }: { c: Conteudo; cli: (id: string) => string; showClient: boolean; handle?: React.HTMLAttributes<HTMLButtonElement>; preview?: (c: Conteudo) => void }) {
   return (
     <div className={cn("rounded-md border border-border bg-card p-2.5 hover:border-foreground/30", isLate(c) && "border-l-2 border-l-destructive")}>
+      {preview && <CardArtwork c={c} onPreview={preview} />}
       <div className="flex items-start gap-1.5">
         <div className="min-w-0 flex-1 text-[13px] font-medium leading-snug text-foreground">{c.titulo || "Sem título"}</div>
         {handle && <button type="button" aria-label="Arrastar para reordenar" onClick={(e) => e.stopPropagation()} className="-m-1 shrink-0 cursor-grab touch-none rounded p-1.5 text-muted-foreground hover:bg-muted active:cursor-grabbing" {...handle}><GripVertical size={14} /></button>}
@@ -265,12 +328,12 @@ function ProdCard({ c, cli, showClient, handle }: { c: Conteudo; cli: (id: strin
   );
 }
 
-function SortableProd({ c, cli, open, showClient }: { c: Conteudo; cli: (id: string) => string; open: (id: string) => void; showClient: boolean }) {
+function SortableProd({ c, cli, open, showClient, preview }: { c: Conteudo; cli: (id: string) => string; open: (id: string) => void; showClient: boolean; preview: (c: Conteudo) => void }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: c.id });
   return (
     <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.35 : 1 }} {...attributes}
       role="button" tabIndex={0} onClick={() => open(c.id)} onKeyDown={(e) => { if (e.key === "Enter") open(c.id); }} className="cursor-pointer">
-      <ProdCard c={c} cli={cli} showClient={showClient} handle={listeners as unknown as React.HTMLAttributes<HTMLButtonElement>} />
+      <ProdCard c={c} cli={cli} showClient={showClient} preview={preview} handle={listeners as unknown as React.HTMLAttributes<HTMLButtonElement>} />
     </div>
   );
 }
@@ -287,7 +350,7 @@ function ProdColumn({ s, count, highlight, children }: { s: ContentStatus; count
   );
 }
 
-function ProductionView({ items, cli, open, showClient }: ViewProps) {
+function ProductionView({ items, cli, open, showClient, preview }: ViewProps & { preview: (c: Conteudo) => void }) {
   const a = useContentActions();
   const qc = useQueryClient();
   const [mobileStatus, setMobileStatus] = useState<ContentStatus>("em_producao");
@@ -329,7 +392,7 @@ function ProductionView({ items, cli, open, showClient }: ViewProps) {
           return (
             <SortableContext key={s} items={list.map((c) => c.id)} strategy={verticalListSortingStrategy}>
               <ProdColumn s={s} count={list.length} highlight={!!dragId && overCol === s}>
-                {list.map((c) => <SortableProd key={c.id} c={c} cli={cli} open={open} showClient={showClient} />)}
+                {list.map((c) => <SortableProd key={c.id} c={c} cli={cli} open={open} showClient={showClient} preview={preview} />)}
               </ProdColumn>
             </SortableContext>
           );
@@ -343,7 +406,7 @@ function ProductionView({ items, cli, open, showClient }: ViewProps) {
           <div className="space-y-2">
             {col(mobileStatus).map((c) => (
               <div key={c.id} className="space-y-1.5">
-                <SortableProd c={c} cli={cli} open={open} showClient={showClient} />
+                <SortableProd c={c} cli={cli} open={open} showClient={showClient} preview={preview} />
                 <select value={c.status} onChange={(e) => {
                   const to = e.target.value as ContentStatus; const ck = contentDragCheck(c.status, to);
                   if (!ck.ok) { toast.error(ck.reason); return; }
