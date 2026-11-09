@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Film, GripVertical, Images, Lightbulb, Plus, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Film, GripVertical, Images, Lightbulb, Plus, Search, ListTodo } from "lucide-react";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, closestCorners, pointerWithin, type CollisionDetection, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -18,7 +18,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { btn, btnGhost, btnPrimary, inputCls } from "@/components/strategy/ui";
 import {
   APPROVAL_STATUSES, CANAIS, CONTENT_STATUS, CONTENT_STATUS_LABEL, CONTENT_STATUS_VARIANT, FORMATOS, WORKFLOW,
-  fmtShort, isLate, isoDay, parseLocal, useClientesLite, useContentActions, useConteudos, type Conteudo, type ContentStatus,
+  etapaMinhaFila, fmtShort, isLate, isoDay, parseLocal, useClientesLite, useContentActions, useConteudos, type Conteudo, type ContentStatus, type MinhaFilaEtapa,
 } from "@/lib/content";
 import { cn } from "@/lib/utils";
 import { BatchIdeas } from "./BatchIdeas";
@@ -26,9 +26,9 @@ import { ContentDetail } from "./ContentDetail";
 import { MonthNav, useMonthState } from "./MonthNav";
 import { competencia, monthLabel, parseLocal as _pl } from "@/lib/content";
 
-export type ContentView = "calendario" | "producao" | "aprovacao" | "publicados" | "ideias";
+export type ContentView = "calendario" | "producao" | "aprovacao" | "publicados" | "ideias" | "minha_fila";
 const VIEWS: { key: ContentView; label: string }[] = [
-  { key: "calendario", label: "Calendário" }, { key: "producao", label: "Produção" },
+  { key: "minha_fila", label: "Minha fila" }, { key: "calendario", label: "Calendário" }, { key: "producao", label: "Produção" },
   { key: "aprovacao", label: "Em aprovação" }, { key: "publicados", label: "Publicados" }, { key: "ideias", label: "Ideias" },
 ];
 
@@ -89,6 +89,7 @@ export function ContentModule({ clienteId, initialView = "calendario", initialOp
       {error && <div className="text-sm text-destructive">Não foi possível carregar os conteúdos.</div>}
       {!isLoading && !error && (
         <>
+          {view === "minha_fila" && <MinhaFilaView items={filtered} {...common} />}
           {view === "calendario" && <CalendarView key={clienteId ? mes : "all"} initialMonth={clienteId ? mes : undefined} items={filtered.filter((c) => c.status !== "ideia")} {...common} />}
           {view === "producao" && <ProductionView items={filtered.filter((c) => c.status !== "ideia")} {...common} />}
           {view === "aprovacao" && <ListView items={filtered.filter((c) => APPROVAL_STATUSES.includes(c.status))} empty="Nada aguardando o cliente." {...common} />}
@@ -108,8 +109,42 @@ type ViewProps = { items: Conteudo[]; cli: (id: string) => string; open: (id: st
 function Thumb({ c }: { c: Conteudo }) {
   const n = c.midias?.length ?? 0;
   if (!n) return null;
-  const Icon = c.midias?.some((m) => m.tipo === "video") ? Film : Images;
+  const Icon = c.midias!.some((m) => m.tipo === "video") ? Film : Images;
   return <span className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground"><Icon size={11} strokeWidth={1.6} />{n > 1 ? n : ""}</span>;
+}
+
+/* ---------- Fila operacional baseada nas duas aprovações ---------- */
+const MINHA_FILA_GRUPOS: { id: MinhaFilaEtapa; titulo: string; descricao: string }[] = [
+  { id: "ajustar_ideia", titulo: "Ajustar ideia", descricao: "Cliente pediu mudanças antes da produção" },
+  { id: "produzir", titulo: "Produzir arte e legenda", descricao: "Ideia aprovada: completar a produção e reenviar" },
+  { id: "ajustar_producao", titulo: "Ajustar arte ou legenda", descricao: "Correções solicitadas na produção final" },
+  { id: "agendar", titulo: "Pronto para agendar", descricao: "Arte e legenda aprovadas pelo cliente" },
+  { id: "aguardando_cliente", titulo: "Aguardando cliente", descricao: "Ideia ou produção enviada para aprovação" },
+];
+
+function MinhaFilaView({ items, cli, open, showClient }: ViewProps) {
+  const grupos = MINHA_FILA_GRUPOS.map((g) => ({ ...g, conteudos: items.filter((c) => etapaMinhaFila(c) === g.id).sort(byOrdem) }));
+  const pendencias = grupos.filter((g) => g.id !== "aguardando_cliente").reduce((sum, g) => sum + g.conteudos.length, 0);
+  return (
+    <section className="space-y-4" aria-label="Minha fila de trabalho">
+      <div className="flex items-center gap-2"><ListTodo size={18} /><h2 className="font-semibold">Minha fila de trabalho</h2><span className="text-[12px] text-muted-foreground">{pendencias} pendência(s) minhas · todos os clientes filtrados</span></div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {grupos.map((g) => (
+          <section key={g.id} className="min-w-0 rounded-lg border border-border bg-card">
+            <div className="border-b border-border px-4 py-3"><div className="flex justify-between gap-2 text-sm font-semibold"><h3>{g.titulo}</h3><span>{g.conteudos.length}</span></div><p className="text-[12px] text-muted-foreground">{g.descricao}</p></div>
+            <div className="divide-y divide-border">
+              {g.conteudos.length ? g.conteudos.map((c) => (
+                <button key={c.id} onClick={() => open(c.id)} className="flex w-full items-center gap-2 px-4 py-3 text-left hover:bg-accent/50">
+                  <span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-medium">{c.titulo || "Sem título"}</span><span className="block truncate text-[12px] text-muted-foreground">{showClient ? `${cli(c.cliente_id)} · ` : ""}{[c.canal, c.formato, fmtShort(c.data_prevista)].filter(Boolean).join(" · ")}</span></span>
+                  <ChevronRight size={15} className="shrink-0 text-muted-foreground" />
+                </button>
+              )) : <p className="px-4 py-5 text-[12px] text-muted-foreground">Nenhum conteúdo nesta etapa.</p>}
+            </div>
+          </section>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 /* ---------- Calendário (Mês | Semana) ---------- */
@@ -190,7 +225,7 @@ function CalendarView({ items, cli, open, showClient, initialMonth }: ViewProps 
         {days.filter((d) => (mode === "semana" || d.getMonth() === ref.getMonth()) && byDay.has(isoDay(d))).map((d) => (
           <div key={isoDay(d)}>
             <div className="mb-1 text-[12px] font-medium capitalize text-muted-foreground">{d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" })}</div>
-            <div className="space-y-1">{(byDay.get(isoDay(d)) ?? []).map((c) => <Chip key={c.id} c={c} />)}</div>
+            <div className="space-y-1">{byDay.get(isoDay(d))!.map((c) => <Chip key={c.id} c={c} />)}</div>
           </div>
         ))}
         {!days.some((d) => (mode === "semana" || d.getMonth() === ref.getMonth()) && byDay.has(isoDay(d))) && <p className="py-6 text-center text-sm text-muted-foreground">Nenhum conteúdo neste período.</p>}
