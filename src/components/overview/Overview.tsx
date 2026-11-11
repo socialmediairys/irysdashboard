@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { AgencyHealth } from "./AgencyHealth";
 import { ClientsAttention } from "./ClientsAttention";
 import { ContentProduction } from "./ContentProduction";
 import { OverviewSection } from "./OverviewSection";
@@ -35,6 +36,14 @@ export function Overview() {
 
       {data && (
         <>
+          <section className="space-y-3">
+            <div>
+              <h2 className="text-base font-semibold text-foreground">Saúde da agência</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Quatro visões para decidir o que precisa de atenção. Dados dos registros do Irys.</p>
+            </div>
+            <AgencyHealth data={data.health} show={{ ...show, comercial: can("/admin/crm") }} />
+          </section>
+
           <OverviewStats stats={data.stats} show={show} />
 
           <OverviewSection

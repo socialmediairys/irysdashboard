@@ -72,6 +72,12 @@ export type OverviewData = {
   week: { date: Date; items: { id: string; kind: "reuniao" | "tarefa"; title: string; time?: string; cliente?: string; to: string; search?: Record<string, string>; href?: string; sort?: number }[] }[];
   attention: AttentionClient[];
   activity: ActivityItem[];
+  health: {
+    financial: { received: number; expenses: number; overdueReceivables: number; overdueCount: number; operationalBalance: number };
+    commercial: { openLeads: number; proposals: number; overdueFollowUps: number; upcomingFollowUps: number };
+    clients: { active: number; attention: number; expiringContracts: number; pendingOnboarding: number };
+    operations: { overdueTasks: number; pendingApproval: number; readyToSchedule: number; revisions: number };
+  };
 };
 
 const DAY = 86_400_000;
@@ -87,7 +93,7 @@ async function load(): Promise<OverviewData> {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
 
   const { data: u } = await supabase.auth.getUser();
-  const [prof, cli, tar, ag, pipe, tick, fin, onb, arq, cont] = await Promise.all([
+  const [prof, cli, tar, ag, pipe, tick, fin, onb, arq, cont, outgoing, leadsResult] = await Promise.all([
     u.user ? supabase.from("profiles").select("nome").eq("id", u.user.id).maybeSingle() : Promise.resolve({ data: null }),
     supabase.from("clientes").select("id,nome,status_contrato,valor_mensal,data_vencimento_contrato,created_at,updated_at"),
     supabase.from("tarefas").select("id,titulo,status,prazo,cliente_id,updated_at").order("updated_at", { ascending: false }).limit(500),
@@ -95,12 +101,15 @@ async function load(): Promise<OverviewData> {
       .gte("data_hora", today.toISOString()).lt("data_hora", in7.toISOString()).order("data_hora"),
     supabase.from("pipeline_status").select("cliente_id,etapa,status").eq("mes", currentMes()).eq("status", "travado"),
     supabase.from("suporte_tickets").select("id,assunto,cliente_id,data_abertura,status").neq("status", "resolvido"),
-    supabase.from("entradas_financeiras").select("id,descricao,valor,data_ref,status_pagamento,cliente_id").gte("data_ref", monthStart),
+    supabase.from("entradas_financeiras").select("id,descricao,valor,data_ref,status_pagamento,cliente_id"),
     supabase.from("onboarding_checklist").select("cliente_id,concluido").eq("concluido", false),
     supabase.from("arquivos").select("id,titulo,nome_original,cliente_id,created_at").order("created_at", { ascending: false }).limit(5),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase as any).from("conteudos").select("id,titulo,status,data_prevista,cliente_id,legenda,midias:conteudo_midias(id)").neq("status", "ideia").limit(2000),
+    supabase.from("saidas_financeiras").select("valor,data_ref").gte("data_ref", monthStart),
+    supabase.from("leads").select("id,etapa,data_proxima_acao,status"),
   ]);
+  if (outgoing.error || leadsResult.error) throw new Error("Não foi possível carregar os indicadores financeiros ou comerciais.");
   const conteudos = (cont.data ?? []) as { id: string; titulo: string; status: string; data_prevista: string | null; cliente_id: string; legenda: string | null; midias: { id: string }[] }[];
 
   const clientes = (cli.data ?? []) as ClienteLite[];
@@ -116,7 +125,17 @@ async function load(): Promise<OverviewData> {
   const semana = abertas.filter((t) => { const d = parseDate(t.prazo!); return d >= today && d < weekEnd; });
 
   const entradas = (fin.data ?? []) as { id: string; descricao: string; valor: number; data_ref: string; status_pagamento: string; cliente_id: string | null }[];
-  const recebidoMes = entradas.filter((e) => e.status_pagamento === "pago").reduce((s, e) => s + Number(e.valor || 0), 0);
+  const monthKey = monthStart.slice(0, 7);
+  const entradasMes = entradas.filter((e) => e.data_ref.slice(0, 7) === monthKey);
+  const recebidoMes = entradasMes.filter((e) => e.status_pagamento === "pago").reduce((s, e) => s + Number(e.valor || 0), 0);
+  const despesasMes = (outgoing.data ?? []).filter((e) => e.data_ref.slice(0, 7) === monthKey)
+    .reduce((sum, e) => sum + Number(e.valor || 0), 0);
+  const recebimentosVencidos = entradas.filter((e) => e.status_pagamento !== "pago" && parseDate(e.data_ref) < today);
+  const leads = (leadsResult.data ?? []) as { id: string; etapa: string; data_proxima_acao: string | null; status: string }[];
+  const leadsAbertos = leads.filter((l) => !["Fechado", "Perdido"].includes(l.etapa));
+  const followUpsAtrasados = leadsAbertos.filter((l) => l.data_proxima_acao && parseDate(l.data_proxima_acao) < today);
+  const followUpsProximos = leadsAbertos.filter((l) => l.data_proxima_acao && parseDate(l.data_proxima_acao) >= today && parseDate(l.data_proxima_acao) < in7);
+
 
   const p: Priority[] = [];
   const cn = (id: string | null) => (id ? nomeDe.get(id) ?? null : null);
@@ -237,6 +256,33 @@ async function load(): Promise<OverviewData> {
     week,
     attention,
     activity: activity.slice(0, 8),
+    health: {
+      financial: {
+        received: recebidoMes,
+        expenses: despesasMes,
+        overdueReceivables: recebimentosVencidos.reduce((sum, e) => sum + Number(e.valor || 0), 0),
+        overdueCount: recebimentosVencidos.length,
+        operationalBalance: recebidoMes - despesasMes,
+      },
+      commercial: {
+        openLeads: leadsAbertos.length,
+        proposals: leadsAbertos.filter((l) => l.etapa === "Proposta Enviada").length,
+        overdueFollowUps: followUpsAtrasados.length,
+        upcomingFollowUps: followUpsProximos.length,
+      },
+      clients: {
+        active: ativos.length,
+        attention: attention.length,
+        expiringContracts: ativos.filter((c) => c.data_vencimento_contrato && parseDate(c.data_vencimento_contrato).getTime() - today.getTime() <= 30 * DAY).length,
+        pendingOnboarding: onbPend.size,
+      },
+      operations: {
+        overdueTasks: atrasadas.length,
+        pendingApproval: cnt("com_cliente"),
+        readyToSchedule: cnt("aprovado"),
+        revisions: cnt("alteracao_solicitada", "revisao_interna"),
+      },
+    },
   };
 }
 
